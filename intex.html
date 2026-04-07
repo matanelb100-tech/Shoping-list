@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>הסל החכם שלנו</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+
+    <style>
+        :root { --primary: #2563eb; --bg: #f1f5f9; --text: #1e293b; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-top: env(safe-area-inset-top); }
+        
+        .header { text-align: center; margin-bottom: 15px; }
+        .family-tag { background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        
+        /* Input Area */
+        .input-card { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); position: sticky; top: 10px; z-index: 1000; margin-bottom: 20px; }
+        .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        input[type="text"] { flex: 1; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 16px; outline: none; transition: 0.2s; }
+        input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        .icon-btn { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; font-size: 20px; cursor: pointer; flex-shrink: 0; }
+        .add-btn { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; width: 100%; font-size: 16px; }
+
+        /* Scanner Viewport */
+        #interactive.viewport { width: 100%; height: 200px; display: none; margin-bottom: 10px; border-radius: 12px; overflow: hidden; background: #000; position: relative; }
+        #interactive video, #interactive canvas { width: 100%; height: 100%; object-fit: cover; }
+
+        /* List Styling */
+        .category-section { margin-bottom: 20px; }
+        .category-header { font-size: 13px; font-weight: 800; color: #64748b; margin-bottom: 6px; padding-right: 5px; }
+        .items-container { background: white; border-radius: 15px; overflow: hidden; }
+        .list-item { padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
+        .list-item:last-child { border-bottom: none; }
+        .delete-btn { color: #cbd5e1; border: none; background: none; font-size: 20px; padding: 5px; cursor: pointer; }
+        
+        .recording { background: #fee2e2 !important; border-color: #ef4444 !important; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <span id="tagDisplay" class="family-tag">טוען משפחה...</span>
+    </div>
+
+    <div class="input-card">
+        <div id="interactive" class="viewport"></div>
+        <div class="input-row">
+            <input type="text" id="itemIn" placeholder="חלב, גבינה, במבה...">
+            <button class="icon-btn" id="voiceBtn" onclick="startVoice()">🎙️</button>
+            <button class="icon-btn" id="scanBtn" onclick="toggleScanner()">📷</button>
+        </div>
+        <button class="add-btn" onclick="processAndAdd()">הוסף לסל</button>
+    </div>
+
+    <div id="mainList"></div>
+
+    <script>
+        // --- Firebase Config ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyB0ofm8cUnZ1pAQS3ZKvenV83bSa_FvH_A",
+          authDomain: "mytasksapp-68e71.firebaseapp.com",
+          projectId: "mytasksapp-68e71",
+          storageBucket: "mytasksapp-68e71.firebasestorage.app",
+          messagingSenderId: "673661240265",
+          appId: "1:673661240265:web:2eb7aad37f608be6be1e18"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let familyID = localStorage.getItem('shopping_familyID') || prompt("קוד משפחתי:");
+        localStorage.setItem('shopping_familyID', familyID);
+        document.getElementById('tagDisplay').innerText = "משפחת: " + familyID;
+
+        // --- AI Classification Engine ---
+        const dictionary = {
+            "🥦 ירקות ופירות": ["עגבני", "מלפפון", "בצל", "תפוח", "בננה", "חסה", "גזר", "פלפל", "לימון", "תפוז", "תפוח אדמה", "קישוא"],
+            "🥛 מוצרי חלב וביצים": ["חלב", "גבינה", "יוגורט", "קוטג", "חמאה", "ביצים", "שמנת", "צהובה", "מעדן", "לאבנה"],
+            "🥩 בשר ודגים": ["עוף", "בשר", "דג", "סינטה", "נקניק", "המבורגר", "שניצל", "פרגיות", "סלמון", "טונה"],
+            "🍞 מאפייה": ["לחם", "פיתה", "לחמניה", "חלה", "עוגה", "עוגיות", "בורקס", "פירורי לחם"],
+            "🧼 ניקיון ופארם": ["שמפו", "סבון", "נייר", "כביסה", "שיניים", "חיתול", "מגבון", "כלים", "סמרטוט"],
+            "🍭 חטיפים ומתוקים": ["במבה", "ביסלי", "שוקולד", "חטיף", "מסטיק", "סוכריות", "וופל"],
+            "🥫 מזווה ושימורים": ["אורז", "פסטה", "שמן", "סוכר", "מלח", "קמח", "שימורים", "פתיתים", "קפה", "תה", "קטשופ", "חומוס"]
+        };
+
+        function getCategory(text) {
+            for (let cat in dictionary) {
+                if (dictionary[cat].some(k => text.includes(k))) return cat;
+            }
+            return "📦 כללי";
+        }
+
+        // --- Core Functions ---
+        function processAndAdd(specificText = null) {
+            const input = document.getElementById('itemIn');
+            const text = specificText || input.value.trim();
+            if (!text) return;
+
+            db.collection("families").doc(familyID).collection("smartList").add({
+                name: text,
+                category: getCategory(text),
+                timestamp: Date.now()
+            });
+            input.value = "";
+        }
+
+        // --- Voice-to-Text ---
+        function startVoice() {
+            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!Speech) return alert("הדפדפן לא תומך בהקלטה");
+            const rec = new Speech();
+            rec.lang = 'he-IL';
+            rec.onstart = () => document.getElementById('voiceBtn').classList.add('recording');
+            rec.onresult = (e) => {
+                document.getElementById('itemIn').value = e.results[0][0].transcript;
+                document.getElementById('voiceBtn').classList.remove('recording');
+            };
+            rec.onerror = () => document.getElementById('voiceBtn').classList.remove('recording');
+            rec.start();
+        }
+
+        // --- Barcode Scanner + Product API ---
+        let isScannerOn = false;
+        function toggleScanner() {
+            const vp = document.getElementById('interactive');
+            if (isScannerOn) {
+                Quagga.stop();
+                vp.style.display = 'none';
+                isScannerOn = false;
+            } else {
+                vp.style.display = 'block';
+                isScannerOn = true;
+                Quagga.init({
+                    inputStream: { name: "Live", type: "LiveStream", target: vp, constraints: { facingMode: "environment" } },
+                    decoder: { readers: ["ean_reader", "ean_8_reader"] }
+                }, (err) => {
+                    if (err) { alert("שגיאה במצלמה"); return; }
+                    Quagga.start();
+                });
+            }
+        }
+
+        Quagga.onDetected(async (data) => {
+            const code = data.codeResult.code;
+            toggleScanner();
+            
+            // Fetch product name from Open Food Facts
+            try {
+                const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
+                const json = await res.json();
+                const productName = json.product?.product_name_he || json.product?.product_name || "מוצר לא מזוהה (" + code + ")";
+                processAndAdd(productName);
+            } catch (e) {
+                processAndAdd("ברקוד: " + code);
+            }
+        });
+
+        // --- UI Rendering ---
+        db.collection("families").doc(familyID).collection("smartList")
+        .orderBy("timestamp", "desc")
+        .onSnapshot((snap) => {
+            const items = [];
+            snap.forEach(doc => items.push({id: doc.id, ...doc.data()}));
+            
+            const main = document.getElementById('mainList');
+            main.innerHTML = '';
+            const groups = items.reduce((acc, i) => { (acc[i.category] = acc[i.category] || []).push(i); return acc; }, {});
+
+            for (let cat in groups) {
+                const sec = document.createElement('div');
+                sec.className = 'category-section';
+                sec.innerHTML = `<div class="category-header">${cat}</div><div class="items-container">` +
+                    groups[cat].map(i => `<div class="list-item"><span>${i.name}</span><button class="delete-btn" onclick="deleteItem('${i.id}')">✕</button></div>`).join('') +
+                    `</div>`;
+                main.appendChild(sec);
+            }
+        });
+
+        function deleteItem(id) { db.collection("families").doc(familyID).collection("smartList").doc(id).delete(); }
+    </script>
+</body>
+</html>
