@@ -3,63 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>הסל החכם שלנו</title>
+    <title>הסל החכם - משפחת {{familyID}}</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 
     <style>
-        :root { --primary: #2563eb; --bg: #f1f5f9; --text: #1e293b; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-top: env(safe-area-inset-top); }
+        :root { --primary: #075e54; --secondary: #25d366; --bg: #e5ddd5; }
+        body { 
+            font-family: -apple-system, sans-serif; background-color: var(--bg);
+            background-image: url('https://www.transparenttextures.com/patterns/food.png');
+            margin: 0; padding: 10px; min-height: 100vh; padding-bottom: 80px;
+        }
+        .logo-row { text-align: center; padding: 10px 0; }
+        .logo-row img { height: 35px; }
+        .family-tag { display: block; text-align: center; background: white; padding: 5px; border-radius: 20px; font-weight: bold; font-size: 14px; margin-bottom: 10px; border: 1px solid #ccc; }
         
-        .header { text-align: center; margin-bottom: 15px; }
-        .family-tag { background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .input-card { background: white; border-radius: 15px; padding: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: sticky; top: 10px; z-index: 100; margin-bottom: 15px; }
+        .input-row { display: flex; gap: 5px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; outline: none; }
+        .btn { background: #f0f0f0; border: 1px solid #ddd; border-radius: 10px; padding: 10px; font-size: 20px; cursor: pointer; }
+        .add-btn { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 10px; font-weight: bold; margin-top: 8px; font-size: 16px; }
+
+        #interactive.viewport { width: 100%; height: 180px; display: none; margin-bottom: 10px; border-radius: 12px; overflow: hidden; background: #000; }
         
-        /* Input Area */
-        .input-card { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); position: sticky; top: 10px; z-index: 1000; margin-bottom: 20px; }
-        .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
-        input[type="text"] { flex: 1; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 16px; outline: none; transition: 0.2s; }
-        input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
-        .icon-btn { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; font-size: 20px; cursor: pointer; flex-shrink: 0; }
-        .add-btn { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; width: 100%; font-size: 16px; }
-
-        /* Scanner Viewport */
-        #interactive.viewport { width: 100%; height: 200px; display: none; margin-bottom: 10px; border-radius: 12px; overflow: hidden; background: #000; position: relative; }
-        #interactive video, #interactive canvas { width: 100%; height: 100%; object-fit: cover; }
-
-        /* List Styling */
-        .category-section { margin-bottom: 20px; }
-        .category-header { font-size: 13px; font-weight: 800; color: #64748b; margin-bottom: 6px; padding-right: 5px; }
-        .items-container { background: white; border-radius: 15px; overflow: hidden; }
-        .list-item { padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
+        .category-header { font-size: 14px; font-weight: bold; color: #555; margin: 15px 5px 5px; }
+        .items-container { background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .list-item { padding: 12px 15px; display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f0; align-items: center; }
         .list-item:last-child { border-bottom: none; }
-        .delete-btn { color: #cbd5e1; border: none; background: none; font-size: 20px; padding: 5px; cursor: pointer; }
+        .item-price { font-size: 12px; color: #888; margin-right: 5px; }
         
-        .recording { background: #fee2e2 !important; border-color: #ef4444 !important; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .footer-summary { position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 18px; box-shadow: 0 -4px 10px rgba(0,0,0,0.2); z-index: 1000; }
+        .recording { background: #ff4b2b !important; color: white !important; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <span id="tagDisplay" class="family-tag">טוען משפחה...</span>
-    </div>
+    <div class="logo-row"><img src="https://cdn-icons-png.flaticon.com/512/3724/3724720.png"></div>
+    <div id="tagDisplay" class="family-tag">טוען...</div>
 
     <div class="input-card">
         <div id="interactive" class="viewport"></div>
         <div class="input-row">
-            <input type="text" id="itemIn" placeholder="חלב, גבינה, במבה...">
-            <button class="icon-btn" id="voiceBtn" onclick="startVoice()">🎙️</button>
-            <button class="icon-btn" id="scanBtn" onclick="toggleScanner()">📷</button>
+            <input type="text" id="itemIn" placeholder="מה לקנות?">
+            <button class="btn" id="voiceBtn" onclick="startVoice()">🎙️</button>
+            <button class="btn" onclick="toggleScanner()">📷</button>
         </div>
         <button class="add-btn" onclick="processAndAdd()">הוסף לסל</button>
     </div>
 
     <div id="mainList"></div>
+    <div id="footerTotal" class="footer-summary">סה"כ משוער: 0.00 ₪</div>
 
     <script>
-        // --- Firebase Config ---
         const firebaseConfig = {
           apiKey: "AIzaSyB0ofm8cUnZ1pAQS3ZKvenV83bSa_FvH_A",
           authDomain: "mytasksapp-68e71.firebaseapp.com",
@@ -75,111 +73,76 @@
         localStorage.setItem('shopping_familyID', familyID);
         document.getElementById('tagDisplay').innerText = "משפחת: " + familyID;
 
-        // --- AI Classification Engine ---
-        const dictionary = {
-            "🥦 ירקות ופירות": ["עגבני", "מלפפון", "בצל", "תפוח", "בננה", "חסה", "גזר", "פלפל", "לימון", "תפוז", "תפוח אדמה", "קישוא"],
-            "🥛 מוצרי חלב וביצים": ["חלב", "גבינה", "יוגורט", "קוטג", "חמאה", "ביצים", "שמנת", "צהובה", "מעדן", "לאבנה"],
-            "🥩 בשר ודגים": ["עוף", "בשר", "דג", "סינטה", "נקניק", "המבורגר", "שניצל", "פרגיות", "סלמון", "טונה"],
-            "🍞 מאפייה": ["לחם", "פיתה", "לחמניה", "חלה", "עוגה", "עוגיות", "בורקס", "פירורי לחם"],
-            "🧼 ניקיון ופארם": ["שמפו", "סבון", "נייר", "כביסה", "שיניים", "חיתול", "מגבון", "כלים", "סמרטוט"],
-            "🍭 חטיפים ומתוקים": ["במבה", "ביסלי", "שוקולד", "חטיף", "מסטיק", "סוכריות", "וופל"],
-            "🥫 מזווה ושימורים": ["אורז", "פסטה", "שמן", "סוכר", "מלח", "קמח", "שימורים", "פתיתים", "קפה", "תה", "קטשופ", "חומוס"]
+        // מחירון בסיסי למתן הערכה
+        const priceMap = {
+            "חלב": 6.8, "לחם": 9, "ביצים": 14, "קוטג": 6, "גבינה": 7,
+            "עגבני": 6, "מלפפון": 5, "בצל": 4, "תפוח": 9, "בננה": 8,
+            "עוף": 35, "בשר": 60, "דג": 45, "במבה": 4, "ביסלי": 4, "שוקולד": 6
         };
 
-        function getCategory(text) {
-            for (let cat in dictionary) {
-                if (dictionary[cat].some(k => text.includes(k))) return cat;
-            }
-            return "📦 כללי";
+        function getEstimate(name) {
+            for (let k in priceMap) { if (name.includes(k)) return priceMap[k]; }
+            return 0;
         }
 
-        // --- Core Functions ---
-        function processAndAdd(specificText = null) {
+        function processAndAdd(val = null) {
             const input = document.getElementById('itemIn');
-            const text = specificText || input.value.trim();
+            const text = val || input.value.trim();
             if (!text) return;
-
             db.collection("families").doc(familyID).collection("smartList").add({
                 name: text,
-                category: getCategory(text),
+                price: getEstimate(text),
                 timestamp: Date.now()
             });
             input.value = "";
         }
 
-        // --- Voice-to-Text ---
         function startVoice() {
-            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!Speech) return alert("הדפדפן לא תומך בהקלטה");
-            const rec = new Speech();
+            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             rec.lang = 'he-IL';
             rec.onstart = () => document.getElementById('voiceBtn').classList.add('recording');
-            rec.onresult = (e) => {
-                document.getElementById('itemIn').value = e.results[0][0].transcript;
-                document.getElementById('voiceBtn').classList.remove('recording');
-            };
-            rec.onerror = () => document.getElementById('voiceBtn').classList.remove('recording');
+            rec.onresult = (e) => { processAndAdd(e.results[0][0].transcript); };
+            rec.onend = () => document.getElementById('voiceBtn').classList.remove('recording');
             rec.start();
         }
 
-        // --- Barcode Scanner + Product API ---
-        let isScannerOn = false;
         function toggleScanner() {
             const vp = document.getElementById('interactive');
-            if (isScannerOn) {
-                Quagga.stop();
-                vp.style.display = 'none';
-                isScannerOn = false;
-            } else {
-                vp.style.display = 'block';
-                isScannerOn = true;
-                Quagga.init({
-                    inputStream: { name: "Live", type: "LiveStream", target: vp, constraints: { facingMode: "environment" } },
-                    decoder: { readers: ["ean_reader", "ean_8_reader"] }
-                }, (err) => {
-                    if (err) { alert("שגיאה במצלמה"); return; }
-                    Quagga.start();
-                });
-            }
+            if (vp.style.display === 'block') { Quagga.stop(); vp.style.display = 'none'; }
+            else { vp.style.display = 'block'; Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: vp, constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader"] } }, (err) => { if (!err) Quagga.start(); }); }
         }
 
-        Quagga.onDetected(async (data) => {
-            const code = data.codeResult.code;
-            toggleScanner();
-            
-            // Fetch product name from Open Food Facts
+        Quagga.onDetected(async (d) => {
+            Quagga.stop(); document.getElementById('interactive').style.display = 'none';
             try {
-                const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
-                const json = await res.json();
-                const productName = json.product?.product_name_he || json.product?.product_name || "מוצר לא מזוהה (" + code + ")";
-                processAndAdd(productName);
-            } catch (e) {
-                processAndAdd("ברקוד: " + code);
-            }
+                const r = await fetch(`https://world.openfoodfacts.org/api/v0/product/${d.codeResult.code}.json`);
+                const j = await r.json();
+                processAndAdd(j.product?.product_name_he || j.product?.product_name || "ברקוד " + d.codeResult.code);
+            } catch(e) { processAndAdd("ברקוד " + d.codeResult.code); }
         });
 
-        // --- UI Rendering ---
-        db.collection("families").doc(familyID).collection("smartList")
-        .orderBy("timestamp", "desc")
-        .onSnapshot((snap) => {
-            const items = [];
-            snap.forEach(doc => items.push({id: doc.id, ...doc.data()}));
-            
-            const main = document.getElementById('mainList');
-            main.innerHTML = '';
-            const groups = items.reduce((acc, i) => { (acc[i.category] = acc[i.category] || []).push(i); return acc; }, {});
-
-            for (let cat in groups) {
-                const sec = document.createElement('div');
-                sec.className = 'category-section';
-                sec.innerHTML = `<div class="category-header">${cat}</div><div class="items-container">` +
-                    groups[cat].map(i => `<div class="list-item"><span>${i.name}</span><button class="delete-btn" onclick="deleteItem('${i.id}')">✕</button></div>`).join('') +
-                    `</div>`;
-                main.appendChild(sec);
-            }
+        db.collection("families").doc(familyID).collection("smartList").orderBy("timestamp", "desc").onSnapshot(snap => {
+            const items = []; snap.forEach(d => items.push({id: d.id, ...d.data()}));
+            render(items);
         });
 
+        function render(items) {
+            const list = document.getElementById('mainList');
+            list.innerHTML = '';
+            let total = 0;
+            items.forEach(i => {
+                total += (i.price || 0);
+                list.innerHTML += `<div class="list-item">
+                    <div><b>${i.name}</b> <span class="item-price">${i.price > 0 ? i.price + ' ₪' : ''}</span></div>
+                    <button style="border:none; background:none; font-size:20px; color:#ccc;" onclick="deleteItem('${i.id}')">✕</button>
+                </div>`;
+            });
+            document.getElementById('footerTotal').innerText = `סה"כ משוער: ${total.toFixed(2)} ₪`;
+        }
         function deleteItem(id) { db.collection("families").doc(familyID).collection("smartList").doc(id).delete(); }
     </script>
 </body>
 </html>
+
+
+
