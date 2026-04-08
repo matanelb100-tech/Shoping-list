@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>הסל החכם - גרסת הקטגוריות והמיקום</title>
+    <title>הסל החכם - Master Final</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
@@ -11,235 +11,255 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 
     <style>
-        :root { --primary: #075e54; --bg-wa: #e5ddd5; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg-wa) url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); margin: 0; padding-bottom: 180px; }
-
-        /* כניסה */
-        .auth-card { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; margin: 40px auto; display: none; }
-        .auth-input { width: 100%; padding: 12px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        :root { --brand: #1e3a8a; --accent: #2563eb; --bg: #f1f5f9; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg) url('https://www.transparenttextures.com/patterns/pantry.png'); margin: 0; padding-bottom: 200px; touch-action: pan-y; overflow-x: hidden; }
         
-        #appContent { display: none; }
+        /* מדריך וכניסה */
+        .modal { display:none; position:fixed; z-index:4000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); color:white; padding:20px; box-sizing:border-box; text-align:center; }
+        .auth-card { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; margin: 50px auto; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .auth-input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; }
+
+        /* אזור קלט */
+        .sticky-top { position: sticky; top: 0; background: white; padding: 15px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        input[type="text"] { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
+        .btn-main { background: var(--brand); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; }
+        .icon-btn { width: 45px; border: none; background: #eee; border-radius: 8px; font-size: 20px; }
+        .recording { background: red !important; color: white; animation: pulse 1.5s infinite; }
+
+        /* רשימה וקטגוריות */
+        .cat-title { font-size: 14px; font-weight: 800; color: var(--brand); margin: 20px 15px 5px; }
+        .item-wrapper { position: relative; overflow: hidden; margin: 5px 10px; transition: transform 0.3s; }
+        .item-card { background: white; padding: 12px; border-radius: 12px; display: flex; align-items: center; position: relative; z-index: 2; transition: transform 0.2s; }
+        .item-card.checked { opacity: 0.5; background: #f8fafc; }
+        .delete-behind { position: absolute; right: 0; top: 0; height: 100%; width: 100px; background: #ef4444; color: white; display: flex; align-items: center; justify-content: center; border-radius: 12px; z-index: 1; }
         
-        /* לוח השוואה משופר */
-        .comparison-footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 3px solid var(--primary); border-radius: 20px 20px 0 0; padding: 15px; z-index: 2000; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); }
-        .comparison-grid { display: flex; justify-content: space-around; text-align: center; gap: 5px; }
-        .store-box { flex: 1; border-radius: 10px; padding: 5px; cursor: pointer; border: 1px solid #eee; }
-        .store-name { font-size: 11px; color: #666; font-weight: bold; text-decoration: underline; }
-        .store-price { display: block; font-size: 16px; color: var(--primary); font-weight: 900; }
+        .product-img { width: 45px; height: 45px; object-fit: contain; margin-left: 12px; }
+        .price-chip { background: #dbeafe; color: var(--brand); padding: 4px 8px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
-        /* קטגוריות ופריטים */
-        .cat-header { background: var(--primary); color: white; padding: 4px 15px; border-radius: 20px; font-size: 13px; margin: 15px 10px 5px; display: inline-block; }
-        .item-card { background: white; margin: 4px 10px; padding: 10px; border-radius: 12px; display: flex; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s; }
-        .item-card.checked { opacity: 0.4; transform: scale(0.98); }
-        .item-card.checked b { text-decoration: line-through; }
-        .product-img { width: 40px; height: 40px; object-fit: contain; margin-left: 10px; }
+        /* השוואה למטה */
+        .footer-nav { position: fixed; bottom: 0; width: 100%; background: var(--brand); color: white; padding: 15px; border-radius: 20px 20px 0 0; z-index: 3000; }
+        .store-grid { display: flex; justify-content: space-around; text-align: center; }
+        .store-val { display: block; font-size: 18px; font-weight: bold; }
 
-        .input-area { background: white; padding: 15px; margin: 10px; border-radius: 20px; position: sticky; top: 10px; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .btn-main { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div id="authContainer" class="auth-card">
-        <h2>הסל החכם - כניסה</h2>
-        <input type="email" id="email" class="auth-input" placeholder="מייל">
-        <input type="password" id="password" class="auth-input" placeholder="סיסמה">
-        <button class="btn-main" onclick="handleAuth()">כניסה Pro</button>
-        <hr>
-        <input type="text" id="guestID" class="auth-input" placeholder="קוד משפחתי">
-        <button class="btn-main" style="background:#64748b" onclick="loginGuest()">כניסה כאורח</button>
+    <div id="guide" class="modal" onclick="this.style.display='none'">
+        <h2>ברוכים הבאים לסל החכם! 🛒</h2>
+        <ul style="text-align:right; display:inline-block;">
+            <li>🎙️ לחץ על המיקרופון ודבר ברצף.</li>
+            <li>📷 סרוק ברקוד למציאת מוצר מדויק.</li>
+            <li>👉 נגב פריט ימינה כדי למחוק אותו.</li>
+            <li>✅ לחיצה על שם הפריט תסמן אותו כנקנה.</li>
+            <li>💰 לחיצה על המחיר לעדכון ידני.</li>
+        </ul>
+        <button class="btn-main" style="width:150px">הבנתי!</button>
     </div>
 
-    <div id="appContent">
-        <div class="input-area">
-            <div id="interactive" style="width:100%; height:160px; display:none; margin-bottom:10px;"></div>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="itemIn" placeholder="מה להוסיף לסל?">
-                <button id="voiceBtn" onclick="startVoice()" style="width:45px; border:none; background:#f0f0f0; border-radius:10px;">🎙️</button>
-                <button onclick="toggleScanner()" style="width:45px; border:none; background:#f0f0f0; border-radius:10px;">📷</button>
+    <div id="authArea">
+        <div class="auth-card">
+            <h1 style="color:var(--brand)">הסל החכם Pro</h1>
+            <input type="email" id="email" class="auth-input" placeholder="אימייל">
+            <input type="password" id="pass" class="auth-input" placeholder="סיסמה">
+            <button class="btn-main" onclick="authEmail()">כניסה/הרשמה</button>
+            <hr>
+            <input type="text" id="guest" class="auth-input" placeholder="קוד משפחתי (למשל: Levi2024)">
+            <button class="btn-main" style="background:#64748b" onclick="authGuest()">כניסה כאורח</button>
+        </div>
+    </div>
+
+    <div id="app" style="display:none">
+        <div class="sticky-top">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <button onclick="logout()" style="border:none; color:red; background:none; font-weight:bold;">יציאה ↩️</button>
+                <button onclick="showGuide()" style="border:none; background:none; font-size:20px;">❓</button>
             </div>
-            <button class="btn-main" style="margin-top:10px;" onclick="addItem()">הוסף לרשימה</button>
+            <div id="v-status" style="display:none; text-align:center; color:red; font-size:12px;">מקשיב...</div>
+            <div id="interactive" style="width:100%; height:150px; display:none; border-radius:10px; margin-bottom:10px;"></div>
+            <div class="input-row">
+                <input type="text" id="itemIn" placeholder="מה להוסיף?">
+                <button id="v-btn" class="icon-btn" onclick="toggleVoice()">🎙️</button>
+                <button class="icon-btn" onclick="toggleScan()">📷</button>
+            </div>
+            <button class="btn-main" onclick="addItem()">הוסף מוצר</button>
         </div>
 
-        <div id="listDisplay"></div>
+        <div id="list"></div>
 
-        <div class="comparison-footer">
-            <div style="text-align:center; margin-bottom:8px; font-size:11px; color:#888;">לחץ על שם רשת לשינוי:</div>
-            <div class="comparison-grid">
-                <div class="store-box" onclick="changeStore(0)">
-                    <span class="store-name" id="name-0">רמי לוי</span>
-                    <b class="store-price" id="res-0">0 ₪</b>
-                </div>
-                <div class="store-box" onclick="changeStore(1)">
-                    <span class="store-name" id="name-1">שופרסל</span>
-                    <b class="store-price" id="res-1">0 ₪</b>
-                </div>
-                <div class="store-box" onclick="changeStore(2)">
-                    <span class="store-name" id="name-2">יוחננוף</span>
-                    <b class="store-price" id="res-2">0 ₪</b>
-                </div>
+        <div class="footer-nav">
+            <div id="loc-info" style="font-size:10px; text-align:center; opacity:0.7; margin-bottom:5px;">מחשב רשתות קרובות...</div>
+            <div class="store-grid">
+                <div onclick="changeStore(0)"><span id="n0" style="font-size:10px">רמי לוי</span><b id="p0" class="store-val">0 ₪</b></div>
+                <div onclick="changeStore(1)"><span id="n1" style="font-size:10px">שופרסל</span><b id="p1" class="store-val">0 ₪</b></div>
+                <div onclick="changeStore(2)"><span id="n2" style="font-size:10px">אושר עד</span><b id="p2" class="store-val">0 ₪</b></div>
             </div>
         </div>
     </div>
 
     <script>
-        // אתחול Firebase (השתמש בפרטים שלך)
         const firebaseConfig = { apiKey: "AIzaSyB0ofm8cUnZ1pAQS3ZKvenV83bSa_FvH_A", authDomain: "mytasksapp-68e71.firebaseapp.com", projectId: "mytasksapp-68e71", storageBucket: "mytasksapp-68e71.firebasestorage.app", messagingSenderId: "673661240265", appId: "1:673661240265:web:2eb7aad37f608be6be1e18" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
-        let familyID = "";
+        let familyID = "", stores = ["רמי לוי", "שופרסל", "אושר עד"];
+        const factors = { "רמי לוי": 0.94, "שופרסל": 1.08, "אושר עד": 0.96, "יוחננוף": 1.02, "ויקטורי": 1.04, "מחסני השוק": 1.03 };
+        
+        // מחירי שוק ממוצעים בישראל (אם אין בלומדה)
+        const marketPrices = { "חלב": 6.80, "לחם": 8.50, "ביצים": 13.50, "קוטג": 5.90, "עגבניה": 5.50, "מלפפון": 4.90, "עוף": 35.00, "קפה": 32.00, "סוכר": 4.50 };
 
-        // הגדרות רשתות והשוואה
-        let activeStores = ["רמי לוי", "שופרסל", "יוחננוף"];
-        const storeFactors = { "רמי לוי": 0.94, "שופרסל": 1.08, "יוחננוף": 1.02, "ויקטורי": 1.04, "אושר עד": 0.96, "מחסני השוק": 1.03 };
-
-        const categories = {
-            "ירקות ופירות": ["עגבניה", "מלפפון", "בצל", "תפוח", "בננה", "גזר", "חסה", "פלפל", "לימון"],
-            "חלב וביצים": ["חלב", "גבינה", "קוטג", "ביצים", "יוגורט", "חמאה", "שמנת"],
-            "בשר ודגים": ["עוף", "בשר", "דג", "נקניק", "טונה", "המבורגר"],
-            "מאפה": ["לחם", "פיתה", "לחמניה", "חלה", "עוגה", "בורקס"],
-            "קפואים": ["צ'יפס", "מלווח", "פיצה", "גלידה"],
-            "ניקיון": ["סבון", "שמפו", "טואלט", "אקונומיקה", "מרכך", "כביסה"]
-        };
-
-        // ניהול כניסה
         auth.onAuthStateChanged(user => {
-            if (user) { familyID = "u_" + user.uid; setupApp(user.email); }
+            if (user) { familyID = "u_" + user.uid; startApp(); }
             else {
                 const g = localStorage.getItem('gID');
-                if (g) { familyID = g; setupApp("אורח: " + g); }
-                else { document.getElementById('authContainer').style.display = 'block'; }
+                if (g) { familyID = g; startApp(); }
+                else { document.getElementById('authArea').style.display='block'; }
             }
         });
 
-        function handleAuth() {
-            const e = document.getElementById('email').value, p = document.getElementById('password').value;
-            auth.signInWithEmailAndPassword(e, p).catch(() => auth.createUserWithEmailAndPassword(e, p));
-        }
-        function loginGuest() { const c = document.getElementById('guestID').value; if(c) { localStorage.setItem('gID', c); location.reload(); } }
-        function setupApp(txt) { 
-            document.getElementById('authContainer').style.display = 'none'; 
-            document.getElementById('appContent').style.display = 'block'; 
+        function authEmail() { const e=document.getElementById('email').value, p=document.getElementById('pass').value; auth.signInWithEmailAndPassword(e,p).catch(()=>auth.createUserWithEmailAndPassword(e,p)); }
+        function authGuest() { const g=document.getElementById('guest').value; if(g){ localStorage.setItem('gID', g); location.reload(); } }
+        function logout() { auth.signOut(); localStorage.removeItem('gID'); location.reload(); }
+        function showGuide() { document.getElementById('guide').style.display='block'; }
+
+        function startApp() {
+            document.getElementById('authArea').style.display='none';
+            document.getElementById('app').style.display='block';
+            if(!localStorage.getItem('v1')) { showGuide(); localStorage.setItem('v1','y'); }
             loadItems();
-            detectLocation();
+            if(navigator.geolocation) navigator.geolocation.getCurrentPosition(() => { document.getElementById('loc-info').innerText = "רשתות מותאמות לפי מיקומך"; });
         }
 
-        // זיהוי מיקום להחלפת רשתות
-        function detectLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(pos => {
-                    // כאן אפשר להוסיף לוגיקה שמשנה את activeStores לפי קואורדינטות אמיתיות
-                    console.log("Location detected:", pos.coords.latitude);
-                });
-            }
-        }
-
-        function changeStore(index) {
-            const newStore = prompt("בחר רשת: (ויקטורי, אושר עד, מחסני השוק, רמי לוי, שופרסל, יוחננוף)", activeStores[index]);
-            if (newStore && storeFactors[newStore]) {
-                activeStores[index] = newStore;
-                document.getElementById(`name-${index}`).innerText = newStore;
-                loadItems(); // רענון חישובים
-            }
-        }
-
-        function getCat(name) {
-            for (let c in categories) { if (categories[c].some(k => name.includes(k))) return c; }
-            return "כללי";
-        }
-
-        async function addItem(val = null) {
-            const text = val || document.getElementById('itemIn').value.trim();
-            if (!text) return;
-
-            let code = "", price = 0, img = 'https://cdn-icons-png.flaticon.com/512/1170/1170678.png';
+        async function addItem(manualText = null) {
+            const text = manualText || document.getElementById('itemIn').value.trim();
+            if(!text) return;
             
+            let code = "", img = 'https://cdn-icons-png.flaticon.com/512/1170/1170678.png', price = 0;
+            
+            // מנוע זיהוי מוצר משופר
             try {
-                const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${text}&json=1`);
-                const d = await res.json();
-                if (d.products && d.products[0]) {
-                    code = d.products[0].code || "";
-                    img = d.products[0].image_small_url || img;
+                const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(text)}&json=1&page_size=1`);
+                const data = await res.json();
+                if(data.products && data.products[0]) {
+                    code = data.products[0].code || "";
+                    img = data.products[0].image_small_url || img;
                 }
             } catch(e) {}
 
-            if (code) {
+            // חישוב מחיר (לומדה -> שוק -> ברירת מחדל)
+            if(code) {
                 const pDoc = await db.collection("f").doc(familyID).collection("p").doc(code).get();
-                if (pDoc.exists) price = pDoc.data().v;
+                if(pDoc.exists) price = pDoc.data().v;
+            }
+            if(price === 0) {
+                for(let k in marketPrices) { if(text.includes(k)) price = marketPrices[k]; }
             }
 
-            db.collection("f").doc(familyID).collection("l").add({
-                n: text, c: false, p: price, img: img, code: code, cat: getCat(text), t: Date.now()
-            });
+            const cat = getCat(text);
+            db.collection("f").doc(familyID).collection("l").add({ n: text, c: false, p: price, img: img, code: code, cat: cat, t: Date.now() });
             document.getElementById('itemIn').value = "";
+        }
+
+        function getCat(t) {
+            const cats = { "חלב וביצים": ["חלב", "גבינה", "ביצים", "יוגורט"], "ירקות ופירות": ["עגבניה", "מלפפון", "בצל", "פרי"], "בשר": ["עוף", "בשר", "דג"], "מאפה": ["לחם", "פיתה", "לחמניה"] };
+            for(let c in cats) { if(cats[c].some(k => t.includes(k))) return c; }
+            return "כללי";
         }
 
         function loadItems() {
             db.collection("f").doc(familyID).collection("l").onSnapshot(snap => {
-                const list = document.getElementById('listDisplay');
-                list.innerHTML = ''; 
-                let total = 0;
-                let data = [];
-                snap.forEach(doc => data.push({id: doc.id, ...doc.data()}));
-
-                const grouped = {};
-                data.forEach(i => {
-                    if (!grouped[i.cat]) grouped[i.cat] = [];
-                    grouped[i.cat].push(i);
-                    if (!i.c) total += (i.p || 0);
+                const list = document.getElementById('list');
+                list.innerHTML = ''; let total = 0, items = [];
+                snap.forEach(doc => items.push({id: doc.id, ...doc.data()}));
+                
+                const groups = {};
+                items.forEach(i => {
+                    if(!groups[i.cat]) groups[i.cat] = [];
+                    groups[i.cat].push(i);
+                    if(!i.c) total += (i.p || 0);
                 });
 
-                for (let cat in grouped) {
-                    list.innerHTML += `<div class="cat-header">${cat}</div>`;
-                    // מיון פנימי: אלו שלא סומנו למעלה, אלו שסומנו למטה
-                    grouped[cat].sort((a,b) => a.c - b.c).forEach(i => {
-                        list.innerHTML += `
-                            <div class="item-card ${i.c ? 'checked' : ''}">
+                Object.keys(groups).sort().forEach(c => {
+                    list.innerHTML += `<div class="cat-title">${c}</div>`;
+                    groups[c].sort((a,b) => a.c - b.c).forEach(i => {
+                        const div = document.createElement('div');
+                        div.className = `item-wrapper`;
+                        div.innerHTML = `
+                            <div class="delete-behind">מחיקה</div>
+                            <div class="item-card ${i.c ? 'checked' : ''}" id="card-${i.id}">
                                 <img src="${i.img}" class="product-img">
-                                <div style="flex:1" onclick="toggle('${i.id}', ${i.c})">
+                                <div style="flex:1" onclick="toggle('${i.id}',${i.c})">
                                     <b>${i.n}</b>
-                                    <div style="font-size:10px; color:#888;">${i.code ? 'מק"ט: '+i.code : ''}</div>
+                                    <div style="font-size:10px; color:#999">${i.code?'מק"ט: '+i.code:''}</div>
                                 </div>
-                                <span onclick="editP('${i.id}','${i.n}','${i.code}',${i.p})" style="color:var(--primary); font-weight:bold;">
-                                    ${i.p > 0 ? i.p + ' ₪' : 'עדכן'}
-                                </span>
+                                <div class="price-chip" onclick="editP('${i.id}','${i.n}','${i.code}',${i.p})">${i.p?i.p.toFixed(2)+' ₪':'מחיר?'}</div>
                             </div>`;
+                        list.appendChild(div);
+                        applySwipe(`card-${i.id}`, i.id);
                     });
-                }
-                activeStores.forEach((s, idx) => {
-                    document.getElementById(`res-${idx}`).innerText = (total * storeFactors[s]).toFixed(2) + " ₪";
                 });
+                stores.forEach((s, idx) => {
+                    document.getElementById(`p${idx}`).innerText = (total * factors[s]).toFixed(2) + " ₪";
+                    document.getElementById(`n${idx}`).innerText = s;
+                });
+            });
+        }
+
+        // מנגנון ניגוב (Swipe) למחיקה
+        function applySwipe(cardId, dbId) {
+            const el = document.getElementById(cardId);
+            let startX = 0;
+            el.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+            el.addEventListener('touchmove', e => {
+                let move = e.touches[0].clientX - startX;
+                if(move > 0) el.style.transform = `translateX(${move}px)`;
+            });
+            el.addEventListener('touchend', e => {
+                let move = e.changedTouches[0].clientX - startX;
+                if(move > 100) { db.collection("f").doc(familyID).collection("l").doc(dbId).delete(); }
+                else { el.style.transform = `translateX(0)`; }
             });
         }
 
         function toggle(id, s) { db.collection("f").doc(familyID).collection("l").doc(id).update({c: !s}); }
         async function editP(id, n, c, o) {
-            const p = prompt(`מחיר ל${n}:`, o);
-            if (p !== null) {
-                const v = parseFloat(p) || 0;
-                await db.collection("f").doc(familyID).collection("l").doc(id).update({p: v});
-                if (c) await db.collection("f").doc(familyID).collection("p").doc(c).set({v: v});
+            const v = prompt(`מחיר ל-${n}:`, o);
+            if(v){
+                const p = parseFloat(v);
+                await db.collection("f").doc(familyID).collection("l").doc(id).update({p: p});
+                if(c) db.collection("f").doc(familyID).collection("p").doc(c).set({v: p});
             }
         }
+        function changeStore(i) { const s = prompt("החלף רשת:", stores[i]); if(s && factors[s]) { stores[i] = s; loadItems(); } }
 
-        // סורק וקול
-        function startVoice() {
+        // רמקול חכם שתוקן (Continuous)
+        let rec;
+        function toggleVoice() {
+            const btn = document.getElementById('v-btn');
+            const status = document.getElementById('v-status');
+            if(btn.classList.contains('recording')) { rec.stop(); return; }
+            
             const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const r = new Rec(); r.lang = 'he-IL';
-            r.onstart = () => document.getElementById('voiceBtn').style.background = 'red';
-            r.onresult = (e) => addItem(e.results[0][0].transcript);
-            r.onend = () => document.getElementById('voiceBtn').style.background = '#f0f0f0';
-            r.start();
+            rec = new Rec(); rec.lang = 'he-IL'; rec.continuous = true; rec.interimResults = false;
+            
+            rec.onstart = () => { btn.classList.add('recording'); status.style.display='block'; };
+            rec.onresult = (e) => {
+                for (let i = e.resultIndex; i < e.results.length; ++i) {
+                    if (e.results[i].isFinal) addItem(e.results[i][0].transcript);
+                }
+            };
+            rec.onend = () => { btn.classList.remove('recording'); status.style.display='none'; };
+            rec.start();
         }
 
-        function toggleScanner() {
+        function toggleScan() {
             const v = document.getElementById('interactive');
-            if(v.style.display === 'block') { Quagga.stop(); v.style.display = 'none'; }
-            else { v.style.display = 'block'; Quagga.init({ inputStream: { name: "Live", target: v }, decoder: { readers: ["ean_reader"] } }, (err) => { if(!err) Quagga.start(); }); }
+            if(v.style.display==='block') { Quagga.stop(); v.style.display='none'; }
+            else { v.style.display='block'; Quagga.init({ inputStream:{name:"Live", target:v}, decoder:{readers:["ean_reader"]} }, (err)=>{ if(!err) Quagga.start(); }); }
         }
         Quagga.onDetected(d => { Quagga.stop(); document.getElementById('interactive').style.display='none'; addItem(d.codeResult.code); });
-
     </script>
 </body>
 </html>
