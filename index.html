@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>הסל החכם - Performance Edition</title>
+    <title>הסל החכם - גרסה מלאה</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
@@ -11,83 +11,96 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 
     <style>
-        :root { --brand: #1e3a8a; --bg: #f8fafc; }
+        :root { --brand: #1e3a8a; --accent: #2563eb; --bg: #f1f5f9; }
         body { 
-            font-family: system-ui, sans-serif; 
-            background-color: #f1f5f9;
-            /* טקסטורת מוצרי צריכה עדינה */
-            background-image: url('https://www.transparenttextures.com/patterns/cream-pixels.png');
+            font-family: system-ui, -apple-system, sans-serif; 
+            background: var(--bg) url('https://www.transparenttextures.com/patterns/pantry.png'); 
             margin: 0; padding-bottom: 220px; overflow-x: hidden;
         }
 
-        .sticky-top { position: sticky; top: 0; background: white; padding: 15px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-bottom: 2px solid var(--brand); }
-        .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
-        input[type="text"] { flex: 1; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 16px; }
-        
-        .btn-main { background: var(--brand); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: bold; font-size: 16px; }
-        .icon-btn { width: 50px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; font-size: 22px; cursor: pointer; }
-        .recording { border-color: red; color: red; animation: blink 1s infinite; }
+        /* מודל הסבר מרכזי */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .guide-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
 
-        /* כרטיסיות מוצר */
-        .cat-title { font-size: 13px; font-weight: 800; color: #64748b; margin: 20px 15px 5px; text-transform: uppercase; letter-spacing: 1px; }
-        .item-wrapper { position: relative; margin: 8px 12px; }
-        .item-card { 
-            background: white; padding: 15px; border-radius: 16px; display: flex; align-items: center; 
-            position: relative; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.04); transition: transform 0.2s; 
-        }
-        .item-card.checked { opacity: 0.6; background: #f1f5f9; }
-        .delete-bg { position: absolute; right: 0; top: 0; height: 100%; width: 80px; background: #ef4444; color: white; display: flex; align-items: center; justify-content: center; border-radius: 16px; font-weight: bold; }
+        /* דף כניסה */
+        #authScreen { position: fixed; inset: 0; background: white; z-index: 6000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .auth-card { width: 100%; max-width: 350px; text-align: center; }
+        .input-field { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; }
 
-        .product-img { width: 48px; height: 48px; object-fit: contain; margin-left: 15px; border-radius: 8px; }
-        .price-chip { background: #eff6ff; color: var(--brand); padding: 6px 12px; border-radius: 10px; font-weight: 800; cursor: pointer; border: 1px solid #dbeafe; }
+        /* ממשק ראשי */
+        .header { background: white; padding: 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .input-row { display: flex; gap: 8px; margin-top: 10px; }
+        .btn-main { background: var(--brand); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: bold; margin-top: 10px; }
+        .tool-btn { width: 50px; border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 12px; font-size: 20px; cursor: pointer; }
+        .recording { background: #fee2e2; color: #ef4444; border-color: #ef4444; }
 
-        /* לוח תחתון */
-        .footer-nav { position: fixed; bottom: 0; width: 100%; background: var(--brand); color: white; padding: 20px 15px; border-radius: 24px 24px 0 0; box-shadow: 0 -10px 20px rgba(0,0,0,0.2); }
-        .store-grid { display: flex; justify-content: space-around; }
-        .store-box { text-align: center; }
-        .store-label { display: block; font-size: 11px; opacity: 0.7; margin-bottom: 4px; text-decoration: underline; }
-        .store-val { font-size: 18px; font-weight: 900; }
+        /* רשימה */
+        .cat-group { margin: 15px 10px; }
+        .cat-name { font-size: 13px; font-weight: 800; color: var(--brand); margin-bottom: 8px; background: #dbeafe; display: inline-block; padding: 2px 10px; border-radius: 5px; }
+        .item-wrapper { position: relative; overflow: hidden; margin-bottom: 8px; border-radius: 15px; }
+        .item-card { background: white; padding: 15px; display: flex; align-items: center; position: relative; z-index: 2; transition: transform 0.2s; border: 1px solid #f1f5f9; }
+        .item-card.checked { opacity: 0.5; background: #f8fafc; }
+        .delete-btn { position: absolute; right: 0; top: 0; height: 100%; width: 100px; background: #ef4444; color: white; display: flex; align-items: center; justify-content: center; z-index: 1; font-weight: bold; }
 
-        #scanner-container { width: 100%; height: 0; overflow: hidden; transition: height 0.3s; background: black; border-radius: 12px; position: relative; }
-        #scanner-container.open { height: 200px; margin-bottom: 10px; }
+        .prod-img { width: 45px; height: 45px; object-fit: contain; margin-left: 12px; }
+        .price-chip { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 8px; font-weight: bold; color: var(--brand); }
 
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        /* השוואה */
+        .footer { position: fixed; bottom: 0; width: 100%; background: var(--brand); color: white; padding: 20px 10px; border-radius: 20px 20px 0 0; }
+        .store-flex { display: flex; justify-content: space-around; text-align: center; }
+        .store-val { display: block; font-size: 18px; font-weight: 900; }
+
+        #scanner { width: 100%; height: 0; overflow: hidden; background: black; transition: 0.3s; border-radius: 12px; }
+        #scanner.active { height: 180px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="guide" style="display:none; position:fixed; z-index:5000; background:rgba(0,0,0,0.9); color:white; inset:0; padding:40px; text-align:center;" onclick="this.style.display='none'">
-        <h2>מדריך קצר 💡</h2>
-        <p>✅ לחיצה על מוצר: סימון שנקנה</p>
-        <p>👉 נגב ימינה: מחיקה</p>
-        <p>🎙️ מיקרופון: הוספה ברצף</p>
-        <button class="btn-main" style="margin-top:20px">יאללה לסופר!</button>
+    <div id="authScreen">
+        <div class="auth-card">
+            <h1 style="color:var(--brand)">הסל החכם</h1>
+            <input type="email" id="email" class="input-field" placeholder="אימייל">
+            <input type="password" id="pass" class="input-field" placeholder="סיסמה">
+            <button class="btn-main" onclick="handleAuth()">כניסה / הרשמה</button>
+            <div style="margin:20px 0; color:#999;">או באמצעות קוד משפחתי</div>
+            <input type="text" id="familyCode" class="input-field" placeholder="הכנס קוד משפחתי">
+            <button class="btn-main" style="background:#64748b" onclick="handleGuest()">כניסה כאורח</button>
+        </div>
     </div>
 
-    <div id="app">
-        <div class="sticky-top">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <b style="color:var(--brand); font-size:20px;">הסל החכם</b>
-                <button onclick="localStorage.clear(); location.reload();" style="border:none; background:none; font-size:12px; color:#94a3b8;">החלף משתמש</button>
-            </div>
-            
-            <div id="scanner-container"></div>
+    <div id="guide" class="modal-overlay" style="display:none">
+        <div class="guide-box">
+            <h2 style="color:var(--brand)">איך זה עובד? 💡</h2>
+            <p>🎙️ <b>דיבור רציף:</b> לחץ ודבר, המערכת תוסיף מוצרים לבד.</p>
+            <p>👉 <b>מחיקה:</b> נגב פריט ימינה כדי למחוק.</p>
+            <p>💰 <b>מחיר:</b> המערכת מחשבת ממוצע שוק עד שתעדכן בעצמך.</p>
+            <button class="btn-main" onclick="closeGuide()">הבנתי, בוא נתחיל!</button>
+        </div>
+    </div>
 
-            <div class="input-row">
-                <input type="text" id="itemIn" placeholder="מה חסר במקרר?">
-                <button id="v-btn" class="icon-btn" onclick="toggleVoice()">🎙️</button>
-                <button id="s-btn" class="icon-btn" onclick="toggleScan()">📷</button>
+    <div id="mainApp" style="display:none">
+        <div class="header">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <button onclick="logout()" style="border:none; background:none; color:red; font-size:12px;">יציאה</button>
+                <b style="color:var(--brand)">הסל שלכם</b>
+                <button onclick="showGuide()" style="border:none; background:none; font-size:18px;">❓</button>
             </div>
-            <button class="btn-main" onclick="addItem()">הוסף לרשימה</button>
+            <div id="scanner"></div>
+            <div class="input-row">
+                <input type="text" id="itemIn" placeholder="מה להוסיף לסל?">
+                <button id="v-btn" class="tool-btn" onclick="toggleVoice()">🎙️</button>
+                <button class="tool-btn" onclick="toggleScan()">📷</button>
+            </div>
+            <button class="btn-main" onclick="addItem()">הוסף מוצר</button>
         </div>
 
-        <div id="list"></div>
+        <div id="listDisplay"></div>
 
-        <div class="footer-nav">
-            <div class="store-grid">
-                <div class="store-box" onclick="changeStore(0)"><span class="store-label" id="n0">רמי לוי</span><b id="p0" class="store-val">0 ₪</b></div>
-                <div class="store-box" onclick="changeStore(1)"><span class="store-label" id="n1">שופרסל</span><b id="p1" class="store-val">0 ₪</b></div>
-                <div class="store-box" onclick="changeStore(2)"><span class="store-label" id="n2">אושר עד</span><b id="p2" class="store-val">0 ₪</b></div>
+        <div class="footer">
+            <div class="store-flex">
+                <div onclick="changeStore(0)"><small id="sn0">רמי לוי</small><b class="store-val" id="sp0">0 ₪</b></div>
+                <div onclick="changeStore(1)"><small id="sn1">שופרסל</small><b class="store-val" id="sp1">0 ₪</b></div>
+                <div onclick="changeStore(2)"><small id="sn2">אושר עד</small><b class="store-val" id="sp2">0 ₪</b></div>
             </div>
         </div>
     </div>
@@ -96,24 +109,46 @@
         const firebaseConfig = { apiKey: "AIzaSyB0ofm8cUnZ1pAQS3ZKvenV83bSa_FvH_A", authDomain: "mytasksapp-68e71.firebaseapp.com", projectId: "mytasksapp-68e71", storageBucket: "mytasksapp-68e71.firebasestorage.app", messagingSenderId: "673661240265", appId: "1:673661240265:web:2eb7aad37f608be6be1e18" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        let familyID = localStorage.getItem('gID') || "Guest_" + Math.floor(Math.random()*9999);
-        localStorage.setItem('gID', familyID);
+        const auth = firebase.auth();
+        let familyID = "";
+        let activeStores = ["רמי לוי", "שופרסל", "אושר עד"];
+        const storeFactors = { "רמי לוי": 0.94, "שופרסל": 1.08, "אושר עד": 0.96, "יוחננוף": 1.02, "ויקטורי": 1.04 };
+        
+        // מחירי שוק ממוצעים לזיהוי ראשוני
+        const marketBase = { "חלב": 6.8, "עגבני": 5.8, "מלפפון": 4.9, "לחם": 8.5, "ביצים": 13.5, "גבינה": 7.5, "עוף": 38, "קפה": 28, "בטטה": 8.5, "תפוח": 9.5 };
 
-        let stores = ["רמי לוי", "שופרסל", "אושר עד"];
-        const factors = { "רמי לוי": 0.94, "שופרסל": 1.08, "אושר עד": 0.96, "יוחננוף": 1.02, "ויקטורי": 1.04, "מחסני השוק": 1.03 };
-        const marketPrices = { "חלב": 6.8, "עגבני": 5.5, "מלפפון": 4.9, "לחם": 8.5, "ביצים": 13.5, "גבינה": 5.2, "בטטה": 7.9, "שוקולד": 14.9, "מים": 12.0 };
+        auth.onAuthStateChanged(user => {
+            if (user) { familyID = "u_" + user.uid; start(); }
+            else {
+                const g = localStorage.getItem('gID');
+                if (g) { familyID = g; start(); }
+                else { document.getElementById('authScreen').style.display='flex'; }
+            }
+        });
+
+        function handleAuth() { const e=document.getElementById('email').value, p=document.getElementById('pass').value; auth.signInWithEmailAndPassword(e,p).catch(()=>auth.createUserWithEmailAndPassword(e,p)); }
+        function handleGuest() { const c=document.getElementById('familyCode').value; if(c){ localStorage.setItem('gID', c); location.reload(); } }
+        function logout() { auth.signOut(); localStorage.removeItem('gID'); location.reload(); }
+        
+        function start() {
+            document.getElementById('authScreen').style.display='none';
+            document.getElementById('mainApp').style.display='block';
+            if(!localStorage.getItem('guideShown')) showGuide();
+            loadItems();
+        }
+
+        function showGuide() { document.getElementById('guide').style.display='flex'; }
+        function closeGuide() { document.getElementById('guide').style.display='none'; localStorage.setItem('guideShown', 'true'); }
 
         async function addItem(t = null) {
             let text = t || document.getElementById('itemIn').value.trim();
             if(!text) return;
-            
-            // ניקוי מילים מיותרות לחיפוש טוב יותר
-            let searchClean = text.replace(/ק"ג|גרם|חבילה|יחידה/g, "").trim();
-            
+
             let code = "", img = 'https://cdn-icons-png.flaticon.com/512/1170/1170678.png', price = 0;
             
+            // מנוע חיפוש מוצר
             try {
-                const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchClean)}&json=1&page_size=1`);
+                const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(text)}&json=1&page_size=1`);
                 const data = await res.json();
                 if(data.products && data.products[0]) {
                     code = data.products[0].code;
@@ -121,81 +156,95 @@
                 }
             } catch(e) {}
 
+            // לוגיקת מחיר (לומדה -> שוק)
             if(code) {
                 const pDoc = await db.collection("f").doc(familyID).collection("p").doc(code).get();
                 if(pDoc.exists) price = pDoc.data().v;
             }
             if(price === 0) {
-                for(let k in marketPrices) { if(text.includes(k)) price = marketPrices[k]; }
+                for(let k in marketBase) { if(text.includes(k)) price = marketBase[k]; }
             }
 
-            db.collection("f").doc(familyID).collection("l").add({ n: text, c: false, p: price, img: img, code: code, t: Date.now() });
+            const cat = getCategory(text);
+            db.collection("f").doc(familyID).collection("l").add({ n: text, c: false, p: price, img: img, code: code, cat: cat, t: Date.now() });
             document.getElementById('itemIn').value = "";
         }
 
-        function loadData() {
-            db.collection("f").doc(familyID).collection("l").orderBy("t", "desc").onSnapshot(snap => {
-                const list = document.getElementById('list');
-                list.innerHTML = ''; let total = 0; let items = [];
+        function getCategory(t) {
+            const rules = { "חלב וביצים": ["חלב", "גבינה", "ביצים", "יוגורט"], "ירקות ופירות": ["עגבני", "מלפפון", "בצל", "פרי", "בטטה"], "מאפה": ["לחם", "פיתה", "חלה"], "בשר ודגים": ["עוף", "בשר", "דג"] };
+            for(let c in rules) { if(rules[c].some(k => t.includes(k))) return c; }
+            return "כללי";
+        }
+
+        function loadItems() {
+            db.collection("f").doc(familyID).collection("l").onSnapshot(snap => {
+                const display = document.getElementById('listDisplay');
+                display.innerHTML = ''; let total = 0, items = [];
                 snap.forEach(doc => items.push({id: doc.id, ...doc.data()}));
-                
-                // מיון: לא מסומנים למעלה, מסומנים למטה
-                items.sort((a,b) => a.c - b.c).forEach(i => {
+
+                const groups = {};
+                items.forEach(i => {
+                    if(!groups[i.cat]) groups[i.cat] = [];
+                    groups[i.cat].push(i);
                     if(!i.c) total += (i.p || 0);
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'item-wrapper';
-                    wrapper.innerHTML = `
-                        <div class="delete-bg">מחיקה</div>
-                        <div class="item-card ${i.c ? 'checked' : ''}" id="${i.id}">
-                            <img src="${i.img}" class="product-img">
-                            <div style="flex:1" onclick="toggle('${i.id}',${i.c})">
-                                <b>${i.n}</b>
-                                <div style="font-size:10px; color:#94a3b8;">${i.code?'מק"ט: '+i.code:''}</div>
-                            </div>
-                            <div class="price-chip" onclick="editP('${i.id}','${i.n}','${i.code}',${i.p})">${i.p?i.p.toFixed(2)+' ₪':'מחיר?'}</div>
-                        </div>`;
-                    list.appendChild(wrapper);
-                    applySwipe(i.id);
                 });
 
-                stores.forEach((s, idx) => {
-                    document.getElementById(`p${idx}`).innerText = (total * (factors[s]||1)).toFixed(2) + " ₪";
-                    document.getElementById(`n${idx}`).innerText = s;
+                Object.keys(groups).sort().forEach(cat => {
+                    display.innerHTML += `<div class="cat-group"><span class="cat-name">${cat}</span></div>`;
+                    groups[cat].sort((a,b) => a.c - b.c).forEach(i => {
+                        const row = document.createElement('div');
+                        row.className = 'item-wrapper';
+                        row.innerHTML = `
+                            <div class="delete-btn">מחיקה</div>
+                            <div class="item-card ${i.c ? 'checked' : ''}" id="${i.id}">
+                                <img src="${i.img}" class="prod-img">
+                                <div style="flex:1" onclick="toggle('${i.id}',${i.c})">
+                                    <b>${i.n}</b>
+                                    <div style="font-size:10px; color:#999">${i.code ? 'מק"ט: '+i.code : ''}</div>
+                                </div>
+                                <div class="price-chip" onclick="editP('${i.id}','${i.n}','${i.code}',${i.p})">${i.p ? i.p.toFixed(2)+' ₪' : 'עדכן'}</div>
+                            </div>`;
+                        display.appendChild(row);
+                        setupSwipe(i.id);
+                    });
+                });
+
+                activeStores.forEach((s, idx) => {
+                    document.getElementById(`sp${idx}`).innerText = (total * storeFactors[s]).toFixed(2) + " ₪";
+                    document.getElementById(`sn${idx}`).innerText = s;
                 });
             });
         }
 
-        function applySwipe(id) {
+        function setupSwipe(id) {
             const el = document.getElementById(id);
-            let startX = 0;
-            el.addEventListener('touchstart', e => startX = e.touches[0].clientX, {passive: true});
+            let start = 0;
+            el.addEventListener('touchstart', e => start = e.touches[0].clientX);
             el.addEventListener('touchmove', e => {
-                let move = e.touches[0].clientX - startX;
-                if(move > 0) el.style.transform = `translateX(${move}px)`;
-            }, {passive: true});
+                let diff = e.touches[0].clientX - start;
+                if(diff > 0) el.style.transform = `translateX(${diff}px)`;
+            });
             el.addEventListener('touchend', e => {
-                let move = e.changedTouches[0].clientX - startX;
-                if(move > 120) db.collection("f").doc(familyID).collection("l").doc(id).delete();
+                if(e.changedTouches[0].clientX - start > 120) db.collection("f").doc(familyID).collection("l").doc(id).delete();
                 else el.style.transform = `translateX(0)`;
             });
         }
 
         function toggle(id, s) { db.collection("f").doc(familyID).collection("l").doc(id).update({c: !s}); }
         async function editP(id, n, c, o) {
-            const v = prompt(`מחיר עבור ${n}:`, o);
+            const v = prompt(`מחיר ל-${n}:`, o);
             if(v) {
-                const price = parseFloat(v);
-                await db.collection("f").doc(familyID).collection("l").doc(id).update({p: price});
-                if(c) db.collection("f").doc(familyID).collection("p").doc(c).set({v: price});
+                const p = parseFloat(v);
+                await db.collection("f").doc(familyID).collection("l").doc(id).update({p: p});
+                if(c) db.collection("f").doc(familyID).collection("p").doc(c).set({v: p});
             }
         }
 
         function changeStore(i) {
-            const s = prompt("בחר רשת (רמי לוי, שופרסל, אושר עד, יוחננוף, ויקטורי):", stores[i]);
-            if(s && factors[s]) { stores[i] = s; loadData(); }
+            const s = prompt("החלף רשת:", activeStores[i]);
+            if(s && storeFactors[s]) { activeStores[i] = s; loadItems(); }
         }
 
-        // רמקול רציף
         let rec;
         function toggleVoice() {
             const btn = document.getElementById('v-btn');
@@ -204,28 +253,19 @@
             rec = new Rec(); rec.lang = 'he-IL'; rec.continuous = true;
             rec.onstart = () => btn.classList.add('recording');
             rec.onresult = (e) => {
-                for (let i = e.resultIndex; i < e.results.length; ++i) {
-                    if (e.results[i].isFinal) addItem(e.results[i][0].transcript);
-                }
+                for(let i=e.resultIndex; i<e.results.length; ++i) if(e.results[i].isFinal) addItem(e.results[i][0].transcript);
             };
             rec.onend = () => btn.classList.remove('recording');
             rec.start();
         }
 
         function toggleScan() {
-            const container = document.getElementById('scanner-container');
-            if(container.classList.contains('open')) { Quagga.stop(); container.classList.remove('open'); }
-            else { 
-                container.classList.add('open');
-                Quagga.init({ inputStream:{name:"Live", target:container, constraints:{facingMode:"environment"}}, decoder:{readers:["ean_reader"]} }, (err) => {
-                    if(!err) Quagga.start();
-                });
-            }
+            const s = document.getElementById('scanner');
+            if(s.classList.contains('active')) { Quagga.stop(); s.classList.remove('active'); }
+            else { s.classList.add('active'); Quagga.init({ inputStream:{target:s}, decoder:{readers:["ean_reader"]} }, (err)=> { if(!err) Quagga.start(); }); }
         }
         Quagga.onDetected(d => { toggleScan(); addItem(d.codeResult.code); });
 
-        loadData();
     </script>
 </body>
 </html>
-
