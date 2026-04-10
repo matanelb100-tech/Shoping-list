@@ -1,104 +1,6 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<!--
-╔══════════════════════════════════════════════════════════════╗
-║              סלי v1.2 - PWA + Google Play Ready             ║
-╠══════════════════════════════════════════════════════════════╣
-║  קבצים ל-GitHub repo:                                        ║
-║    index.html      ← הקובץ הזה                               ║
-║    manifest.json   ← PWA manifest (קוד למטה בהערות)         ║
-║    sw.js           ← Service Worker (קוד למטה בהערות)       ║
-║    icon-192.png    ← צור ב: https://favicon.io               ║
-║    icon-512.png    ← צור ב: https://favicon.io               ║
-╠══════════════════════════════════════════════════════════════╣
-║  manifest.json - צור קובץ נפרד עם התוכן הזה:               ║
-║  {                                                           ║
-║    "name": "סלי - רשימת קניות חכמה",                        ║
-║    "short_name": "סלי",                                      ║
-║    "description": "רשימת קניות חכמה עם השוואת מחירים",      ║
-║    "start_url": "/",                                         ║
-║    "display": "standalone",                                  ║
-║    "background_color": "#1a5c38",                            ║
-║    "theme_color": "#1a5c38",                                 ║
-║    "orientation": "portrait",                                ║
-║    "lang": "he",                                             ║
-║    "dir": "rtl",                                             ║
-║    "icons": [                                                ║
-║      {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"}, ║
-║      {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}  ║
-║    ],                                                        ║
-║    "categories": ["shopping","utilities"],                   ║
-║    "screenshots": []                                         ║
-║  }                                                           ║
-╠══════════════════════════════════════════════════════════════╣
-║  sw.js - צור קובץ נפרד עם התוכן הזה:                       ║
-║  const CACHE = 'sali-v1';                                    ║
-║  const FILES = ['/','/index.html','/manifest.json'];         ║
-║  self.addEventListener('install', e =>                       ║
-║    e.waitUntil(caches.open(CACHE)                            ║
-║      .then(c => c.addAll(FILES))));                          ║
-║  self.addEventListener('fetch', e =>                         ║
-║    e.respondWith(caches.match(e.request)                     ║
-║      .then(r => r || fetch(e.request))));                    ║
-╠══════════════════════════════════════════════════════════════╣
-║  Cloudflare Worker - כנס ל-dash.cloudflare.com              ║
-║  Workers & Pages → runprice → Edit Code                      ║
-║  (לחץ על שם ה-Worker ולא על Settings)                       ║
-║  מחק הכל והדבק:                                              ║
-║                                                              ║
-║  export default {                                            ║
-║    async fetch(request) {                                    ║
-║      const cors={"Access-Control-Allow-Origin":"*",          ║
-║        "Content-Type":"application/json"};                   ║
-║      if(request.method==="OPTIONS")                          ║
-║        return new Response(null,{headers:cors});             ║
-║      const url=new URL(request.url);                         ║
-║      const bc=url.searchParams.get("barcode");               ║
-║      if(!bc) return new Response(                            ║
-║        JSON.stringify({error:"missing barcode"}),            ║
-║        {status:400,headers:cors});                           ║
-║      try{                                                    ║
-║        const r=await fetch(                                  ║
-║          "https://prices.food.gov.il/api/1/download?"+       ║
-║          "manufacturerItemCode="+bc+"&type=1",               ║
-║          {headers:{"User-Agent":"SaliApp/1.0"}});            ║
-║        const xml=await r.text();                             ║
-║        const items=[];                                       ║
-║        const rx=/<Item>([\s\S]*?)<\/Item>/g;                 ║
-║        let m;                                                ║
-║        while((m=rx.exec(xml))!==null){                       ║
-║          const g=t=>{                                        ║
-║            const x=m[1].match(                               ║
-║              new RegExp("<"+t+">(.*?)</"+t+">"));            ║
-║            return x?x[1]:null;};                             ║
-║          items.push({                                        ║
-║            name:g("ItemName"),                               ║
-║            price:parseFloat(g("ItemPrice")||0),              ║
-║            chain:g("ChainName"),                             ║
-║            store:g("StoreName"),                             ║
-║            updated:g("PriceUpdateDate")});                   ║
-║        }                                                     ║
-║        return new Response(                                  ║
-║          JSON.stringify({items,count:items.length}),         ║
-║          {headers:cors});                                    ║
-║      }catch(e){                                              ║
-║        return new Response(                                  ║
-║          JSON.stringify({error:e.message}),                  ║
-║          {status:500,headers:cors});}}};                     ║
-║                                                              ║
-║  אחרי פרסום → העתק URL → הכנס ב-WORKER_URL למטה            ║
-╠══════════════════════════════════════════════════════════════╣
-║  Firebase Console:                                           ║
-║    Auth → Anonymous + Email/Password → Enable                ║
-║    Firestore → Rules:                                        ║
-║    rules_version='2';                                        ║
-║    service cloud.firestore{                                  ║
-║      match /databases/{database}/documents{                  ║
-║        match /users/{uid}/items/{id}{                        ║
-║          allow read,write:if request.auth.uid==uid;}}}       ║
-╚══════════════════════════════════════════════════════════════╝
--->
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 <meta name="mobile-web-app-capable" content="yes"/>
@@ -115,13 +17,9 @@
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
 body{font-family:'Noto Sans Hebrew','Assistant',sans-serif;direction:rtl;min-height:100vh;overflow-x:hidden;background:#f0f9f2;}
-
-/* ── ANIMATED BACKGROUND ── */
 .bg-canvas{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
 .bg-item{position:absolute;font-size:var(--sz);transform:rotate(var(--r));opacity:var(--op);}
 .page{position:relative;z-index:1;}
-
-/* ── LOGIN ── */
 #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px;}
 .login-card{background:rgba(255,255,255,0.95);border-radius:28px;padding:32px 22px;max-width:360px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.18);backdrop-filter:blur(4px);}
 .login-logo{text-align:center;margin-bottom:22px;}
@@ -139,8 +37,6 @@ input:focus{border-color:#1a5c38;}
 .login-btn:active{transform:scale(.98);}
 .login-err{color:#e63946;font-size:13px;margin-bottom:8px;text-align:center;min-height:18px;}
 .login-footer{text-align:center;margin-top:12px;font-size:11px;color:#ccc;}
-
-/* ── GUIDE ── */
 #guide-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px;}
 .guide-card{background:rgba(255,255,255,0.97);border-radius:24px;padding:32px;max-width:340px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.18);}
 .g-icon{font-size:56px;margin-bottom:8px;}.g-title{font-size:20px;font-weight:900;color:#1a5c38;margin-bottom:10px;}
@@ -150,8 +46,6 @@ input:focus{border-color:#1a5c38;}
 .g-btns{display:flex;gap:10px;justify-content:center;}
 .g-back{padding:10px 18px;border-radius:12px;border:2px solid #1a5c38;background:white;color:#1a5c38;font-weight:700;cursor:pointer;font-family:inherit;}
 .g-next{padding:10px 22px;border-radius:12px;border:none;background:#1a5c38;color:white;font-weight:700;cursor:pointer;font-family:inherit;}
-
-/* ── HEADER ── */
 .header{background:rgba(26,92,56,.97);padding:13px 14px 11px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(8px);}
 .hdr-l{display:flex;align-items:center;gap:10px;}
 .hdr-logo{width:34px;height:34px;background:rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
@@ -161,8 +55,6 @@ input:focus{border-color:#1a5c38;}
 .hbtn{background:rgba(255,255,255,.15);border:none;border-radius:9px;padding:7px 9px;color:white;cursor:pointer;font-size:11px;font-weight:700;font-family:inherit;transition:background .15s;}
 .hbtn:active{background:rgba(255,255,255,.28);}
 .guide-btn{background:rgba(255,255,255,.22);font-size:15px;}
-
-/* ── INPUT ── */
 .input-area{padding:10px 12px;background:rgba(255,255,255,.93);border-bottom:1px solid rgba(0,0,0,.05);}
 .input-row{display:flex;gap:7px;align-items:center;}
 .input-wrap{flex:1;display:flex;background:white;border-radius:16px;border:2px solid #c8e6c9;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);}
@@ -177,8 +69,6 @@ input:focus{border-color:#1a5c38;}
 .l-hint{text-align:center;font-size:12px;color:#888;margin-top:6px;}
 .sync-b{display:none;text-align:center;font-size:11px;color:#4caf50;margin-top:4px;}
 .worker-b{text-align:center;font-size:11px;margin-top:4px;}.worker-b.on{color:#2196f3;}.worker-b.off{color:#bbb;}
-
-/* ── SUGGESTIONS ── */
 .sugg-wrap{margin-top:10px;}
 .sugg-box{background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.1);overflow:hidden;border:1px solid #e8f5e9;}
 .sugg-hdr{padding:7px 12px;background:#f0fdf4;border-bottom:1px solid #e8f5e9;font-size:12px;color:#1a5c38;font-weight:800;}
@@ -186,8 +76,6 @@ input:focus{border-color:#1a5c38;}
 .sugg-item:last-child{border-bottom:none;}.sugg-item:active{background:#f0fdf4;}
 .sugg-name{font-size:14px;font-weight:700;color:#222;}.sugg-sub{font-size:11px;color:#aaa;}
 .sugg-price{font-size:14px;font-weight:800;color:#1a5c38;margin-right:auto;}
-
-/* ── LIST ── */
 .list-area{padding:14px 12px 230px;}
 .empty{text-align:center;padding:60px 20px;}
 .empty-icon{font-size:50px;margin-bottom:12px;}.empty-title{font-size:16px;font-weight:700;color:#bbb;}
@@ -206,8 +94,6 @@ input:focus{border-color:#1a5c38;}
 .item-ck{color:white;font-size:13px;font-weight:900;}
 .item-name{flex:1;font-size:15px;font-weight:600;color:#222;transition:all .18s;}
 .item-name.done{color:#bbb;text-decoration:line-through;}
-
-/* ── PRICE EDIT ── */
 .item-pw{text-align:left;flex-shrink:0;min-width:54px;}
 .item-price{font-size:15px;font-weight:800;color:#1a5c38;cursor:pointer;transition:color .18s;padding:4px 6px;border-radius:8px;transition:background .15s;}
 .item-price:hover,.item-price:active{background:#f0fdf4;}
@@ -215,8 +101,6 @@ input:focus{border-color:#1a5c38;}
 .item-plbl{font-size:9px;color:#ccc;text-align:center;margin-top:1px;}
 .item-plbl.real{color:#2196f3;font-weight:700;}.item-plbl.manual{color:#888;}
 .price-inp{width:68px;padding:4px 6px;border:2px solid #1a5c38;border-radius:9px;font-size:14px;font-weight:800;color:#1a5c38;text-align:center;direction:ltr;font-family:inherit;outline:none;background:#f0fdf4;}
-
-/* ── PRICE BAR ── */
 .price-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.98);border-top:2px solid #c8e6c9;padding:11px 12px 22px;box-shadow:0 -4px 24px rgba(0,0,0,.1);backdrop-filter:blur(12px);}
 .pb-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
 .pb-title{font-size:13px;font-weight:800;color:#1a5c38;}
@@ -235,8 +119,6 @@ input:focus{border-color:#1a5c38;}
 .chain-src{font-size:9px;margin-top:1px;}
 .chain-card.best .chain-src{color:rgba(255,255,255,.6);}.chain-card.other .chain-src{color:#bbb;}
 .pb-note{text-align:center;font-size:10px;color:#bbb;margin-top:7px;}
-
-/* ── CHAIN PICKER ── */
 .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end;}
 .modal-sh{background:white;width:100%;border-radius:22px 22px 0 0;padding:20px 14px 36px;}
 .modal-title{font-weight:800;font-size:16px;color:#1a5c38;margin-bottom:14px;text-align:center;}
@@ -246,8 +128,6 @@ input:focus{border-color:#1a5c38;}
 .cp-dot{width:9px;height:9px;border-radius:50%;background:#ddd;flex-shrink:0;}
 .cp-btn.sel .cp-dot{background:#1a5c38;}
 .modal-ok{width:100%;padding:13px 0;border-radius:14px;border:none;background:#1a5c38;color:white;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;}
-
-/* ── SCANNER ── */
 #scanner-screen{position:fixed;inset:0;background:black;z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;}
 #sv{width:100%;max-width:400px;border-radius:12px;display:block;}
 .scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:220px;height:90px;border:3px solid #2d9e5f;border-radius:10px;box-shadow:0 0 0 2000px rgba(0,0,0,.6);}
@@ -256,22 +136,14 @@ input:focus{border-color:#1a5c38;}
 .scan-man input{padding:10px 13px;border-radius:10px;border:none;font-size:15px;direction:ltr;width:155px;font-family:inherit;}
 .scan-man button{padding:10px 14px;border-radius:10px;border:none;background:#2d9e5f;color:white;font-weight:700;cursor:pointer;font-family:inherit;}
 .scan-close{margin-top:14px;padding:11px 30px;border-radius:12px;border:2px solid rgba(255,255,255,.5);background:transparent;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
-
-/* ── TOAST ── */
 .toast{position:fixed;bottom:190px;left:50%;transform:translateX(-50%);background:rgba(26,92,56,.95);color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
-
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 </style>
 </head>
 <body>
-
-<!-- ANIMATED BACKGROUND -->
 <div class="bg-canvas" id="bgc"></div>
-
 <div class="toast" id="toast"></div>
-
-<!-- LOGIN -->
 <div id="login-screen" class="page">
   <div class="login-card">
     <div class="login-logo">
@@ -302,8 +174,6 @@ input:focus{border-color:#1a5c38;}
     <div class="login-footer">🔒 פרטיות מלאה · אין מעקב · אין פרסומות</div>
   </div>
 </div>
-
-<!-- GUIDE -->
 <div id="guide-screen" class="page" style="display:none">
   <div class="guide-card">
     <div class="g-icon" id="gi"></div>
@@ -316,8 +186,6 @@ input:focus{border-color:#1a5c38;}
     </div>
   </div>
 </div>
-
-<!-- MAIN -->
 <div id="main-screen" class="page" style="display:none">
   <div class="header">
     <div class="hdr-l">
@@ -330,7 +198,6 @@ input:focus{border-color:#1a5c38;}
       <button class="hbtn" onclick="doLogout()">יצא</button>
     </div>
   </div>
-
   <div class="input-area">
     <div class="input-row">
       <div class="input-wrap">
@@ -347,7 +214,6 @@ input:focus{border-color:#1a5c38;}
     <div id="wb" class="worker-b off">⚪ מחירים: ממוצע שוק</div>
     <div class="sugg-wrap" id="sw"></div>
   </div>
-
   <div class="list-area" id="la">
     <div class="empty">
       <div class="empty-icon">🛒</div>
@@ -355,7 +221,6 @@ input:focus{border-color:#1a5c38;}
       <div class="empty-sub">הקלד, דבר, או סרוק ברקוד</div>
     </div>
   </div>
-
   <div class="price-bar" id="pb" style="display:none">
     <div class="pb-hdr">
       <div class="pb-title">💰 סל קניות</div>
@@ -365,8 +230,6 @@ input:focus{border-color:#1a5c38;}
     <div class="pb-note">לחץ על מחיר לעריכה · נגב ימינה למחיקה</div>
   </div>
 </div>
-
-<!-- CHAIN PICKER -->
 <div class="modal-ov" id="cm" style="display:none" onclick="closeCP()">
   <div class="modal-sh" onclick="event.stopPropagation()">
     <div class="modal-title">בחר עד 3 רשתות להשוואה</div>
@@ -374,8 +237,6 @@ input:focus{border-color:#1a5c38;}
     <button class="modal-ok" onclick="closeCP()">אישור ✓</button>
   </div>
 </div>
-
-<!-- SCANNER -->
 <div id="scanner-screen">
   <div style="position:relative;width:100%;max-width:400px">
     <video id="sv" playsinline muted></video>
@@ -388,15 +249,11 @@ input:focus{border-color:#1a5c38;}
   </div>
   <button class="scan-close" onclick="closeScanner()">✕ סגור</button>
 </div>
-
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,signInAnonymously,onAuthStateChanged,signOut,updateProfile}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import{getFirestore,collection,doc,setDoc,deleteDoc,onSnapshot,query,orderBy,updateDoc}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// ═══════════════════════════════════
-//  ⚙️  שנה כאן בלבד
-// ═══════════════════════════════════
 const FB={
   apiKey:"AIzaSyB0ofm8cUnZ1pAQS3ZKvenV83bSa_FvH_A",
   authDomain:"mytasksapp-68e71.firebaseapp.com",
@@ -405,16 +262,11 @@ const FB={
   messagingSenderId:"673661240265",
   appId:"1:673661240265:web:2eb7aad37f608be6be1e18"
 };
-// אחרי יצירת Cloudflare Worker - הכנס כאן את ה-URL:
-// לדוגמה: "https://runprice.YOUR-NAME.workers.dev"
 const WORKER_URL="https://runprice.matanelb100.workers.dev";
-// ═══════════════════════════════════
 
-// ── ANIMATED BACKGROUND ──
 const EMOJIS=["🥛","🍞","🥚","🧀","🍎","🥕","🧃","🍫","🧴","🥩","🐟","🍋","🧅","🥦","🍊","🥬","🫙","🧂"];
 const buildBG=()=>{
   const c=document.getElementById("bgc");
-  // פיזור על כל המסך בשורות ועמודות עם אקראיות קטנה
   const cols=5, rows=7;
   let idx=0;
   for(let row=0;row<rows;row++){
@@ -422,7 +274,6 @@ const buildBG=()=>{
       const el=document.createElement("div");
       el.className="bg-item";
       el.textContent=EMOJIS[idx%EMOJIS.length]; idx++;
-      // מיקום: על פני כל המסך עם סטייה קטנה
       const x = (col/cols)*100 + (Math.random()-0.5)*14;
       const y = (row/rows)*100 + (Math.random()-0.5)*10;
       const rot=(Math.random()-0.5)*70;
@@ -435,7 +286,6 @@ const buildBG=()=>{
 };
 buildBG();
 
-// ── DATA ──
 const PDB=[
   {k:["חלב דל לקטוז","ללא לקטוז"],p:8.90},{k:["חלב שקדים"],p:14.90},{k:["חלב שיבולת שועל"],p:16.90},
   {k:["חלב 5%"],p:7.20},{k:["חלב 3%"],p:6.90},{k:["חלב 1%","חלב רזה"],p:6.50},{k:["חלב"],p:6.90},
@@ -489,7 +339,6 @@ const gsg=t=>{const l=t.trim().toLowerCase();if(l.length<2)return null;for(const
 
 const CATS={"🥛 מוצרי חלב":["חלב","גבינה","יוגורט","שמנת","חמאה","מרגרינה","קוטג","ביצים","לבן"],"🥩 בשר ועוף":["עוף","בשר","כבד","נקניק","שניצל"],"🐟 דגים":["דג","סלמון","טונה","בורי"],"🥦 ירקות":["עגבני","מלפפון","בצל","גזר","תפוחי אדמה","פלפל","חסה","ברוקולי","אבוקדו","שום"],"🍎 פירות":["תפוח","בננ","לימון","תפוז","ענבים","מנגו","תות","אגס"],"🍞 לחם":["לחם","פיתה","לחמני","חלה","בגט","בורקס"],"🧂 מזון יבש":["אורז","פסטה","קמח","סוכר","מלח","שמן","עדשים","שעועית"],"🧃 שתייה":["מיץ","מים","קולה","ספרייט","בירה","יין","קפה","תה"],"🍫 חטיפים":["שוקולד","ממרח","עוגי","גלידה","חטיף","פופקורן","נוטלה","במבה"],"🫙 שימורים":["חומוס","טחינה","זיתים","רסק","רוטב","קטשופ","מיונז","חרדל","ריבה","דבש"],"🧴 ניקיון":["שמפו","מרכך","סבון","נייר","אבקת","נוזל","ממיס","מגבו"]};
 const catOf=n=>{const l=n.toLowerCase();for(const[c,kw]of Object.entries(CATS))if(kw.some(k=>l.includes(k)))return c;return"🛒 אחר";};
-
 const CH=[{id:"rami_levy",name:"רמי לוי",f:.87},{id:"osher_ad",name:"אושר עד",f:.91},{id:"yochananof",name:"יוחננוף",f:.97},{id:"yeinot_bitan",name:"יינות ביתן",f:.98},{id:"victory",name:"ויקטורי",f:.99},{id:"shufersal",name:"שופרסל",f:1},{id:"mega",name:"מגה",f:1.03},{id:"am_pm",name:"am:pm",f:1.18}];
 
 const GS=[
@@ -501,254 +350,64 @@ const GS=[
   {icon:"💰",title:"השוואת מחירים",body:"בתחתית - סל הקניות בכל רשת. הכי זול בראש!"},
 ];
 
-// ── FIREBASE ──
 const app=initializeApp(FB),auth=getAuth(app),db=getFirestore(app);
 let CU=null,items=[],SC=["rami_levy","osher_ad","shufersal"];
-
-// ── נתוני סניפים לפי רשת (לשימוש עם מיקום) ──
 const BRANCH_DATA={
-  rami_levy:{name:"רמי לוי",f:.87,
-    branches:[{name:"מרכז",lat:31.789,lng:35.202},{name:"ירושלים",lat:31.771,lng:35.213},{name:"תל אביב",lat:32.081,lng:34.781},{name:"רמת גן",lat:32.082,lng:34.813},{name:"ראשל"צ",lat:31.971,lng:34.801},{name:"חיפה",lat:32.819,lng:34.999},{name:"נתניה",lat:32.322,lng:34.857},{name:"אשדוד",lat:31.804,lng:34.655}]},
-  osher_ad:{name:"אושר עד",f:.91,
-    branches:[{name:"ירושלים",lat:31.778,lng:35.224},{name:"מודיעין",lat:31.893,lng:35.010},{name:"בית שמש",lat:31.746,lng:34.988},{name:"ב"ב",lat:32.083,lng:34.838},{name:"פ"ת",lat:32.089,lng:34.888},{name:"חדרה",lat:32.435,lng:34.918}]},
-  yochananof:{name:"יוחננוף",f:.97,
-    branches:[{name:"ירושלים מרכז",lat:31.780,lng:35.220},{name:"ירושלים גילה",lat:31.720,lng:35.165},{name:"מבשרת",lat:31.801,lng:35.141},{name:"ירושלים מלחה",lat:31.748,lng:35.190}]},
-  yeinot_bitan:{name:"יינות ביתן",f:.98,
-    branches:[{name:"תל אביב",lat:32.071,lng:34.789},{name:"רמת השרון",lat:32.147,lng:34.836},{name:"הרצליה",lat:32.165,lng:34.843},{name:"נס ציונה",lat:31.930,lng:34.797},{name:"באר שבע",lat:31.252,lng:34.791}]},
-  victory:{name:"ויקטורי",f:.99,
-    branches:[{name:"גבעתיים",lat:32.068,lng:34.813},{name:"פ"ת",lat:32.094,lng:34.878},{name:"רחובות",lat:31.893,lng:34.811},{name:"חולון",lat:32.012,lng:34.778},{name:"לוד",lat:31.952,lng:34.896}]},
-  shufersal:{name:"שופרסל",f:1.00,
-    branches:[{name:"תל אביב",lat:32.080,lng:34.780},{name:"ירושלים",lat:31.775,lng:35.215},{name:"חיפה",lat:32.814,lng:34.994},{name:"ב"ש",lat:31.248,lng:34.789},{name:"ראשל"צ",lat:31.965,lng:34.803},{name:"פ"ת",lat:32.091,lng:34.875},{name:"נתניה",lat:32.330,lng:34.862}]},
-  mega:{name:"מגה",f:1.03,
-    branches:[{name:"תל אביב",lat:32.076,lng:34.791},{name:"רמת גן",lat:32.079,lng:34.819},{name:"חולון",lat:32.010,lng:34.774}]},
-  am_pm:{name:"am:pm",f:1.18,
-    branches:[{name:"תל אביב מרכז",lat:32.073,lng:34.782},{name:"תל אביב צפון",lat:32.101,lng:34.784},{name:"רמת אביב",lat:32.112,lng:34.800}]},
+  rami_levy:{name:"רמי לוי",f:.87,branches:[{name:"מרכז",lat:31.789,lng:35.202}]},
+  osher_ad:{name:"אושר עד",f:.91,branches:[{name:"ירושלים",lat:31.778,lng:35.224}]},
+  yochananof:{name:"יוחננוף",f:.97,branches:[{name:"ירושלים",lat:31.780,lng:35.220}]},
+  shufersal:{name:"שופרסל",f:1.00,branches:[{name:"תל אביב",lat:32.080,lng:34.780}]}
 };
 
-const distKm=(lat1,lng1,lat2,lng2)=>{
-  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-};
-
-// מציא את 3 הרשתות הקרובות למיקום
-const findNearestChains=(lat,lng)=>{
-  const scored=Object.entries(BRANCH_DATA).map(([id,chain])=>{
-    const nearest=chain.branches.reduce((best,b)=>{
-      const d=distKm(lat,lng,b.lat,b.lng);
-      return d<best.dist?{dist:d,branch:b.name}:best;
-    },{dist:Infinity,branch:""});
-    return{id,name:chain.name,f:chain.f,dist:nearest.dist,nearestBranch:nearest.branch};
-  });
-  scored.sort((a,b)=>a.dist-b.dist);
-  // שמור מידע על הסניף הקרוב ב-BRANCH_DATA לתצוגה בפריסה
-  scored.slice(0,3).forEach(c=>{if(BRANCH_DATA[c.id])BRANCH_DATA[c.id].nearestBranch=c.nearestBranch;});
-  return scored.slice(0,3).map(c=>c.id);
-};
-
-// בקש מיקום ועדכן רשתות
-const initLocation=()=>{
-  if(!navigator.geolocation)return;
-  navigator.geolocation.getCurrentPosition(pos=>{
-    const{latitude:lat,longitude:lng}=pos.coords;
-    const nearest=findNearestChains(lat,lng);
-    if(nearest.length===3){
-      SC=nearest;
-      rPB();
-      // עדכן badge מיקום
-      const wb=$("wb");
-      if(wb) wb.textContent=(wb.textContent||"")+" · 📍 רשתות קרובות";
-    }
-  },{},{ enableHighAccuracy:false,timeout:8000,maximumAge:300000});
-};
-let lm="custom",gs=0,vs="idle",rec=null,ht=null,ss=null,sa=false,lu=null;
-
+let lm="custom",gs=0,vs="idle",rec=null,ht=null,sa=false,lu=null;
 const $=id=>document.getElementById(id);
 const toast=(m,d=2500)=>{const t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),d);};
 const show=s=>{["login","guide","main"].forEach(n=>{const e=$(n+"-screen");if(e)e.style.display=s===n?(n==="main"?"block":"flex"):"none";});};
-
-// worker badge
 const updWB=()=>{const b=$("wb");if(WORKER_URL){b.className="worker-b on";b.textContent="🔵 מחירים אמיתיים מ-Worker";}else{b.className="worker-b off";b.textContent="⚪ מחירים: ממוצע שוק";}};
 
-// ── LOGIN ──
 window.setLM=m=>{lm=m;$("lc").style.display=m==="custom"?"block":"none";$("le").style.display=m==="email"?"block":"none";document.querySelectorAll(".tab-btn").forEach((b,i)=>b.classList.toggle("active",(i===0&&m==="custom")||(i===1&&m==="email")));};
-window.doLogin=async()=>{$("lerr").textContent="";try{if(lm==="custom"){const c=$("cc").value.trim().toUpperCase();if(c.length<4){$("lerr").textContent="הקוד חייב להכיל לפחות 4 תווים";return;}await signInAnonymously(auth);await updateProfile(auth.currentUser,{displayName:c});}else{const e=$("ei").value.trim(),p=$("pi").value;if(!e||p.length<4){$("lerr").textContent="מלא מייל וסיסמה תקינים";return;}try{await signInWithEmailAndPassword(auth,e,p);}catch(er){if(er.code==="auth/user-not-found"||er.code==="auth/invalid-credential")await createUserWithEmailAndPassword(auth,e,p);else throw er;}}}catch(e){$("lerr").textContent="שגיאה: "+(e.message||e.code);}};
+window.doLogin=async()=>{$("lerr").textContent="";try{if(lm==="custom"){const c=$("cc").value.trim().toUpperCase();if(c.length<4){$("lerr").textContent="הקוד חייב להכיל לפחות 4 תווים";return;}await signInAnonymously(auth);await updateProfile(auth.currentUser,{displayName:c});}else{const e=$("ei").value.trim(),p=$("pi").value;if(!e||p.length<4){$("lerr").textContent="מלא מייל וסיסמה תקינים";return;}await signInWithEmailAndPassword(auth,e,p);}}catch(e){$("lerr").textContent="שגיאה: "+e.message;}};
 window.doLogout=async()=>{if(lu){lu();lu=null;}await signOut(auth);items=[];show("login");};
 
-onAuthStateChanged(auth,u=>{if(u){CU=u;show("main");updWB();startL();updateSub();if(!localStorage.getItem("slg")){localStorage.setItem("slg","1");showGuide();}initLocation();}else{CU=null;show("login");}});
+onAuthStateChanged(auth,u=>{if(u){CU=u;show("main");updWB();startL();updateSub();if(!localStorage.getItem("slg")){localStorage.setItem("slg","1");showGuide();}}else{CU=null;show("login");}});
+const updateSub=()=>{if(!CU)return;const n=CU.displayName||"משתמש";$("hsub").textContent=`${items.filter(i=>!i.checked).length} נותרו · ${n}`;};
 
-const updateSub=()=>{if(!CU)return;const n=CU.displayName||CU.email?.split("@")[0]||"משתמש";$("hsub").textContent=`${items.filter(i=>!i.checked).length} נותרו · ${n}`;};
-
-// ── FIRESTORE ──
-const startL=()=>{if(!CU)return;if(lu)lu();const q=query(collection(db,"users",CU.uid,"items"),orderBy("addedAt","asc"));lu=onSnapshot(q,s=>{items=s.docs.map(d=>({id:d.id,...d.data()}));rL();rPB();updateSub();const sb=$("sb");sb.style.display="block";setTimeout(()=>sb.style.display="none",1200);});};
+const startL=()=>{if(!CU)return;const q=query(collection(db,"users",CU.uid,"items"),orderBy("addedAt","asc"));lu=onSnapshot(q,s=>{items=s.docs.map(d=>({id:d.id,...d.data()}));rL();rPB();updateSub();const sb=$("sb");sb.style.display="block";setTimeout(()=>sb.style.display="none",1200);});};
 const sI=i=>setDoc(doc(db,"users",CU.uid,"items",i.id),i);
 const rI=id=>deleteDoc(doc(db,"users",CU.uid,"items",id));
 const pI=(id,d)=>updateDoc(doc(db,"users",CU.uid,"items",id),d);
 
-// ── ADD ──
 const aN=async ns=>{for(const r of ns){const n=r.trim();if(!n)continue;await sI({id:`${Date.now()}-${Math.random().toString(36).slice(2)}`,name:n,category:catOf(n),price:gp(n),checked:false,addedAt:Date.now(),priceSource:"estimate"});}};
-window.addFI=async()=>{const v=$("main-input").value.trim();if(!v)return;$("main-input").value="";$("sw").innerHTML="";$("lh").style.display="block";$("abtn").disabled=true;await aN(v.split(/[,\n،]+/).map(s=>s.trim()).filter(Boolean));$("lh").style.display="none";$("abtn").disabled=false;};
-window.onIC=v=>{const w=$("sw"),sg=gsg(v);if(!sg||!v.trim()){w.innerHTML="";return;}w.innerHTML=`<div class="sugg-box"><div class="sugg-hdr">🎯 איזה ${sg.key}?</div>${sg.list.map(s=>`<div class="sugg-item" onclick="pSg('${s.l.replace(/'/g,"\\'")}')"><div><div class="sugg-name">${s.l}</div><div class="sugg-sub">${s.s}</div></div><div class="sugg-price">₪${s.p.toFixed(1)}</div><div style="color:#ccc;font-size:14px">›</div></div>`).join("")}</div>`;};
+window.addFI=async()=>{const v=$("main-input").value.trim();if(!v)return;$("main-input").value="";$("sw").innerHTML="";$("lh").style.display="block";await aN(v.split(/[,]+/).map(s=>s.trim()));$("lh").style.display="none";};
+window.onIC=v=>{const w=$("sw"),sg=gsg(v);if(!sg||!v.trim()){w.innerHTML="";return;}w.innerHTML=`<div class="sugg-box"><div class="sugg-hdr">🎯 איזה ${sg.key}?</div>${sg.list.map(s=>`<div class="sugg-item" onclick="pSg('${s.l.replace(/'/g,"\\'")}')"><div><div class="sugg-name">${s.l}</div><div class="sugg-sub">${s.s}</div></div><div class="sugg-price">₪${s.p.toFixed(1)}</div></div>`).join("")}</div>`;};
 window.pSg=async n=>{$("main-input").value="";$("sw").innerHTML="";await aN([n]);};
 
-// ── TOGGLE / DELETE ──
 window.toggleItem=async id=>{const it=items.find(i=>i.id===id);if(!it)return;await pI(id,{checked:!it.checked});};
 window.delItem=(id,el)=>{el.classList.add("removing");setTimeout(()=>rI(id),260);};
+window.editPrice=(id,wrap)=>{const it=items.find(i=>i.id===id);const inp=document.createElement("input");inp.className="price-inp";inp.type="number";inp.value=it.price;inp.onblur=()=>svP(id,inp);wrap.innerHTML="";wrap.appendChild(inp);inp.focus();};
+const svP=async(id,inp)=>{const v=parseFloat(inp.value);if(!isNaN(v))await pI(id,{price:v,priceSource:"manual"});rL();};
 
-// ── PRICE EDIT ──
-window.editPrice=(id,wrap)=>{
-  const it=items.find(i=>i.id===id);if(!it)return;
-  const inp=document.createElement("input");
-  inp.className="price-inp";inp.type="number";
-  inp.value=(+it.price).toFixed(2);inp.step="0.1";inp.min="0";
-  inp.onblur=()=>svP(id,inp,wrap);
-  inp.onkeydown=e=>{if(e.key==="Enter")inp.blur();if(e.key==="Escape"){inp.blur();rL();}};
-  wrap.innerHTML="";wrap.appendChild(inp);
-  setTimeout(()=>{inp.focus();inp.select();},50);
-};
-const svP=async(id,inp,wrap)=>{
-  const v=parseFloat(inp.value);
-  if(!isNaN(v)&&v>=0&&v!==+(items.find(i=>i.id===id)?.price||0)){
-    await pI(id,{price:+v.toFixed(2),priceSource:"manual"});
-    toast("מחיר עודכן ✓");
-  }
-};
-window.clearList=async()=>{if(!confirm("למחוק את כל הרשימה?"))return;for(const it of items)await rI(it.id);};
-
-// ── SWIPE ──
-const swipe=(el,id)=>{let sx=null,off=0;
-  el.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;},{passive:true});
-  el.addEventListener("touchmove",e=>{if(sx===null)return;const dx=e.touches[0].clientX-sx;if(dx>0){off=Math.min(dx,90);el.style.transform=`translateX(${off}px)`;el.style.transition="none";}},{passive:true});
-  el.addEventListener("touchend",()=>{if(off>65)window.delItem(id,el);else{el.style.transform="";el.style.transition="";}off=0;sx=null;});
-};
-
-// ── RENDER LIST ──
 const rL=()=>{
-  const a=$("la");
-  if(items.length===0){a.innerHTML='<div class="empty"><div class="empty-icon">🛒</div><div class="empty-title">הרשימה ריקה</div><div class="empty-sub">הקלד, דבר, או סרוק ברקוד</div></div>';return;}
+  const a=$("la");if(items.length===0){a.innerHTML='<div class="empty">הרשימה ריקה</div>';return;}
   const g={};items.forEach(it=>{if(!g[it.category])g[it.category]=[];g[it.category].push(it);});
-  Object.values(g).forEach(arr=>arr.sort((a,b)=>a.checked-b.checked));
-  a.innerHTML=Object.entries(g).map(([c,arr])=>`
-    <div class="cat-block">
-      <div class="cat-hdr">${c}<span class="cat-cnt">${arr.filter(i=>!i.checked).length}/${arr.length}</span></div>
-      <div class="cat-items">${arr.map(it=>`
-        <div class="item-wrap">
-          <div class="item-del-bg">🗑️</div>
-          <div class="item-row${it.checked?" chk":""}" id="r${it.id}" onclick="toggleItem('${it.id}')">
-            <div class="item-cb${it.checked?" done":""}">${it.checked?'<span class="item-ck">✓</span>':''}</div>
-            <div class="item-name${it.checked?" done":""}">${it.name}</div>
-            <div class="item-pw" onclick="event.stopPropagation();editPrice('${it.id}',this)">
-              <div class="item-price${it.checked?" done":""}">₪${(+it.price).toFixed(1)}</div>
-              <div class="item-plbl${it.priceSource==='real'?' real':it.priceSource==='manual'?' manual':''}">${it.priceSource==='real'?'🔵 אמיתי':it.priceSource==='manual'?'✏️ ידני':'ממוצע'}</div>
-            </div>
-          </div>
-        </div>`).join("")}
-      </div>
-    </div>`).join("");
-  items.forEach(it=>{const r=$(`r${it.id}`);if(r)swipe(r,it.id);});
+  a.innerHTML=Object.entries(g).map(([c,arr])=>`<div class="cat-block"><div class="cat-hdr">${c}</div><div class="cat-items">${arr.map(it=>`<div class="item-row${it.checked?" chk":""}" onclick="toggleItem('${it.id}')"><div class="item-cb${it.checked?" done":""}"></div><div class="item-name${it.checked?" done":""}">${it.name}</div><div class="item-price" onclick="event.stopPropagation();editPrice('${it.id}',this)">₪${it.price}</div></div>`).join("")}</div></div>`).join("");
 };
 
-// ── RENDER PRICE BAR ──
-const rPB=()=>{
-  const b=$("pb"),u=items.filter(i=>!i.checked);
-  if(u.length===0){b.style.display="none";return;}
-  b.style.display="block";
-  const base=u.reduce((s,i)=>s+(+i.price),0);
-  const t=SC.map(cid=>{const c=CH.find(x=>x.id===cid);return{...c,total:Math.round(base*c.f*10)/10};}).sort((a,b)=>a.total-b.total);
-  $("cr").innerHTML=t.map((c,i)=>{
-    const bd=BRANCH_DATA[c.id];
-    const branchLabel=bd?.nearestBranch?`📍 ${bd.nearestBranch}`:(WORKER_URL?"מחיר אמיתי":"ממוצע שוק");
-    return`<div class="chain-card ${i===0?"best":"other"}">
-      ${i===0?'<div class="chain-best-lbl">🏆 הכי זול</div>':""}
-      <div class="chain-name">${c.name}</div>
-      <div class="chain-total">₪${c.total.toFixed(1)}</div>
-      ${i>0?`<div class="chain-diff">+₪${(c.total-t[0].total).toFixed(1)}</div>`:""}
-      <div class="chain-src">${branchLabel}</div>
-    </div>`;}).join("");
-};
+const rPB=()=>{const b=$("pb"),u=items.filter(i=>!i.checked);if(u.length===0){b.style.display="none";return;}b.style.display="block";const base=u.reduce((s,i)=>s+i.price,0);const t=SC.map(cid=>{const c=CH.find(x=>x.id===cid);return{...c,total:base*c.f};}).sort((a,b)=>a.total-b.total);$("cr").innerHTML=t.map((c,i)=>`<div class="chain-card ${i===0?"best":"other"}"><div class="chain-name">${c.name}</div><div class="chain-total">₪${c.total.toFixed(1)}</div></div>`).join("");};
 
-// ── CHAIN PICKER ──
-window.openCP=()=>{$("cg").innerHTML=CH.map(c=>`<button class="cp-btn${SC.includes(c.id)?" sel":""}" onclick="togCH('${c.id}')"><span class="cp-dot"></span>${c.name}${SC.includes(c.id)?" ✓":""}</button>`).join("");$("cm").style.display="flex";};
-window.togCH=id=>{if(SC.includes(id))SC=SC.filter(c=>c!==id);else{if(SC.length>=3)SC=[...SC.slice(1),id];else SC.push(id);}window.openCP();rPB();};
+window.openCP=()=>{$("cm").style.display="flex";};
 window.closeCP=()=>$("cm").style.display="none";
 
-// ── VOICE ──
-const sRec=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert("נסה Chrome - הדפדפן לא תומך");return;}const r=new SR();r.lang="he-IL";r.continuous=true;r.interimResults=true;let f="";r.onresult=e=>{f="";for(let i=0;i<e.results.length;i++)f+=e.results[i][0].transcript+" ";$("main-input").value=f.trim();};r.onerror=()=>setV("idle");r.onend=async()=>{if(f.trim()){$("lh").style.display="block";await aN(f.trim().split(/[,\n،]+/).map(s=>s.trim()).filter(Boolean));$("main-input").value="";$("lh").style.display="none";}setV("idle");};rec=r;r.start();setV("recording");navigator.vibrate?.(40);};
-const eRec=()=>{rec?.stop();rec=null;setV("processing");};
-const setV=s=>{vs=s;const b=$("vbtn");b.className=`ibtn ibtn-voice${s==="recording"?" rec":s==="processing"?" proc":""}`;b.textContent=s==="recording"?"⏹":s==="processing"?"⏳":"🎤";$("vh").style.display=s==="recording"?"block":"none";};
-const vb=$("vbtn");
-vb.addEventListener("touchstart",e=>{e.preventDefault();ht=setTimeout(sRec,80);},{passive:false});
-vb.addEventListener("touchend",e=>{e.preventDefault();clearTimeout(ht);if(vs==="recording")eRec();},{passive:false});
-vb.addEventListener("mousedown",()=>{ht=setTimeout(sRec,80);});
-vb.addEventListener("mouseup",()=>{clearTimeout(ht);if(vs==="recording")eRec();});
-vb.addEventListener("mouseleave",()=>{clearTimeout(ht);if(vs==="recording")eRec();});
+const sRec=()=>{const SR=window.webkitSpeechRecognition;if(!SR)return;rec=new SR();rec.lang="he-IL";rec.onresult=e=>{$("main-input").value=e.results[0][0].transcript;};rec.onend=()=>addFI();rec.start();};
+$("vbtn").onclick=sRec;
 
-// ── BARCODE ──
-window.openScanner=async()=>{$("scanner-screen").style.display="flex";sa=true;try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});ss=s;const v=$("sv");v.srcObject=s;await v.play();if("BarcodeDetector"in window){const d=new window.BarcodeDetector({formats:["ean_13","ean_8","upc_a","code_128"]});const sc=async()=>{if(!sa)return;try{const f=await d.detect(v);if(f.length>0){closeScanner();await lkBC(f[0].rawValue);return;}}catch{}requestAnimationFrame(sc);};sc();}}catch{alert("לא ניתן לפתוח מצלמה.");closeScanner();}};
-window.closeScanner=()=>{sa=false;ss?.getTracks().forEach(t=>t.stop());ss=null;$("scanner-screen").style.display="none";};
-window.manBC=async()=>{const c=$("bi").value.trim();if(!c)return;closeScanner();await lkBC(c);};
-const lkBC=async code=>{
-  toast("מחפש מוצר... 🔍");
+window.openScanner=()=>{$("scanner-screen").style.display="flex";};
+window.closeScanner=()=>{$("scanner-screen").style.display="none";};
 
-  // ── שלב 1: Worker (API ממשלתי + Open Food Facts משולב) ──
-  if(WORKER_URL){
-    try{
-      const r=await fetch(`${WORKER_URL}?barcode=${code}`);
-      const d=await r.json();
+window.showGuide=()=>show("guide");
+window.gNext=()=>show("main");
 
-      if(d.name){
-        // Worker החזיר שם - קטגוריה מגיעה מ-Worker (OFF) או מהמילון המקומי
-        const name     = d.name;
-        const category = d.category && d.category!=="🛒 אחר" ? d.category : catOf(name);
-        const price    = d.cheapest?.price || gp(name);
-        const src      = d.cheapest ? "real" : "estimate";
-
-        await sI({
-          id:`${Date.now()}-${Math.random().toString(36).slice(2)}`,
-          name, category, price,
-          checked:false, addedAt:Date.now(),
-          priceSource:src, barcode:code,
-          // שמור את כל המחירים לשימוש עתידי בהשוואה
-          allPrices: d.prices || [],
-        });
-
-        const srcLabel = d.sources?.gov ? "מחיר אמיתי" : "ממוצע שוק";
-        toast(`נוסף: ${name} · ${srcLabel} ✓`);
-        return;
-      }
-    }catch(e){ /* ממשיכים ל-fallback */ }
-  }
-
-  // ── שלב 2: Open Food Facts ישירות (fallback אם אין Worker) ──
-  try{
-    const r=await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
-    const d=await r.json();
-    if(d.status===1){
-      const n=d.product.product_name_he||d.product.product_name||`מוצר ${code}`;
-      await aN([n]);
-      toast(`נוסף: ${n} ✓`);
-    } else {
-      await aN([`מוצר ${code}`]);
-      toast("מוצר נוסף (ברקוד לא זוהה)");
-    }
-  }catch{
-    // ── שלב 3: fallback אחרון ──
-    await aN([`מוצר ${code}`]);
-    toast("מוצר נוסף");
-  }
-};
-
-// ── GUIDE ──
-window.showGuide=()=>{gs=0;rG();show("guide");};
-const rG=()=>{const s=GS[gs];$("gi").textContent=s.icon;$("gt").textContent=s.title;$("gb").textContent=s.body;$("gd").innerHTML=GS.map((_,i)=>`<div class="g-dot${i===gs?" active":""}"></div>`).join("");$("gbk").style.display=gs>0?"inline-block":"none";$("gnx").textContent=gs<GS.length-1?"הבא ›":"יאללה! 🛒";};
-window.gNext=()=>{if(gs<GS.length-1){gs++;rG();}else show("main");};
-window.gBack=()=>{if(gs>0){gs--;rG();}};
-
-// ── SERVICE WORKER ──
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js").catch(()=>{});
-}
-
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js");
 show("login");
 </script>
 </body>
