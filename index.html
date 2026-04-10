@@ -1,24 +1,20 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<!--
-  סלי v1.4 - קובץ נקי ומלא
-  העלה לגיטהאב כ-index.html יחד עם manifest.json ו-sw.js
--->
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="סלי"/>
-<meta name="theme-color" content="#1a5c38"/>
+<meta name="theme-color" content="#1565c0"/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
 <title>סלי</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
-body{font-family:'Noto Sans Hebrew','Assistant',sans-serif;direction:rtl;min-height:100vh;background:#f0f9f2;}
+body{font-family:'Noto Sans Hebrew','Assistant',sans-serif;direction:rtl;min-height:100vh;background:#f0f5ff;}
 
 /* BACKGROUND */
 .bgc{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
@@ -29,17 +25,17 @@ body{font-family:'Noto Sans Hebrew','Assistant',sans-serif;direction:rtl;min-hei
 #ls{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px;}
 .lcard{background:rgba(255,255,255,0.96);border-radius:28px;padding:32px 22px;max-width:360px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.15);}
 .llogo{text-align:center;margin-bottom:22px;}
-.licon{width:72px;height:72px;background:linear-gradient(135deg,#1a5c38,#2d9e5f);border-radius:20px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 4px 20px rgba(26,92,56,0.35);}
-.llogo h1{font-size:26px;font-weight:900;color:#1a5c38;}
+.licon{width:76px;height:76px;background:linear-gradient(135deg,#1565c0,#1e88e5);border-radius:20px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(21,101,192,0.4);}
+.llogo h1{font-size:26px;font-weight:900;color:#1565c0;}
 .llogo p{font-size:12px;color:#999;margin-top:2px;}
 .tabs{display:flex;background:#f0f4f0;border-radius:12px;padding:3px;margin-bottom:18px;}
 .tab{flex:1;padding:9px 0;border-radius:9px;border:none;background:transparent;color:#666;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit;}
-.tab.on{background:#1a5c38;color:white;}
-.hintbox{font-size:12px;color:#888;margin-bottom:10px;line-height:1.6;background:#f9f9f9;border-radius:10px;padding:9px 11px;}
-.hintbox b{color:#1a5c38;}.hintbox .w{color:#e63946;}
+.tab.on{background:#1565c0;color:white;}
+.hintbox{font-size:12px;color:#888;margin-bottom:10px;line-height:1.6;background:#f5f8ff;border-radius:10px;padding:9px 11px;}
+.hintbox b{color:#1565c0;}.hintbox .w{color:#e63946;}
 input[type=text],input[type=email],input[type=password]{width:100%;padding:13px 14px;border-radius:12px;border:2px solid #e0e0e0;font-size:15px;margin-bottom:10px;font-family:inherit;outline:none;transition:border .2s;}
-input:focus{border-color:#1a5c38;}
-.lbtn{width:100%;padding:14px 0;border-radius:14px;border:none;background:linear-gradient(135deg,#1a5c38,#2d9e5f);color:white;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(26,92,56,.3);font-family:inherit;margin-top:4px;}
+input:focus{border-color:#1565c0;}
+.lbtn{width:100%;padding:14px 0;border-radius:14px;border:none;background:linear-gradient(135deg,#1565c0,#1e88e5);color:white;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(21,101,192,.3);font-family:inherit;margin-top:4px;}
 .lerr{color:#e63946;font-size:13px;margin-bottom:8px;text-align:center;min-height:18px;}
 .lfooter{text-align:center;margin-top:12px;font-size:11px;color:#ccc;}
 
@@ -47,19 +43,19 @@ input:focus{border-color:#1a5c38;}
 #gs{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px;}
 .gcard{background:rgba(255,255,255,0.97);border-radius:24px;padding:32px;max-width:340px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.18);}
 .gicon{font-size:56px;margin-bottom:8px;}
-.gtitle{font-size:20px;font-weight:900;color:#1a5c38;margin-bottom:10px;}
+.gtitle{font-size:20px;font-weight:900;color:#1565c0;margin-bottom:10px;}
 .gbody{font-size:14px;color:#555;margin-bottom:22px;line-height:1.65;}
 .gdots{display:flex;gap:6px;justify-content:center;margin-bottom:20px;}
-.gdot{width:7px;height:7px;border-radius:50%;background:#c8e6c9;transition:background .2s;}
-.gdot.on{background:#1a5c38;}
+.gdot{width:7px;height:7px;border-radius:50%;background:#bbdefb;}
+.gdot.on{background:#1565c0;}
 .gbtns{display:flex;gap:10px;justify-content:center;}
-.gbk{padding:10px 18px;border-radius:12px;border:2px solid #1a5c38;background:white;color:#1a5c38;font-weight:700;cursor:pointer;font-family:inherit;}
-.gnx{padding:10px 22px;border-radius:12px;border:none;background:#1a5c38;color:white;font-weight:700;cursor:pointer;font-family:inherit;}
+.gbk{padding:10px 18px;border-radius:12px;border:2px solid #1565c0;background:white;color:#1565c0;font-weight:700;cursor:pointer;font-family:inherit;}
+.gnx{padding:10px 22px;border-radius:12px;border:none;background:#1565c0;color:white;font-weight:700;cursor:pointer;font-family:inherit;}
 
 /* HEADER */
-.hdr{background:rgba(26,92,56,.97);padding:13px 14px 11px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(8px);}
+.hdr{background:rgba(21,101,192,.97);padding:13px 14px 11px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(8px);}
 .hdrl{display:flex;align-items:center;gap:10px;}
-.hdrlogo{width:34px;height:34px;background:rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.hdrlogo{width:34px;height:34px;background:rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;}
 .hdrtitle{color:white;font-weight:900;font-size:16px;line-height:1;}
 .hdrsub{color:rgba(255,255,255,.6);font-size:10px;}
 .hdrbtns{display:flex;gap:6px;}
@@ -69,31 +65,40 @@ input:focus{border-color:#1a5c38;}
 /* INPUT AREA */
 .inarea{padding:10px 12px;background:rgba(255,255,255,.93);border-bottom:1px solid rgba(0,0,0,.05);}
 .inrow{display:flex;gap:7px;align-items:center;}
-.inwrap{flex:1;display:flex;background:white;border-radius:16px;border:2px solid #c8e6c9;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.inwrap{flex:1;display:flex;background:white;border-radius:16px;border:2px solid #90caf9;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);}
 #mi{flex:1;padding:12px 13px;border:none;outline:none;font-size:15px;direction:rtl;background:transparent;font-family:inherit;}
-.ibtn{width:43px;height:43px;border-radius:12px;border:none;color:white;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:all .15s;font-family:inherit;}
+.ibtn{width:43px;height:43px;border-radius:12px;border:none;color:white;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:all .15s;font-family:inherit;user-select:none;}
 .ibtn:active{transform:scale(.93);}
 .iscan{background:#f59e0b;}
-.ivoice{background:#1a5c38;}
+.ivoice{background:#1565c0;}
 .ivoice.rec{background:#e63946;box-shadow:0 0 0 5px rgba(230,57,70,.25);transform:scale(1.1);}
 .ivoice.proc{background:#f59e0b;}
-.iadd{background:#2d9e5f;}
+.iadd{background:#1e88e5;}
 .iadd:disabled{background:#ccc;cursor:default;}
 .vhint{text-align:center;font-size:13px;color:#e63946;margin-top:7px;font-weight:700;animation:pulse .8s infinite;}
 .lhint{text-align:center;font-size:12px;color:#888;margin-top:6px;}
 .syncb{display:none;text-align:center;font-size:11px;color:#4caf50;margin-top:4px;}
 .workerb{text-align:center;font-size:11px;margin-top:4px;}
-.workerb.on{color:#2196f3;}.workerb.off{color:#bbb;}
+.workerb.on{color:#1e88e5;}.workerb.off{color:#bbb;}
 
-/* SUGGESTIONS */
+/* WORKER SUGGESTIONS (name search) */
+.wsugbox{margin-top:10px;background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.1);overflow:hidden;border:1px solid #e3f2fd;}
+.wsughdr{padding:7px 12px;background:#e3f2fd;border-bottom:1px solid #bbdefb;font-size:12px;color:#1565c0;font-weight:800;}
+.wsugitem{display:flex;align-items:center;padding:10px 13px;border-bottom:1px solid #f5f5f5;cursor:pointer;gap:10px;}
+.wsugitem:last-child{border-bottom:none;}.wsugitem:active{background:#e3f2fd;}
+.wsugname{font-size:14px;font-weight:700;color:#222;}
+.wsugsub{font-size:11px;color:#aaa;}
+.wsugprice{font-size:14px;font-weight:800;color:#1565c0;margin-right:auto;}
+
+/* LOCAL SUGGESTIONS */
 .sugwrap{margin-top:10px;}
-.sugbox{background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.1);overflow:hidden;border:1px solid #e8f5e9;}
-.sughdr{padding:7px 12px;background:#f0fdf4;border-bottom:1px solid #e8f5e9;font-size:12px;color:#1a5c38;font-weight:800;}
+.sugbox{background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.1);overflow:hidden;border:1px solid #e3f2fd;}
+.sughdr{padding:7px 12px;background:#e3f2fd;border-bottom:1px solid #bbdefb;font-size:12px;color:#1565c0;font-weight:800;}
 .sugitem{display:flex;align-items:center;padding:10px 13px;border-bottom:1px solid #f5f5f5;cursor:pointer;gap:10px;}
-.sugitem:last-child{border-bottom:none;}.sugitem:active{background:#f0fdf4;}
+.sugitem:last-child{border-bottom:none;}.sugitem:active{background:#e3f2fd;}
 .sugname{font-size:14px;font-weight:700;color:#222;}
 .sugsub{font-size:11px;color:#aaa;}
-.sugprice{font-size:14px;font-weight:800;color:#1a5c38;margin-right:auto;}
+.sugprice{font-size:14px;font-weight:800;color:#1565c0;margin-right:auto;}
 
 /* LIST */
 .lista{padding:14px 12px 230px;}
@@ -102,11 +107,9 @@ input:focus{border-color:#1a5c38;}
 .emptytitle{font-size:16px;font-weight:700;color:#bbb;}
 .emptysub{font-size:13px;margin-top:6px;color:#ccc;}
 .catblock{margin-bottom:14px;}
-.cathdr{font-size:13px;font-weight:800;color:#1a5c38;padding:5px 4px 4px;display:flex;align-items:center;gap:7px;}
-.catcnt{background:#e8f5e9;color:#1a5c38;border-radius:7px;padding:1px 7px;font-size:11px;}
+.cathdr{font-size:13px;font-weight:800;color:#1565c0;padding:5px 4px 4px;display:flex;align-items:center;gap:7px;}
+.catcnt{background:#e3f2fd;color:#1565c0;border-radius:7px;padding:1px 7px;font-size:11px;}
 .catitems{background:rgba(255,255,255,.93);border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.07);}
-
-/* ITEM */
 .itwrap{position:relative;overflow:hidden;}
 .itwrap:not(:last-child){border-bottom:1px solid #f0f0f0;}
 .itdelbg{position:absolute;right:0;top:0;bottom:0;width:80px;background:linear-gradient(90deg,transparent,#e63946);display:flex;align-items:center;justify-content:center;font-size:18px;}
@@ -114,61 +117,61 @@ input:focus{border-color:#1a5c38;}
 .itrow.chk{background:#fafafa;}
 .itrow.removing{opacity:0!important;transform:translateX(110px)!important;}
 .itcb{width:24px;height:24px;border-radius:8px;border:2px solid #ddd;background:white;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s;}
-.itcb.done{border-color:#2d9e5f;background:#2d9e5f;}
+.itcb.done{border-color:#1e88e5;background:#1e88e5;}
 .itck{color:white;font-size:13px;font-weight:900;}
 .itname{flex:1;font-size:15px;font-weight:600;color:#222;transition:all .18s;}
 .itname.done{color:#bbb;text-decoration:line-through;}
 .itpw{text-align:left;flex-shrink:0;min-width:54px;}
-.itprice{font-size:15px;font-weight:800;color:#1a5c38;cursor:pointer;padding:4px 6px;border-radius:8px;transition:background .15s;}
-.itprice:active{background:#f0fdf4;}
+.itprice{font-size:15px;font-weight:800;color:#1565c0;cursor:pointer;padding:4px 6px;border-radius:8px;transition:background .15s;}
+.itprice:active{background:#e3f2fd;}
 .itprice.done{color:#ccc;}
 .itplbl{font-size:9px;color:#ccc;text-align:center;margin-top:1px;}
-.itplbl.real{color:#2196f3;font-weight:700;}
+.itplbl.real{color:#1e88e5;font-weight:700;}
 .itplbl.manual{color:#888;}
-.priceinp{width:68px;padding:4px 6px;border:2px solid #1a5c38;border-radius:9px;font-size:14px;font-weight:800;color:#1a5c38;text-align:center;direction:ltr;font-family:inherit;outline:none;background:#f0fdf4;}
+.priceinp{width:68px;padding:4px 6px;border:2px solid #1565c0;border-radius:9px;font-size:14px;font-weight:800;color:#1565c0;text-align:center;direction:ltr;font-family:inherit;outline:none;background:#e3f2fd;}
 
 /* PRICE BAR */
-.pbar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.98);border-top:2px solid #c8e6c9;padding:11px 12px 22px;box-shadow:0 -4px 24px rgba(0,0,0,.1);backdrop-filter:blur(12px);}
+.pbar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.98);border-top:2px solid #90caf9;padding:11px 12px 22px;box-shadow:0 -4px 24px rgba(0,0,0,.1);backdrop-filter:blur(12px);}
 .pbhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
-.pbtitle{font-size:13px;font-weight:800;color:#1a5c38;}
-.pbset{font-size:11px;color:#1a5c38;background:#e8f5e9;border:none;border-radius:8px;padding:4px 9px;cursor:pointer;font-weight:700;font-family:inherit;}
+.pbtitle{font-size:13px;font-weight:800;color:#1565c0;}
+.pbset{font-size:11px;color:#1565c0;background:#e3f2fd;border:none;border-radius:8px;padding:4px 9px;cursor:pointer;font-weight:700;font-family:inherit;}
 .chainsrow{display:flex;gap:8px;}
 .ccard{flex:1;border-radius:14px;padding:10px 6px;text-align:center;}
-.ccard.best{background:linear-gradient(135deg,#1a5c38,#2d9e5f);box-shadow:0 4px 16px rgba(26,92,56,.3);}
-.ccard.other{background:#f7f7f7;}
+.ccard.best{background:linear-gradient(135deg,#1565c0,#1e88e5);box-shadow:0 4px 16px rgba(21,101,192,.3);}
+.ccard.other{background:#f5f8ff;}
 .cbestlbl{font-size:9px;color:rgba(255,255,255,.85);margin-bottom:1px;}
 .cname{font-size:11px;font-weight:700;margin-bottom:2px;}
 .ccard.best .cname,.ccard.best .ctotal{color:white;}
-.ccard.other .cname{color:#666;}.ccard.other .ctotal{color:#222;}
+.ccard.other .cname{color:#555;}.ccard.other .ctotal{color:#222;}
 .ctotal{font-size:17px;font-weight:900;}
 .cdiff{font-size:10px;color:#e63946;}
 .csrc{font-size:9px;margin-top:1px;}
-.ccard.best .csrc{color:rgba(255,255,255,.6);}.ccard.other .csrc{color:#bbb;}
+.ccard.best .csrc{color:rgba(255,255,255,.6);}.ccard.other .csrc{color:#aaa;}
 .pbnote{text-align:center;font-size:10px;color:#bbb;margin-top:7px;}
 
 /* CHAIN PICKER */
 .modov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end;}
 .modsh{background:white;width:100%;border-radius:22px 22px 0 0;padding:20px 14px 36px;}
-.modtitle{font-weight:800;font-size:16px;color:#1a5c38;margin-bottom:14px;text-align:center;}
+.modtitle{font-weight:800;font-size:16px;color:#1565c0;margin-bottom:14px;text-align:center;}
 .cgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
 .cpbtn{padding:11px 10px;border-radius:13px;border:2px solid #e0e0e0;background:white;font-weight:700;font-size:14px;cursor:pointer;color:#555;display:flex;align-items:center;gap:8px;font-family:inherit;}
-.cpbtn.sel{border-color:#1a5c38;background:#f0fdf4;color:#1a5c38;}
+.cpbtn.sel{border-color:#1565c0;background:#e3f2fd;color:#1565c0;}
 .cpdot{width:9px;height:9px;border-radius:50%;background:#ddd;flex-shrink:0;}
-.cpbtn.sel .cpdot{background:#1a5c38;}
-.modok{width:100%;padding:13px 0;border-radius:14px;border:none;background:#1a5c38;color:white;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;}
+.cpbtn.sel .cpdot{background:#1565c0;}
+.modok{width:100%;padding:13px 0;border-radius:14px;border:none;background:#1565c0;color:white;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;}
 
 /* SCANNER */
 #scr{position:fixed;inset:0;background:black;z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;}
 #svid{width:100%;max-width:400px;border-radius:12px;display:block;}
-.scframe{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:220px;height:90px;border:3px solid #2d9e5f;border-radius:10px;box-shadow:0 0 0 2000px rgba(0,0,0,.6);}
+.scframe{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:220px;height:90px;border:3px solid #1e88e5;border-radius:10px;box-shadow:0 0 0 2000px rgba(0,0,0,.6);}
 .sclbl{color:white;font-size:15px;margin-top:16px;font-weight:700;}
 .scman{margin-top:14px;display:flex;gap:8px;align-items:center;}
 .scman input{padding:10px 13px;border-radius:10px;border:none;font-size:15px;direction:ltr;width:155px;font-family:inherit;}
-.scman button{padding:10px 14px;border-radius:10px;border:none;background:#2d9e5f;color:white;font-weight:700;cursor:pointer;font-family:inherit;}
+.scman button{padding:10px 14px;border-radius:10px;border:none;background:#1e88e5;color:white;font-weight:700;cursor:pointer;font-family:inherit;}
 .scclose{margin-top:14px;padding:11px 30px;border-radius:12px;border:2px solid rgba(255,255,255,.5);background:transparent;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
 
 /* TOAST */
-.toast{position:fixed;bottom:190px;left:50%;transform:translateX(-50%);background:rgba(26,92,56,.95);color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.toast{position:fixed;bottom:190px;left:50%;transform:translateX(-50%);background:rgba(21,101,192,.95);color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
 
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
@@ -183,7 +186,13 @@ input:focus{border-color:#1a5c38;}
 <div id="ls" class="page">
   <div class="lcard">
     <div class="llogo">
-      <div class="licon">🛒</div>
+      <div class="licon">
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+          <path d="M6 8h4l5 18h18l4-14H13" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="18" cy="32" r="2.5" fill="white"/>
+          <circle cx="30" cy="32" r="2.5" fill="white"/>
+        </svg>
+      </div>
       <h1>סלי</h1>
       <p>רשימת קניות חכמה</p>
     </div>
@@ -230,7 +239,13 @@ input:focus{border-color:#1a5c38;}
 <div id="ms" class="page" style="display:none">
   <div class="hdr">
     <div class="hdrl">
-      <div class="hdrlogo">🛒</div>
+      <div class="hdrlogo">
+        <svg width="20" height="20" viewBox="0 0 44 44" fill="none">
+          <path d="M6 8h4l5 18h18l4-14H13" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="18" cy="32" r="2.5" fill="white"/>
+          <circle cx="30" cy="32" r="2.5" fill="white"/>
+        </svg>
+      </div>
       <div>
         <div class="hdrtitle">סלי</div>
         <div class="hdrsub" id="hsub">טוען...</div>
@@ -258,6 +273,7 @@ input:focus{border-color:#1a5c38;}
     <div id="lh" style="display:none" class="lhint">מוסיף... ⏳</div>
     <div id="sb" class="syncb">✓ מסתנכרן</div>
     <div id="wb" class="workerb off">⚪ מחירים: ממוצע שוק</div>
+    <div id="wsug"></div>
     <div class="sugwrap" id="sw"></div>
   </div>
 
@@ -294,7 +310,7 @@ input:focus{border-color:#1a5c38;}
     <video id="svid" playsinline muted></video>
     <div class="scframe"></div>
   </div>
-  <div class="sclbl">כוון את הברקוד למסגרת הירוקה</div>
+  <div class="sclbl">כוון את הברקוד למסגרת</div>
   <div class="scman">
     <input id="bi" placeholder="הזן ברקוד ידנית" type="text"/>
     <button onclick="manBC()">חפש</button>
@@ -311,9 +327,7 @@ import { getFirestore, collection, doc, setDoc, deleteDoc,
          onSnapshot, query, orderBy, updateDoc }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// ─────────────────────────────────
-//  הגדרות - שנה כאן בלבד
-// ─────────────────────────────────
+// ── SETTINGS ──
 const FB = {
   apiKey:            "AIzaSyB0ofm8cUnZ1pAQS3ZKvenV83bSa_FvH_A",
   authDomain:        "mytasksapp-68e71.firebaseapp.com",
@@ -323,11 +337,10 @@ const FB = {
   appId:             "1:673661240265:web:2eb7aad37f608be6be1e18"
 };
 const WORKER = "https://runprice.matanelb100.workers.dev";
-// ─────────────────────────────────
 
 // ── BACKGROUND ──
-const EMOJIS = ["🥛","🍞","🥚","🧀","🍎","🥕","🧃","🍫","🧴","🥩","🐟","🍋","🧅","🥦","🍊","🫙","🧂","🥬"];
-(function buildBG() {
+(function() {
+  const EMOJIS = ["🥛","🍞","🥚","🧀","🍎","🥕","🧃","🍫","🧴","🥩","🐟","🍋","🧅","🥦","🍊","🫙","🧂","🥬"];
   const c = document.getElementById("bgc");
   const cols = 5, rows = 7;
   let idx = 0;
@@ -339,9 +352,9 @@ const EMOJIS = ["🥛","🍞","🥚","🧀","🍎","🥕","🧃","🍫","🧴","
       const x   = (col / cols) * 100 + (Math.random() - 0.5) * 14;
       const y   = (row / rows) * 100 + (Math.random() - 0.5) * 10;
       const rot = (Math.random() - 0.5) * 70;
-      const op  = 0.055 + Math.random() * 0.055;
+      const op  = 0.05 + Math.random() * 0.05;
       const sz  = 16 + Math.random() * 14;
-      el.style.cssText = `left:${x}%;top:${y}%;--r:${rot}deg;--op:${op};--sz:${sz}px;`;
+      el.style.cssText = "left:" + x + "%;top:" + y + "%;--r:" + rot + "deg;--op:" + op + ";--sz:" + sz + "px;";
       c.appendChild(el);
     }
   }
@@ -391,7 +404,7 @@ const gp = n => {
   return +(Math.random() * 12 + 6).toFixed(2);
 };
 
-// ── SUGGESTIONS ──
+// ── LOCAL SUGGESTIONS ──
 const SG = {
   "חלב":   [{l:"חלב 3%",s:"קלאסי",p:6.90},{l:"חלב 1%",s:"דל שומן",p:6.50},{l:"חלב 5%",s:"עשיר",p:7.20},{l:"חלב דל לקטוז",s:"ללא לקטוז",p:8.90},{l:"חלב שקדים",s:"צמחי",p:14.90},{l:"חלב שיבולת שועל",s:"צמחי",p:16.90}],
   "גבינה": [{l:"גבינה לבנה 5%",s:"רכה",p:7.90},{l:"גבינה לבנה 9%",s:"שמנה",p:8.50},{l:"גבינה צהובה",s:"פרוסות",p:24.90},{l:"קוטג 5%",s:"מסוננת",p:8.90},{l:"גבינה קשה",s:"פרמזן",p:34.90}],
@@ -401,7 +414,7 @@ const SG = {
   "יוגורט":[{l:"יוגורט 3%",s:"קלאסי",p:5.90},{l:"יוגורט 1.5%",s:"דל שומן",p:5.50},{l:"יוגורט יווני",s:"סמיך",p:8.90},{l:"יוגורט ביו",s:"פרוביוטיקה",p:6.90}],
   "שמנת":  [{l:"שמנת חמוצה 15%",s:"קלה",p:7.90},{l:"שמנת חמוצה 27%",s:"שמנה",p:8.90},{l:"שמנת לבישול",s:"cooking",p:6.90}],
   "אורז":  [{l:"אורז בסמטי",s:"ארוך",p:12.90},{l:"אורז פרסי",s:"עגול",p:9.90},{l:"אורז חום",s:"מלא",p:11.90}],
-  "פסטה":  [{l:"ספגטי",s:"קלאסי",p:7.90},{l:"פנה",s:"שפורפרות",p:8.90},{l:"פרפרים",s:"farfalle",p:8.90},{l:"פסטה מלאה",s:"whole wheat",p:9.90}],
+  "פסטה":  [{l:"ספגטי",s:"קלאסי",p:7.90},{l:"פנה",s:"שפורפרות",p:8.90},{l:"פסטה מלאה",s:"whole wheat",p:9.90}],
   "שמן":   [{l:"שמן קנולה",s:"בישול",p:16.90},{l:"שמן זית",s:"כתית מעולה",p:34.90}],
 };
 const gsg = t => {
@@ -431,24 +444,55 @@ const catOf = n => {
   return "🛒 אחר";
 };
 
-// ── CHAINS + LOCATION ──
+// ── CHAINS + BRANCHES (כולל צפון) ──
 const CH = [
-  { id:"rami_levy",   name:"רמי לוי",    f:0.87,
-    branches:[{name:"ירושלים",lat:31.771,lng:35.213},{name:"תל אביב",lat:32.081,lng:34.781},{name:"רמת גן",lat:32.082,lng:34.813},{name:"ראשל\"צ",lat:31.971,lng:34.801},{name:"חיפה",lat:32.819,lng:34.999},{name:"נתניה",lat:32.322,lng:34.857},{name:"אשדוד",lat:31.804,lng:34.655},{name:"באר שבע",lat:31.252,lng:34.791}]},
-  { id:"osher_ad",    name:"אושר עד",    f:0.91,
-    branches:[{name:"ירושלים",lat:31.778,lng:35.224},{name:"מודיעין",lat:31.893,lng:35.010},{name:"בית שמש",lat:31.746,lng:34.988},{name:"בני ברק",lat:32.083,lng:34.838},{name:"פתח תקווה",lat:32.089,lng:34.888},{name:"חדרה",lat:32.435,lng:34.918}]},
-  { id:"yochananof",  name:"יוחננוף",   f:0.97,
-    branches:[{name:"ירושלים מרכז",lat:31.780,lng:35.220},{name:"ירושלים גילה",lat:31.720,lng:35.165},{name:"מבשרת ציון",lat:31.801,lng:35.141},{name:"ירושלים מלחה",lat:31.748,lng:35.190}]},
-  { id:"yeinot_bitan",name:"יינות ביתן", f:0.98,
-    branches:[{name:"תל אביב",lat:32.071,lng:34.789},{name:"רמת השרון",lat:32.147,lng:34.836},{name:"הרצליה",lat:32.165,lng:34.843},{name:"נס ציונה",lat:31.930,lng:34.797},{name:"באר שבע",lat:31.252,lng:34.791}]},
-  { id:"victory",     name:"ויקטורי",   f:0.99,
-    branches:[{name:"גבעתיים",lat:32.068,lng:34.813},{name:"פתח תקווה",lat:32.094,lng:34.878},{name:"רחובות",lat:31.893,lng:34.811},{name:"חולון",lat:32.012,lng:34.778}]},
-  { id:"shufersal",   name:"שופרסל",    f:1.00,
-    branches:[{name:"תל אביב",lat:32.080,lng:34.780},{name:"ירושלים",lat:31.775,lng:35.215},{name:"חיפה",lat:32.814,lng:34.994},{name:"באר שבע",lat:31.248,lng:34.789},{name:"ראשל\"צ",lat:31.965,lng:34.803},{name:"נתניה",lat:32.330,lng:34.862}]},
-  { id:"mega",        name:"מגה",       f:1.03,
-    branches:[{name:"תל אביב",lat:32.076,lng:34.791},{name:"רמת גן",lat:32.079,lng:34.819},{name:"חולון",lat:32.010,lng:34.774}]},
-  { id:"am_pm",       name:"am:pm",      f:1.18,
-    branches:[{name:"תל אביב מרכז",lat:32.073,lng:34.782},{name:"תל אביב צפון",lat:32.101,lng:34.784}]},
+  { id:"rami_levy", name:"רמי לוי", f:0.87, branches:[
+    {n:"ירושלים",lat:31.771,lng:35.213},{n:"תל אביב",lat:32.081,lng:34.781},
+    {n:"חיפה",lat:32.819,lng:34.999},{n:"נתניה",lat:32.322,lng:34.857},
+    {n:"אשדוד",lat:31.804,lng:34.655},{n:"ראשל\"צ",lat:31.971,lng:34.801},
+    {n:"באר שבע",lat:31.252,lng:34.791},{n:"בית שאן",lat:32.503,lng:35.499},
+    {n:"עפולה",lat:32.607,lng:35.289},{n:"טבריה",lat:32.796,lng:35.531},
+    {n:"כרמיאל",lat:32.914,lng:35.297},{n:"נהריה",lat:33.007,lng:35.098},
+    {n:"קריות",lat:32.832,lng:35.075},{n:"אום אל פחם",lat:32.522,lng:35.153}
+  ]},
+  { id:"osher_ad", name:"אושר עד", f:0.91, branches:[
+    {n:"ירושלים",lat:31.778,lng:35.224},{n:"מודיעין",lat:31.893,lng:35.010},
+    {n:"בית שמש",lat:31.746,lng:34.988},{n:"בני ברק",lat:32.083,lng:34.838},
+    {n:"פתח תקווה",lat:32.089,lng:34.888},{n:"חדרה",lat:32.435,lng:34.918},
+    {n:"זכרון יעקב",lat:32.568,lng:34.953},{n:"עכו",lat:32.926,lng:35.077}
+  ]},
+  { id:"yochananof", name:"יוחננוף", f:0.97, branches:[
+    {n:"ירושלים מרכז",lat:31.780,lng:35.220},{n:"ירושלים גילה",lat:31.720,lng:35.165},
+    {n:"מבשרת ציון",lat:31.801,lng:35.141},{n:"מעלה אדומים",lat:31.776,lng:35.298}
+  ]},
+  { id:"yeinot_bitan", name:"יינות ביתן", f:0.98, branches:[
+    {n:"תל אביב",lat:32.071,lng:34.789},{n:"רמת השרון",lat:32.147,lng:34.836},
+    {n:"הרצליה",lat:32.165,lng:34.843},{n:"נס ציונה",lat:31.930,lng:34.797},
+    {n:"באר שבע",lat:31.252,lng:34.791},{n:"חיפה",lat:32.810,lng:34.990},
+    {n:"טבריה",lat:32.789,lng:35.526},{n:"נצרת עילית",lat:32.699,lng:35.334}
+  ]},
+  { id:"victory", name:"ויקטורי", f:0.99, branches:[
+    {n:"גבעתיים",lat:32.068,lng:34.813},{n:"פתח תקווה",lat:32.094,lng:34.878},
+    {n:"רחובות",lat:31.893,lng:34.811},{n:"חולון",lat:32.012,lng:34.778},
+    {n:"ראש העין",lat:32.096,lng:34.957},{n:"הוד השרון",lat:32.151,lng:34.889}
+  ]},
+  { id:"shufersal", name:"שופרסל", f:1.00, branches:[
+    {n:"תל אביב",lat:32.080,lng:34.780},{n:"ירושלים",lat:31.775,lng:35.215},
+    {n:"חיפה",lat:32.814,lng:34.994},{n:"באר שבע",lat:31.248,lng:34.789},
+    {n:"ראשל\"צ",lat:31.965,lng:34.803},{n:"נתניה",lat:32.330,lng:34.862},
+    {n:"בית שאן",lat:32.500,lng:35.500},{n:"עפולה",lat:32.605,lng:35.290},
+    {n:"טבריה",lat:32.793,lng:35.528},{n:"נצרת",lat:32.699,lng:35.303},
+    {n:"קריית שמונה",lat:33.207,lng:35.569},{n:"צפת",lat:32.964,lng:35.498},
+    {n:"אשקלון",lat:31.669,lng:34.571},{n:"אילת",lat:29.558,lng:34.952}
+  ]},
+  { id:"mega", name:"מגה", f:1.03, branches:[
+    {n:"תל אביב",lat:32.076,lng:34.791},{n:"רמת גן",lat:32.079,lng:34.819},
+    {n:"חולון",lat:32.010,lng:34.774},{n:"פתח תקווה",lat:32.085,lng:34.880}
+  ]},
+  { id:"am_pm", name:"am:pm", f:1.18, branches:[
+    {n:"תל אביב מרכז",lat:32.073,lng:34.782},{n:"תל אביב צפון",lat:32.101,lng:34.784},
+    {n:"רמת אביב",lat:32.112,lng:34.800}
+  ]},
 ];
 
 const distKm = (la1, lo1, la2, lo2) => {
@@ -460,11 +504,11 @@ const distKm = (la1, lo1, la2, lo2) => {
 // ── GUIDE ──
 const GS = [
   {icon:"🛒",title:"ברוך הבא לסלי!",body:"הרשימה החכמה שחוסכת כסף ובלגן! מסתנכרנת בזמן אמת בין כל בני הבית."},
-  {icon:"✍️",title:"הוסף מוצרים",body:"הקלד מוצר ותקבל בחירת סוג + מחיר. כמה מוצרים? הפרד בפסיק."},
-  {icon:"🎤",title:"קול - סגנון וואטסאפ",body:"לחץ ממושך על הכפתור הירוק ודבר בעברית. שחרר כשתסיים."},
-  {icon:"📷",title:"סריקת ברקוד",body:"לחץ על המצלמה וסרוק ברקוד. שם המוצר ומחירו נטענים אוטומטית."},
+  {icon:"✍️",title:"הוסף מוצרים",body:"הקלד מוצר ותקבל הצעות מהסופר - Worker מחפש מקטים אמיתיים ומציע לך אפשרויות."},
+  {icon:"🎤",title:"קול - סגנון וואטסאפ",body:"לחץ ממושך על הכפתור הכחול ודבר. שחרר כשתסיים. עובד בעברית מלאה."},
+  {icon:"📷",title:"סריקת ברקוד",body:"לחץ על המצלמה וסרוק ברקוד. שם המוצר ומחירו האמיתי נטענים אוטומטית."},
   {icon:"✏️",title:"עריכת מחיר",body:"לחץ על כל מחיר כדי לערוך אותו ידנית. נשמר ב-Firebase מיד."},
-  {icon:"📍",title:"רשתות קרובות",body:"האפליקציה מציגה את 3 הרשתות הקרובות אליך עם שם הסניף."},
+  {icon:"📍",title:"רשתות קרובות",body:"האפליקציה מוצאת את 3 הרשתות הקרובות אליך עם שם הסניף המדויק."},
 ];
 
 // ── FIREBASE ──
@@ -476,7 +520,6 @@ const db   = getFirestore(app);
 let CU = null, items = [], SC = ["rami_levy","osher_ad","shufersal"];
 let lm = "custom", gs = 0, vs = "idle", rec = null, ht = null;
 let ss = null, sa = false, lu = null;
-// nearest branch per chain id
 const nearBranch = {};
 
 // ── HELPERS ──
@@ -486,9 +529,9 @@ const toast = (m, d=2500) => {
   setTimeout(() => t.classList.remove("show"), d);
 };
 const show = s => {
-  $("ls").style.display  = s === "login" ? "flex"  : "none";
-  $("gs").style.display  = s === "guide" ? "flex"  : "none";
-  $("ms").style.display  = s === "main"  ? "block" : "none";
+  $("ls").style.display = s === "login" ? "flex"  : "none";
+  $("gs").style.display = s === "guide" ? "flex"  : "none";
+  $("ms").style.display = s === "main"  ? "block" : "none";
 };
 
 // ── LOCATION ──
@@ -496,12 +539,11 @@ const initLocation = () => {
   if (!navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(pos => {
     const { latitude: lat, longitude: lng } = pos.coords;
-    // score every chain by nearest branch distance
     const scored = CH.map(ch => {
       let best = { dist: Infinity, name: "" };
       for (const b of ch.branches) {
         const d = distKm(lat, lng, b.lat, b.lng);
-        if (d < best.dist) best = { dist: d, name: b.name };
+        if (d < best.dist) best = { dist: d, name: b.n };
       }
       nearBranch[ch.id] = best.name;
       return { id: ch.id, dist: best.dist };
@@ -509,18 +551,59 @@ const initLocation = () => {
     scored.sort((a, b) => a.dist - b.dist);
     SC = scored.slice(0, 3).map(c => c.id);
     rPB();
-    const wb = $("wb");
-    if (wb) {
-      const txt = wb.textContent;
-      if (!txt.includes("📍")) wb.textContent = txt + " · 📍 רשתות קרובות";
+    toast("📍 רשתות עודכנו לפי מיקומך");
+  }, () => {}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 });
+};
+
+// ── WORKER SEARCH BY NAME ──
+let wSearchTimer = null;
+const workerSearchByName = async name => {
+  if (!WORKER || name.trim().length < 2) { $("wsug").innerHTML = ""; return; }
+  clearTimeout(wSearchTimer);
+  wSearchTimer = setTimeout(async () => {
+    try {
+      const url = WORKER + "?name=" + encodeURIComponent(name.trim());
+      const r = await fetch(url);
+      const d = await r.json();
+      if (d.suggestions && d.suggestions.length > 0) {
+        renderWorkerSugg(d.suggestions);
+      } else {
+        $("wsug").innerHTML = "";
+      }
+    } catch {
+      $("wsug").innerHTML = "";
     }
-  }, () => {}, { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 });
+  }, 600);
+};
+
+const renderWorkerSugg = suggs => {
+  const w = $("wsug");
+  w.innerHTML = '<div class="wsugbox"><div class="wsughdr">🔵 מוצרים מהסופר</div>' +
+    suggs.slice(0, 5).map(s =>
+      '<div class="wsugitem" onclick="pWSug(\'' +
+      (s.name || "").replace(/'/g, "\\'").replace(/"/g, "&quot;") + '\',' + (s.price || 0) + ')">' +
+      '<div><div class="wsugname">' + (s.name || "") + '</div>' +
+      '<div class="wsugsub">' + (s.brand || s.chain || "") + '</div></div>' +
+      '<div class="wsugprice">&#8362;' + (s.price ? (+s.price).toFixed(1) : "?") + '</div>' +
+      '<div style="color:#ccc">&#8250;</div></div>'
+    ).join("") + '</div>';
+};
+
+window.pWSug = async (name, price) => {
+  $("mi").value = ""; $("wsug").innerHTML = ""; $("sw").innerHTML = "";
+  await sIFull({
+    id: Date.now() + "-" + Math.random().toString(36).slice(2),
+    name, category: catOf(name),
+    price: price || gp(name),
+    checked: false, addedAt: Date.now(),
+    priceSource: price ? "real" : "estimate"
+  });
 };
 
 // ── WORKER BADGE ──
 const updWB = () => {
   const b = $("wb");
-  if (WORKER) { b.className = "workerb on"; b.textContent = "🔵 מחירים: Worker מחובר"; }
+  if (WORKER) { b.className = "workerb on"; b.textContent = "🔵 Worker מחובר - מחירים אמיתיים"; }
   else        { b.className = "workerb off"; b.textContent = "⚪ מחירים: ממוצע שוק"; }
 };
 
@@ -533,7 +616,6 @@ window.setLM = m => {
     b.classList.toggle("on", (i === 0 && m === "custom") || (i === 1 && m === "email"))
   );
 };
-
 window.doLogin = async () => {
   $("lerr").textContent = "";
   try {
@@ -554,11 +636,9 @@ window.doLogin = async () => {
     }
   } catch (e) { $("lerr").textContent = "שגיאה: " + (e.message || e.code); }
 };
-
 window.doLogout = async () => {
   if (lu) { lu(); lu = null; }
-  await signOut(auth);
-  items = []; show("login");
+  await signOut(auth); items = []; show("login");
 };
 
 // ── AUTH ──
@@ -566,13 +646,13 @@ onAuthStateChanged(auth, u => {
   if (u) {
     CU = u; show("main"); updWB(); startL(); updateSub();
     initLocation();
-    if (!localStorage.getItem("slg")) { localStorage.setItem("slg", "1"); showGuide(); }
+    if (!localStorage.getItem("slg")) { localStorage.setItem("slg","1"); showGuide(); }
   } else { CU = null; show("login"); }
 });
 
 const updateSub = () => {
   if (!CU) return;
-  const n = CU.displayName || CU.email?.split("@")[0] || "משתמש";
+  const n = CU.displayName || (CU.email ? CU.email.split("@")[0] : "משתמש");
   $("hsub").textContent = items.filter(i => !i.checked).length + " נותרו · " + n;
 };
 
@@ -580,7 +660,7 @@ const updateSub = () => {
 const startL = () => {
   if (!CU) return;
   if (lu) lu();
-  const q = query(collection(db, "users", CU.uid, "items"), orderBy("addedAt", "asc"));
+  const q = query(collection(db,"users",CU.uid,"items"), orderBy("addedAt","asc"));
   lu = onSnapshot(q, snap => {
     items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     rL(); rPB(); updateSub();
@@ -588,9 +668,10 @@ const startL = () => {
     setTimeout(() => { sb.style.display = "none"; }, 1200);
   });
 };
-const sI = item  => setDoc(doc(db, "users", CU.uid, "items", item.id), item);
-const rI = id    => deleteDoc(doc(db, "users", CU.uid, "items", id));
-const pI = (id, d) => updateDoc(doc(db, "users", CU.uid, "items", id), d);
+const sIFull = item => setDoc(doc(db,"users",CU.uid,"items",item.id), item);
+const sI = item => sIFull(item);
+const rI = id => deleteDoc(doc(db,"users",CU.uid,"items",id));
+const pI = (id, d) => updateDoc(doc(db,"users",CU.uid,"items",id), d);
 
 // ── ADD ──
 const aN = async names => {
@@ -603,29 +684,34 @@ const aN = async names => {
     });
   }
 };
-
 window.addFI = async () => {
   const v = $("mi").value.trim(); if (!v) return;
-  $("mi").value = ""; $("sw").innerHTML = "";
+  $("mi").value = ""; $("sw").innerHTML = ""; $("wsug").innerHTML = "";
   $("lh").style.display = "block"; $("abtn").disabled = true;
   await aN(v.split(/[,\n]+/).map(s => s.trim()).filter(Boolean));
   $("lh").style.display = "none"; $("abtn").disabled = false;
 };
 
 window.onIC = v => {
+  // local suggestions
   const w = $("sw"), sg = gsg(v);
-  if (!sg || !v.trim()) { w.innerHTML = ""; return; }
-  w.innerHTML = '<div class="sugbox"><div class="sughdr">🎯 איזה ' + sg.key + '?</div>' +
-    sg.list.map(s =>
-      '<div class="sugitem" onclick="pSg(\'' + s.l.replace(/'/g, "\\'") + '\')">' +
-      '<div><div class="sugname">' + s.l + '</div><div class="sugsub">' + s.s + '</div></div>' +
-      '<div class="sugprice">&#8362;' + s.p.toFixed(1) + '</div>' +
-      '<div style="color:#ccc">&#8250;</div></div>'
-    ).join("") + '</div>';
+  if (!sg || !v.trim()) w.innerHTML = "";
+  else {
+    w.innerHTML = '<div class="sugbox"><div class="sughdr">🎯 איזה ' + sg.key + '?</div>' +
+      sg.list.map(s =>
+        '<div class="sugitem" onclick="pSg(\'' + s.l.replace(/'/g,"\\'") + '\')">' +
+        '<div><div class="sugname">' + s.l + '</div><div class="sugsub">' + s.s + '</div></div>' +
+        '<div class="sugprice">&#8362;' + s.p.toFixed(1) + '</div>' +
+        '<div style="color:#ccc">&#8250;</div></div>'
+      ).join("") + '</div>';
+  }
+  // worker search by name (with debounce)
+  if (v.trim().length >= 2) workerSearchByName(v);
+  else $("wsug").innerHTML = "";
 };
 
 window.pSg = async n => {
-  $("mi").value = ""; $("sw").innerHTML = "";
+  $("mi").value = ""; $("sw").innerHTML = ""; $("wsug").innerHTML = "";
   await aN([n]);
 };
 
@@ -646,18 +732,14 @@ window.editPrice = (id, wrap) => {
   inp.className = "priceinp"; inp.type = "number";
   inp.value = (+it.price).toFixed(2); inp.step = "0.1"; inp.min = "0";
   inp.onblur = () => svP(id, inp);
-  inp.onkeydown = e => { if (e.key === "Enter") inp.blur(); if (e.key === "Escape") { rL(); } };
+  inp.onkeydown = e => { if (e.key === "Enter") inp.blur(); if (e.key === "Escape") rL(); };
   wrap.innerHTML = ""; wrap.appendChild(inp);
   setTimeout(() => { inp.focus(); inp.select(); }, 50);
 };
 const svP = async (id, inp) => {
   const v = parseFloat(inp.value);
-  if (!isNaN(v) && v >= 0) {
-    await pI(id, { price: +v.toFixed(2), priceSource: "manual" });
-    toast("מחיר עודכן ✓");
-  }
+  if (!isNaN(v) && v >= 0) { await pI(id, { price: +v.toFixed(2), priceSource: "manual" }); toast("מחיר עודכן"); }
 };
-
 window.clearList = async () => {
   if (!confirm("למחוק את כל הרשימה?")) return;
   for (const it of items) await rI(it.id);
@@ -688,13 +770,11 @@ const rL = () => {
   }
   const g = {};
   items.forEach(it => { if (!g[it.category]) g[it.category] = []; g[it.category].push(it); });
-  Object.values(g).forEach(arr => arr.sort((a, b) => a.checked - b.checked));
-
+  Object.values(g).forEach(arr => arr.sort((a,b) => a.checked - b.checked));
   a.innerHTML = Object.entries(g).map(([cat, arr]) =>
     '<div class="catblock">' +
-    '<div class="cathdr">' + cat + '<span class="catcnt">' + arr.filter(i => !i.checked).length + "/" + arr.length + "</span></div>" +
-    '<div class="catitems">' +
-    arr.map(it =>
+    '<div class="cathdr">' + cat + '<span class="catcnt">' + arr.filter(i=>!i.checked).length + "/" + arr.length + "</span></div>" +
+    '<div class="catitems">' + arr.map(it =>
       '<div class="itwrap">' +
       '<div class="itdelbg">🗑️</div>' +
       '<div class="itrow' + (it.checked ? " chk" : "") + '" id="r' + it.id + '" onclick="toggleItem(\'' + it.id + '\')">' +
@@ -705,10 +785,8 @@ const rL = () => {
       '<div class="itplbl' + (it.priceSource === "real" ? " real" : it.priceSource === "manual" ? " manual" : "") + '">' +
       (it.priceSource === "real" ? "🔵 אמיתי" : it.priceSource === "manual" ? "✏️ ידני" : "ממוצע") +
       "</div></div></div></div>"
-    ).join("") +
-    "</div></div>"
+    ).join("") + "</div></div>"
   ).join("");
-
   items.forEach(it => { const r = $("r" + it.id); if (r) swipe(r, it.id); });
 };
 
@@ -717,14 +795,13 @@ const rPB = () => {
   const bar = $("pb"), unc = items.filter(i => !i.checked);
   if (unc.length === 0) { bar.style.display = "none"; return; }
   bar.style.display = "block";
-  const base = unc.reduce((s, i) => s + (+i.price), 0);
+  const base = unc.reduce((s,i) => s + (+i.price), 0);
   const totals = SC.map(cid => {
     const c = CH.find(x => x.id === cid);
     return { ...c, total: Math.round(base * c.f * 10) / 10 };
   }).sort((a, b) => a.total - b.total);
-
   $("cr").innerHTML = totals.map((c, i) => {
-    const branch = nearBranch[c.id] ? "📍 " + nearBranch[c.id] : (WORKER ? "מחיר אמיתי" : "ממוצע שוק");
+    const branch = nearBranch[c.id] ? "📍 " + nearBranch[c.id] : (WORKER ? "מחיר אמיתי" : "ממוצע");
     return '<div class="ccard ' + (i === 0 ? "best" : "other") + '">' +
       (i === 0 ? '<div class="cbestlbl">🏆 הכי זול</div>' : "") +
       '<div class="cname">' + c.name + "</div>" +
@@ -749,31 +826,36 @@ window.togCH = id => {
 };
 window.closeCP = () => { $("cm").style.display = "none"; };
 
-// ── VOICE ──
+// ── VOICE (hold to record, no interim results noise) ──
 const sRec = () => {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert("נסה Chrome - הדפדפן הנוכחי לא תומך בזיהוי קול"); return; }
-  const r = new SR(); r.lang = "he-IL"; r.continuous = true; r.interimResults = true;
-  let final = "";
-  r.onresult = e => {
-    final = "";
-    for (let i = 0; i < e.results.length; i++) final += e.results[i][0].transcript + " ";
-    $("mi").value = final.trim();
-  };
-  r.onerror = () => setV("idle");
-  r.onend = async () => {
-    if (final.trim()) {
+  if (!SR) { alert("נסה Chrome - הדפדפן לא תומך בזיהוי קול"); return; }
+  const r = new SR();
+  r.lang = "he-IL";
+  r.continuous = false;       // מקליט רק פעם אחת
+  r.interimResults = false;   // רק תוצאה סופית - לא רעש
+  r.maxAlternatives = 1;
+  r.onresult = async e => {
+    const text = e.results[0][0].transcript.trim();
+    if (text) {
+      $("mi").value = text;
+      setV("processing");
       $("lh").style.display = "block";
-      await aN(final.trim().split(/[,\n]+/).map(s => s.trim()).filter(Boolean));
+      await aN(text.split(/[,\n]+/).map(s => s.trim()).filter(Boolean));
       $("mi").value = "";
       $("lh").style.display = "none";
     }
     setV("idle");
   };
+  r.onerror = () => setV("idle");
+  r.onend   = () => { if (vs === "recording") setV("idle"); };
   rec = r; r.start(); setV("recording");
   if (navigator.vibrate) navigator.vibrate(40);
 };
-const eRec = () => { if (rec) { rec.stop(); rec = null; } setV("processing"); };
+const eRec = () => {
+  if (rec) { try { rec.stop(); } catch {} rec = null; }
+  // don't set idle here - wait for onend/onresult
+};
 const setV = s => {
   vs = s;
   const b = $("vbtn");
@@ -783,9 +865,9 @@ const setV = s => {
 };
 
 const vb = $("vbtn");
-vb.addEventListener("touchstart", e => { e.preventDefault(); ht = setTimeout(sRec, 80); }, { passive: false });
+vb.addEventListener("touchstart", e => { e.preventDefault(); ht = setTimeout(sRec, 100); }, { passive: false });
 vb.addEventListener("touchend",   e => { e.preventDefault(); clearTimeout(ht); if (vs === "recording") eRec(); }, { passive: false });
-vb.addEventListener("mousedown",  () => { ht = setTimeout(sRec, 80); });
+vb.addEventListener("mousedown",  () => { ht = setTimeout(sRec, 100); });
 vb.addEventListener("mouseup",    () => { clearTimeout(ht); if (vs === "recording") eRec(); });
 vb.addEventListener("mouseleave", () => { clearTimeout(ht); if (vs === "recording") eRec(); });
 
@@ -800,7 +882,10 @@ window.openScanner = async () => {
       const det = new window.BarcodeDetector({ formats: ["ean_13","ean_8","upc_a","code_128"] });
       const scan = async () => {
         if (!sa) return;
-        try { const f = await det.detect(vid); if (f.length > 0) { closeScanner(); await lkBC(f[0].rawValue); return; } } catch {}
+        try {
+          const f = await det.detect(vid);
+          if (f.length > 0) { closeScanner(); await lkBC(f[0].rawValue); return; }
+        } catch {}
         requestAnimationFrame(scan);
       };
       scan();
@@ -818,9 +903,7 @@ window.manBC = async () => {
 };
 
 const lkBC = async code => {
-  toast("מחפש מוצר... 🔍");
-
-  // שלב 1: Worker (API ממשלתי + Open Food Facts)
+  toast("מחפש מוצר...");
   if (WORKER) {
     try {
       const r = await fetch(WORKER + "?barcode=" + code);
@@ -829,19 +912,17 @@ const lkBC = async code => {
         const name     = d.name;
         const category = (d.category && d.category !== "🛒 אחר") ? d.category : catOf(name);
         const price    = d.cheapest ? d.cheapest.price : gp(name);
-        const src      = d.cheapest ? "real" : "estimate";
         await sI({
           id: Date.now() + "-" + Math.random().toString(36).slice(2),
           name, category, price, checked: false, addedAt: Date.now(),
-          priceSource: src, barcode: code, allPrices: d.prices || []
+          priceSource: d.cheapest ? "real" : "estimate",
+          barcode: code, allPrices: d.prices || []
         });
-        toast("נוסף: " + name + " · " + (d.sources && d.sources.gov ? "מחיר אמיתי" : "ממוצע שוק") + " ✓");
+        toast("נוסף: " + name + " ✓");
         return;
       }
     } catch {}
   }
-
-  // שלב 2: Open Food Facts ישיר
   try {
     const r = await fetch("https://world.openfoodfacts.org/api/v0/product/" + code + ".json");
     const d = await r.json();
@@ -857,11 +938,11 @@ window.showGuide = () => { gs = 0; rG(); show("guide"); };
 const rG = () => {
   const s = GS[gs];
   $("gi").textContent = s.icon; $("gt").textContent = s.title; $("gb").textContent = s.body;
-  $("gd").innerHTML = GS.map((_, i) => '<div class="gdot' + (i === gs ? " on" : "") + '"></div>').join("");
+  $("gd").innerHTML = GS.map((_,i) => '<div class="gdot' + (i === gs ? " on" : "") + '"></div>').join("");
   $("gbk").style.display = gs > 0 ? "inline-block" : "none";
   $("gnx").textContent = gs < GS.length - 1 ? "הבא" : "יאללה!";
 };
-window.gNext = () => { if (gs < GS.length - 1) { gs++; rG(); } else show("main"); };
+window.gNext = () => { if (gs < GS.length-1) { gs++; rG(); } else show("main"); };
 window.gBack = () => { if (gs > 0) { gs--; rG(); } };
 
 // ── SERVICE WORKER ──
