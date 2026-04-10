@@ -1,6 +1,13 @@
-// סלי - Service Worker v1.2
-const CACHE = 'sali-v1.2';
-const FILES = ['/', '/index.html', '/manifest.json'];
+// סלי - Service Worker v1.3
+const CACHE = 'sali-v1.3';
+// הסרנו את הסלאשים בתחילת השמות כדי שיתאימו ל-GitHub Pages
+const FILES = [
+  './',
+  'index.html',
+  'manifest.json',
+  'icon-192.png',
+  'icon-512.png'
+];
 
 self.addEventListener('install', e =>
   e.waitUntil(
@@ -17,7 +24,6 @@ self.addEventListener('activate', e =>
 );
 
 self.addEventListener('fetch', e => {
-  // Firebase ו-API חיצוני - תמיד מהרשת
   if (e.request.url.includes('firebase') ||
       e.request.url.includes('googleapis') ||
       e.request.url.includes('openfoodfacts') ||
