@@ -1,36 +1,39 @@
-// סלי - Service Worker v1.3
-const CACHE = 'sali-v1.3';
-// הסרנו את הסלאשים בתחילת השמות כדי שיתאימו ל-GitHub Pages
-const FILES = [
-  './',
-  'index.html',
-  'manifest.json',
-  'icon-192.png',
-  'icon-512.png'
+const CACHE_NAME = 'sali-v1.6';
+const ASSETS = [
+  '/Shoping-list/',
+  '/Shoping-list/index.html',
+  '/Shoping-list/manifest.json',
+  '/Shoping-list/icon-192.png',
+  '/Shoping-list/icon-512.png'
 ];
 
-self.addEventListener('install', e =>
-  e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(FILES))
-  )
-);
+// Install Event
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('Caching assets');
+      return cache.addAll(ASSETS);
+    })
+  );
+});
 
-self.addEventListener('activate', e =>
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
-  )
-);
+// Activate Event (Cleanup old caches)
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter((key) => key !== CACHE_NAME)
+            .map((key) => caches.delete(key))
+      );
+    })
+  );
+});
 
-self.addEventListener('fetch', e => {
-  if (e.request.url.includes('firebase') ||
-      e.request.url.includes('googleapis') ||
-      e.request.url.includes('openfoodfacts') ||
-      e.request.url.includes('workers.dev')) {
-    return;
-  }
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
+// Fetch Event
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
   );
 });
