@@ -114,17 +114,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
-body{font-family:'Noto Sans Hebrew','Assistant',sans-serif;direction:rtl;min-height:100vh;overflow-x:hidden;background:#edf7ed;}
+body{font-family:'Noto Sans Hebrew','Assistant',sans-serif;direction:rtl;min-height:100vh;overflow-x:hidden;background:#f0f9f2;}
 
 /* ── ANIMATED BACKGROUND ── */
 .bg-canvas{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
-.bg-item{position:absolute;opacity:0;font-size:28px;animation:bgFloat linear infinite;}
-@keyframes bgFloat{
-  0%{opacity:0;transform:translateY(0) rotate(var(--r)) scale(0.7);}
-  10%{opacity:var(--op);}
-  90%{opacity:var(--op);}
-  100%{opacity:0;transform:translateY(-60px) rotate(calc(var(--r) + 15deg)) scale(0.9);}
-}
+.bg-item{position:absolute;font-size:var(--sz);transform:rotate(var(--r));opacity:var(--op);}
 .page{position:relative;z-index:1;}
 
 /* ── LOGIN ── */
@@ -166,6 +160,7 @@ input:focus{border-color:#1a5c38;}
 .hdr-btns{display:flex;gap:6px;}
 .hbtn{background:rgba(255,255,255,.15);border:none;border-radius:9px;padding:7px 9px;color:white;cursor:pointer;font-size:11px;font-weight:700;font-family:inherit;transition:background .15s;}
 .hbtn:active{background:rgba(255,255,255,.28);}
+.guide-btn{background:rgba(255,255,255,.22);font-size:15px;}
 
 /* ── INPUT ── */
 .input-area{padding:10px 12px;background:rgba(255,255,255,.93);border-bottom:1px solid rgba(0,0,0,.05);}
@@ -193,7 +188,7 @@ input:focus{border-color:#1a5c38;}
 .sugg-price{font-size:14px;font-weight:800;color:#1a5c38;margin-right:auto;}
 
 /* ── LIST ── */
-.list-area{padding:8px 12px;padding-bottom:230px;}
+.list-area{padding:14px 12px 230px;}
 .empty{text-align:center;padding:60px 20px;}
 .empty-icon{font-size:50px;margin-bottom:12px;}.empty-title{font-size:16px;font-weight:700;color:#bbb;}
 .empty-sub{font-size:13px;margin-top:6px;color:#ccc;}
@@ -330,7 +325,7 @@ input:focus{border-color:#1a5c38;}
       <div><div class="hdr-title">סלי</div><div class="hdr-sub" id="hsub">טוען...</div></div>
     </div>
     <div class="hdr-btns">
-      <button class="hbtn" onclick="showGuide()">❓</button>
+      <button class="hbtn guide-btn" onclick="showGuide()" title="מדריך">🛍️</button>
       <button class="hbtn" onclick="clearList()">נקה</button>
       <button class="hbtn" onclick="doLogout()">יצא</button>
     </div>
@@ -412,22 +407,30 @@ const FB={
 };
 // אחרי יצירת Cloudflare Worker - הכנס כאן את ה-URL:
 // לדוגמה: "https://runprice.YOUR-NAME.workers.dev"
-const WORKER_URL="";
+const WORKER_URL="https://runprice.matanelb100.workers.dev";
 // ═══════════════════════════════════
 
 // ── ANIMATED BACKGROUND ──
-const EMOJIS=["🥛","🍞","🥚","🧀","🍎","🥕","🧃","🍫","🧴","🥩","🐟","🛒","🍋","🧅","🥦"];
+const EMOJIS=["🥛","🍞","🥚","🧀","🍎","🥕","🧃","🍫","🧴","🥩","🐟","🍋","🧅","🥦","🍊","🥬","🫙","🧂"];
 const buildBG=()=>{
   const c=document.getElementById("bgc");
-  for(let i=0;i<22;i++){
-    const el=document.createElement("div");
-    el.className="bg-item";
-    el.textContent=EMOJIS[i%EMOJIS.length];
-    const x=Math.random()*100, delay=Math.random()*18, dur=12+Math.random()*16;
-    const rot=(Math.random()-0.5)*120, op=0.07+Math.random()*0.10;
-    const sz=18+Math.random()*18;
-    el.style.cssText=`left:${x}%;top:${85+Math.random()*20}%;font-size:${sz}px;--r:${rot}deg;--op:${op};animation-duration:${dur}s;animation-delay:-${delay}s;`;
-    c.appendChild(el);
+  // פיזור על כל המסך בשורות ועמודות עם אקראיות קטנה
+  const cols=5, rows=7;
+  let idx=0;
+  for(let row=0;row<rows;row++){
+    for(let col=0;col<cols;col++){
+      const el=document.createElement("div");
+      el.className="bg-item";
+      el.textContent=EMOJIS[idx%EMOJIS.length]; idx++;
+      // מיקום: על פני כל המסך עם סטייה קטנה
+      const x = (col/cols)*100 + (Math.random()-0.5)*14;
+      const y = (row/rows)*100 + (Math.random()-0.5)*10;
+      const rot=(Math.random()-0.5)*70;
+      const op=0.055+Math.random()*0.055;
+      const sz=16+Math.random()*14;
+      el.style.cssText=`left:${x}%;top:${y}%;--sz:${sz}px;--r:${rot}deg;--op:${op};`;
+      c.appendChild(el);
+    }
   }
 };
 buildBG();
@@ -501,6 +504,63 @@ const GS=[
 // ── FIREBASE ──
 const app=initializeApp(FB),auth=getAuth(app),db=getFirestore(app);
 let CU=null,items=[],SC=["rami_levy","osher_ad","shufersal"];
+
+// ── נתוני סניפים לפי רשת (לשימוש עם מיקום) ──
+const BRANCH_DATA={
+  rami_levy:{name:"רמי לוי",f:.87,
+    branches:[{name:"מרכז",lat:31.789,lng:35.202},{name:"ירושלים",lat:31.771,lng:35.213},{name:"תל אביב",lat:32.081,lng:34.781},{name:"רמת גן",lat:32.082,lng:34.813},{name:"ראשל"צ",lat:31.971,lng:34.801},{name:"חיפה",lat:32.819,lng:34.999},{name:"נתניה",lat:32.322,lng:34.857},{name:"אשדוד",lat:31.804,lng:34.655}]},
+  osher_ad:{name:"אושר עד",f:.91,
+    branches:[{name:"ירושלים",lat:31.778,lng:35.224},{name:"מודיעין",lat:31.893,lng:35.010},{name:"בית שמש",lat:31.746,lng:34.988},{name:"ב"ב",lat:32.083,lng:34.838},{name:"פ"ת",lat:32.089,lng:34.888},{name:"חדרה",lat:32.435,lng:34.918}]},
+  yochananof:{name:"יוחננוף",f:.97,
+    branches:[{name:"ירושלים מרכז",lat:31.780,lng:35.220},{name:"ירושלים גילה",lat:31.720,lng:35.165},{name:"מבשרת",lat:31.801,lng:35.141},{name:"ירושלים מלחה",lat:31.748,lng:35.190}]},
+  yeinot_bitan:{name:"יינות ביתן",f:.98,
+    branches:[{name:"תל אביב",lat:32.071,lng:34.789},{name:"רמת השרון",lat:32.147,lng:34.836},{name:"הרצליה",lat:32.165,lng:34.843},{name:"נס ציונה",lat:31.930,lng:34.797},{name:"באר שבע",lat:31.252,lng:34.791}]},
+  victory:{name:"ויקטורי",f:.99,
+    branches:[{name:"גבעתיים",lat:32.068,lng:34.813},{name:"פ"ת",lat:32.094,lng:34.878},{name:"רחובות",lat:31.893,lng:34.811},{name:"חולון",lat:32.012,lng:34.778},{name:"לוד",lat:31.952,lng:34.896}]},
+  shufersal:{name:"שופרסל",f:1.00,
+    branches:[{name:"תל אביב",lat:32.080,lng:34.780},{name:"ירושלים",lat:31.775,lng:35.215},{name:"חיפה",lat:32.814,lng:34.994},{name:"ב"ש",lat:31.248,lng:34.789},{name:"ראשל"צ",lat:31.965,lng:34.803},{name:"פ"ת",lat:32.091,lng:34.875},{name:"נתניה",lat:32.330,lng:34.862}]},
+  mega:{name:"מגה",f:1.03,
+    branches:[{name:"תל אביב",lat:32.076,lng:34.791},{name:"רמת גן",lat:32.079,lng:34.819},{name:"חולון",lat:32.010,lng:34.774}]},
+  am_pm:{name:"am:pm",f:1.18,
+    branches:[{name:"תל אביב מרכז",lat:32.073,lng:34.782},{name:"תל אביב צפון",lat:32.101,lng:34.784},{name:"רמת אביב",lat:32.112,lng:34.800}]},
+};
+
+const distKm=(lat1,lng1,lat2,lng2)=>{
+  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+};
+
+// מציא את 3 הרשתות הקרובות למיקום
+const findNearestChains=(lat,lng)=>{
+  const scored=Object.entries(BRANCH_DATA).map(([id,chain])=>{
+    const nearest=chain.branches.reduce((best,b)=>{
+      const d=distKm(lat,lng,b.lat,b.lng);
+      return d<best.dist?{dist:d,branch:b.name}:best;
+    },{dist:Infinity,branch:""});
+    return{id,name:chain.name,f:chain.f,dist:nearest.dist,nearestBranch:nearest.branch};
+  });
+  scored.sort((a,b)=>a.dist-b.dist);
+  // שמור מידע על הסניף הקרוב ב-BRANCH_DATA לתצוגה בפריסה
+  scored.slice(0,3).forEach(c=>{if(BRANCH_DATA[c.id])BRANCH_DATA[c.id].nearestBranch=c.nearestBranch;});
+  return scored.slice(0,3).map(c=>c.id);
+};
+
+// בקש מיקום ועדכן רשתות
+const initLocation=()=>{
+  if(!navigator.geolocation)return;
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const{latitude:lat,longitude:lng}=pos.coords;
+    const nearest=findNearestChains(lat,lng);
+    if(nearest.length===3){
+      SC=nearest;
+      rPB();
+      // עדכן badge מיקום
+      const wb=$("wb");
+      if(wb) wb.textContent=(wb.textContent||"")+" · 📍 רשתות קרובות";
+    }
+  },{},{ enableHighAccuracy:false,timeout:8000,maximumAge:300000});
+};
 let lm="custom",gs=0,vs="idle",rec=null,ht=null,ss=null,sa=false,lu=null;
 
 const $=id=>document.getElementById(id);
@@ -515,7 +575,7 @@ window.setLM=m=>{lm=m;$("lc").style.display=m==="custom"?"block":"none";$("le").
 window.doLogin=async()=>{$("lerr").textContent="";try{if(lm==="custom"){const c=$("cc").value.trim().toUpperCase();if(c.length<4){$("lerr").textContent="הקוד חייב להכיל לפחות 4 תווים";return;}await signInAnonymously(auth);await updateProfile(auth.currentUser,{displayName:c});}else{const e=$("ei").value.trim(),p=$("pi").value;if(!e||p.length<4){$("lerr").textContent="מלא מייל וסיסמה תקינים";return;}try{await signInWithEmailAndPassword(auth,e,p);}catch(er){if(er.code==="auth/user-not-found"||er.code==="auth/invalid-credential")await createUserWithEmailAndPassword(auth,e,p);else throw er;}}}catch(e){$("lerr").textContent="שגיאה: "+(e.message||e.code);}};
 window.doLogout=async()=>{if(lu){lu();lu=null;}await signOut(auth);items=[];show("login");};
 
-onAuthStateChanged(auth,u=>{if(u){CU=u;show("main");updWB();startL();updateSub();if(!localStorage.getItem("slg")){localStorage.setItem("slg","1");showGuide();}}else{CU=null;show("login");}});
+onAuthStateChanged(auth,u=>{if(u){CU=u;show("main");updWB();startL();updateSub();if(!localStorage.getItem("slg")){localStorage.setItem("slg","1");showGuide();}initLocation();}else{CU=null;show("login");}});
 
 const updateSub=()=>{if(!CU)return;const n=CU.displayName||CU.email?.split("@")[0]||"משתמש";$("hsub").textContent=`${items.filter(i=>!i.checked).length} נותרו · ${n}`;};
 
@@ -595,14 +655,16 @@ const rPB=()=>{
   b.style.display="block";
   const base=u.reduce((s,i)=>s+(+i.price),0);
   const t=SC.map(cid=>{const c=CH.find(x=>x.id===cid);return{...c,total:Math.round(base*c.f*10)/10};}).sort((a,b)=>a.total-b.total);
-  $("cr").innerHTML=t.map((c,i)=>`
-    <div class="chain-card ${i===0?"best":"other"}">
+  $("cr").innerHTML=t.map((c,i)=>{
+    const bd=BRANCH_DATA[c.id];
+    const branchLabel=bd?.nearestBranch?`📍 ${bd.nearestBranch}`:(WORKER_URL?"מחיר אמיתי":"ממוצע שוק");
+    return`<div class="chain-card ${i===0?"best":"other"}">
       ${i===0?'<div class="chain-best-lbl">🏆 הכי זול</div>':""}
       <div class="chain-name">${c.name}</div>
       <div class="chain-total">₪${c.total.toFixed(1)}</div>
       ${i>0?`<div class="chain-diff">+₪${(c.total-t[0].total).toFixed(1)}</div>`:""}
-      <div class="chain-src">${WORKER_URL?"מחיר אמיתי":"ממוצע שוק"}</div>
-    </div>`).join("");
+      <div class="chain-src">${branchLabel}</div>
+    </div>`;}).join("");
 };
 
 // ── CHAIN PICKER ──
@@ -625,9 +687,56 @@ vb.addEventListener("mouseleave",()=>{clearTimeout(ht);if(vs==="recording")eRec(
 window.openScanner=async()=>{$("scanner-screen").style.display="flex";sa=true;try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});ss=s;const v=$("sv");v.srcObject=s;await v.play();if("BarcodeDetector"in window){const d=new window.BarcodeDetector({formats:["ean_13","ean_8","upc_a","code_128"]});const sc=async()=>{if(!sa)return;try{const f=await d.detect(v);if(f.length>0){closeScanner();await lkBC(f[0].rawValue);return;}}catch{}requestAnimationFrame(sc);};sc();}}catch{alert("לא ניתן לפתוח מצלמה.");closeScanner();}};
 window.closeScanner=()=>{sa=false;ss?.getTracks().forEach(t=>t.stop());ss=null;$("scanner-screen").style.display="none";};
 window.manBC=async()=>{const c=$("bi").value.trim();if(!c)return;closeScanner();await lkBC(c);};
-const lkBC=async code=>{toast("מחפש מוצר... 🔍");
-  if(WORKER_URL){try{const r=await fetch(`${WORKER_URL}?barcode=${code}`);const d=await r.json();if(d.items?.length>0){const p=d.items[0];await sI({id:`${Date.now()}-${Math.random().toString(36).slice(2)}`,name:p.name||`מוצר ${code}`,category:catOf(p.name||""),price:p.price,checked:false,addedAt:Date.now(),priceSource:"real",barcode:code});toast(`נוסף: ${p.name} ✓`);return;}}catch{}}
-  try{const r=await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);const d=await r.json();if(d.status===1){const n=d.product.product_name_he||d.product.product_name||`מוצר ${code}`;await aN([n]);toast(`נוסף: ${n} ✓`);}else{await aN([`מוצר ${code}`]);toast("מוצר נוסף");}}catch{await aN([`מוצר ${code}`]);toast("מוצר נוסף");}};
+const lkBC=async code=>{
+  toast("מחפש מוצר... 🔍");
+
+  // ── שלב 1: Worker (API ממשלתי + Open Food Facts משולב) ──
+  if(WORKER_URL){
+    try{
+      const r=await fetch(`${WORKER_URL}?barcode=${code}`);
+      const d=await r.json();
+
+      if(d.name){
+        // Worker החזיר שם - קטגוריה מגיעה מ-Worker (OFF) או מהמילון המקומי
+        const name     = d.name;
+        const category = d.category && d.category!=="🛒 אחר" ? d.category : catOf(name);
+        const price    = d.cheapest?.price || gp(name);
+        const src      = d.cheapest ? "real" : "estimate";
+
+        await sI({
+          id:`${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          name, category, price,
+          checked:false, addedAt:Date.now(),
+          priceSource:src, barcode:code,
+          // שמור את כל המחירים לשימוש עתידי בהשוואה
+          allPrices: d.prices || [],
+        });
+
+        const srcLabel = d.sources?.gov ? "מחיר אמיתי" : "ממוצע שוק";
+        toast(`נוסף: ${name} · ${srcLabel} ✓`);
+        return;
+      }
+    }catch(e){ /* ממשיכים ל-fallback */ }
+  }
+
+  // ── שלב 2: Open Food Facts ישירות (fallback אם אין Worker) ──
+  try{
+    const r=await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
+    const d=await r.json();
+    if(d.status===1){
+      const n=d.product.product_name_he||d.product.product_name||`מוצר ${code}`;
+      await aN([n]);
+      toast(`נוסף: ${n} ✓`);
+    } else {
+      await aN([`מוצר ${code}`]);
+      toast("מוצר נוסף (ברקוד לא זוהה)");
+    }
+  }catch{
+    // ── שלב 3: fallback אחרון ──
+    await aN([`מוצר ${code}`]);
+    toast("מוצר נוסף");
+  }
+};
 
 // ── GUIDE ──
 window.showGuide=()=>{gs=0;rG();show("guide");};
