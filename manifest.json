@@ -2,7 +2,8 @@
   "name": "סלי - רשימת קניות חכמה",
   "short_name": "סלי",
   "description": "רשימת קניות חכמה עם השוואת מחירים בזמן אמת",
-  "start_url": "./index.html",
+  "start_url": "/Shoping-list/index.html",
+  "scope": "/Shoping-list/",
   "display": "standalone",
   "background_color": "#1a5c38",
   "theme_color": "#1a5c38",
@@ -10,16 +11,26 @@
   "lang": "he",
   "dir": "rtl",
   "icons": [
-    {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ],
-  "categories": ["shopping","utilities"],
   "shortcuts": [
     {
       "name": "הוסף מוצר",
       "short_name": "הוסף",
-      "url": "./index.html?action=add",
+      "url": "/Shoping-list/index.html?action=add",
       "icons": [{"src":"icon-192.png","sizes":"192x192"}]
     }
   ]
 }
+
