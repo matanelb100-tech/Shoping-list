@@ -1,10 +1,10 @@
-// סלי Service Worker v2.0
-// מותאם ל-GitHub Pages: /Shoping-list/
+// סלי Service Worker v3.0
+// Offline-first, GitHub Pages /Shoping-list/
 
-const CACHE_NAME = "sali-v2";
-const BASE = "/Shoping-list";
+const CACHE = "sali-v3";
+const BASE  = "/Shoping-list";
 
-const STATIC_FILES = [
+const STATIC = [
   BASE + "/",
   BASE + "/index.html",
   BASE + "/manifest.json",
@@ -12,56 +12,58 @@ const STATIC_FILES = [
   BASE + "/icon-512.png",
 ];
 
-// ── INSTALL: cache static files ──
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(STATIC_FILES))
+// INSTALL
+self.addEventListener("install", e => {
+  e.waitUntil(
+    caches.open(CACHE)
+      .then(c => c.addAll(STATIC.map(u => new Request(u, { cache: "reload" }))))
       .then(() => self.skipWaiting())
   );
 });
 
-// ── ACTIVATE: remove old caches ──
-self.addEventListener("activate", event => {
-  event.waitUntil(
+// ACTIVATE - clean old caches
+self.addEventListener("activate", e => {
+  e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-      ))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
-// ── FETCH: network-first for API, cache-first for static ──
-self.addEventListener("fetch", event => {
-  const url = new URL(event.request.url);
+// FETCH strategy
+self.addEventListener("fetch", e => {
+  if (e.request.method !== "GET") return;
 
-  // Skip non-GET and external APIs - always network
-  if (event.request.method !== "GET") return;
-  if (url.hostname.includes("firebase") ||
-      url.hostname.includes("googleapis") ||
-      url.hostname.includes("openfoodfacts") ||
-      url.hostname.includes("workers.dev") ||
-      url.hostname.includes("food.gov.il")) return;
+  const url = new URL(e.request.url);
 
-  // For app files: cache-first, fallback to index.html for navigation
-  event.respondWith(
-    caches.match(event.request)
-      .then(cached => {
-        if (cached) return cached;
-        return fetch(event.request)
-          .then(response => {
-            if (!response || response.status !== 200) return response;
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
-            return response;
-          })
-          .catch(() => {
-            // Offline fallback: serve index.html for navigation requests
-            if (event.request.mode === "navigate") {
-              return caches.match(BASE + "/index.html");
-            }
-          });
-      })
+  // Always network for external APIs (Firebase, OFF, Worker)
+  const externalHosts = [
+    "firebaseio.com", "googleapis.com", "firebaseapp.com",
+    "openfoodfacts.org", "workers.dev", "food.gov.il",
+    "fonts.googleapis.com", "fonts.gstatic.com"
+  ];
+  if (externalHosts.some(h => url.hostname.includes(h))) return;
+
+  // Navigation requests → serve index.html (SPA fallback)
+  if (e.request.mode === "navigate") {
+    e.respondWith(
+      fetch(e.request)
+        .catch(() => caches.match(BASE + "/index.html"))
+    );
+    return;
+  }
+
+  // Static files → cache-first
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(res => {
+        if (res && res.status === 200 && res.type !== "opaque") {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
+        return res;
+      }).catch(() => caches.match(BASE + "/index.html"));
+    })
   );
 });
