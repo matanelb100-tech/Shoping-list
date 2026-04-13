@@ -55,6 +55,7 @@ input:focus{border-color:#1565c0;}
 .hbtn{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 8px;color:white;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;display:flex;align-items:center;justify-content:center;}
 .hbtn:active{background:rgba(255,255,255,.3);}
 .main-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.ai-sugitem,.sugitem,.qty-chip{-webkit-tap-highlight-color:rgba(0,0,0,0.1);cursor:pointer;touch-action:manipulation;}
 /* INPUT BAR */
 .input-bar{padding:8px 12px;background:rgba(255,255,255,.95);border-top:1px solid rgba(0,0,0,.06);flex-shrink:0;}
 .inrow{display:flex;gap:6px;align-items:center;}
@@ -280,7 +281,10 @@ input:focus{border-color:#1565c0;}
     </div>
     <div class="lsec">כניסה / הרשמה</div>
     <input type="email" id="ei" placeholder="כתובת מייל" style="direction:ltr" onkeydown="if(event.key==='Enter')doLogin()"/>
-    <input type="password" id="pi" placeholder="סיסמה (מינ' 6 תווים)" style="direction:ltr" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <div style="position:relative;margin-bottom:10px">
+      <input type="password" id="pi" placeholder="סיסמה (מינ' 6 תווים)" style="direction:ltr;margin-bottom:0;padding-left:44px" onkeydown="if(event.key==='Enter')doLogin()"/>
+      <button type="button" onclick="togglePw()" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#aaa;padding:0;line-height:1" id="pw-eye">👁️</button>
+    </div>
     <div class="lerr" id="lerr"></div>
     <button class="lbtn" onclick="doLogin()">כניסה →</button>
     <div class="lnote">📧 אותו מייל בכל מכשירי המשפחה · עובד גם אופליין</div>
@@ -321,15 +325,9 @@ input:focus{border-color:#1565c0;}
         </svg>
       </button>
       <button class="hbtn" onclick="openCP()">⚙️</button>
+      <button class="hbtn" onclick="clearList()" title="נקה רשימה">🗑️</button>
       <button class="hbtn" onclick="doLogout()">יצא</button>
     </div>
-  </div>
-
-  <!-- suggestions float above input -->
-  <div id="sug-area" style="flex-shrink:0;overflow-y:auto;max-height:38vh;">
-    <div id="ai-sug"></div>
-    <div id="sw"></div>
-    <div id="qty-chips"></div>
   </div>
 
   <div class="main-content" id="main-content">
@@ -357,6 +355,12 @@ input:focus{border-color:#1565c0;}
     </div>
   </div>
 
+  <!-- suggestions appear here, above input bar -->
+  <div id="sug-area" style="flex-shrink:0;overflow-y:auto;max-height:35vh;background:rgba(255,255,255,.96);border-top:1px solid rgba(0,0,0,.06);position:relative;z-index:50;">
+    <div id="ai-sug"></div>
+    <div id="sw"></div>
+    <div id="qty-chips"></div>
+  </div>
   <div class="input-bar">
     <div class="inrow">
       <div class="inwrap">
@@ -381,8 +385,8 @@ input:focus{border-color:#1565c0;}
     <button class="bnav-btn bnav-basket" onclick="calcBasket()">
       <div class="bnav-icon">💰</div><div class="bnav-label" id="basket-lbl">חשב סל</div>
     </button>
-    <button class="bnav-btn" id="bnav-hist" onclick="setTab('hist')">
-      <div class="bnav-icon">📊</div><div class="bnav-label">היסטוריה</div>
+    <button class="bnav-btn" id="bnav-hist" onclick="setTab('hist')" id="bnav-hist">
+      <div class="bnav-icon">📊</div><div class="bnav-label">חיסכון</div>
     </button>
     <button class="bnav-btn" id="bnav-stores" onclick="setTab('stores')">
       <div class="bnav-icon">🏪</div><div class="bnav-label">מכולות</div>
@@ -434,7 +438,7 @@ input:focus{border-color:#1565c0;}
     <div class="mod-title" style="text-align:center;margin-bottom:14px">💰 מחיר הסל שלך</div>
     <button class="travel-btn" id="travel-toggle-btn" onclick="toggleTravel()">
       <span style="font-size:20px">🚗</span>
-      <span style="flex:1;text-align:right">הוסף עלות נסיעה</span>
+      <span id="travel-btn-txt" style="flex:1;text-align:right">הוסף עלות נסיעה</span>
       <span id="travel-badge" style="display:none;font-size:11px;background:#1565c0;color:white;border-radius:8px;padding:2px 8px">+₪0</span>
     </button>
     <div id="travel-panel" style="display:none">
@@ -576,18 +580,18 @@ const getNearBranch=(cid,lat,lng)=>{if(!lat||!lng)return null;const ch=CH.find(c
 
 // ── GUIDE ──
 const GS=[
-  {icon:"🛒",title:"ברוך הבא לסלי!",body:"4 כפתורים למטה:\n🛒 רשימה · 💰 חשב סל · 📊 היסטוריה · 🏪 מכולות"},
-  {icon:"✍️",title:"הוספת מוצרים",body:"הקלד מוצר → הצעות חכמות (AI + מקומי). פסיק = מוצרים מרובים. בחר יחידת מידה מהכפתורים המהירים."},
-  {icon:"🎤",title:"הקלטה קולית",body:"לחץ ממושך על 🎤 כמו וואטסאפ ← דבר ← שחרר. עובד בעברית מלאה."},
-  {icon:"📷",title:"ברקוד = מחיר אמיתי",body:"זה הכלי המדויק ביותר! סרוק ברקוד של מוצר שנגמר → מקבל שם מדויק + מחיר אמיתי מכל הרשתות (חוק שקיפות המחירים). גם מבצעים אוטומטיים."},
-  {icon:"⚖️",title:"מוצרי משקל",body:"עוף, ירקות, בשר = כפתור ⚖️. הכנס גרמים, ק\"ג, או מספר יחידות. האפליקציה מחשבת לבד."},
-  {icon:"🏪",title:"מכולת שכונתית",body:"🏪 ← צלם קבלה ← AI מחלץ מחירים. בחישוב הסל: מכולת = ₪0 נסיעה. ❓ = מחיר עדיין לא ידוע."},
-  {icon:"💰",title:"חשב מחיר סל",body:"לחץ 💰 ← ראה השוואה. לחץ 🚗 להוסיף נסיעה (⛽/⚡/✏️). לחץ 💾 לשמור להיסטוריה."},
-  {icon:"📊",title:"היסטוריה וחיסכון",body:"לחץ 📊 ← גרף הוצאות + סה\"כ חיסכון חודשי ומצטבר."},
+  {icon:"🛒",title:"ברוך הבא לסלי!",body:"4 כפתורים בתחתית המסך:\n🛒 רשימה · 💰 חשב סל · 📊 חיסכון · 🏪 מכולות.\nהאפליקציה עובדת גם ללא אינטרנט."},
+  {icon:"✍️",title:"הוספת מוצרים",body:"הקלד מוצר ← הצעות יופיעו מעל המקלדת. בחר מההצעות לדיוק מקסימלי. פסיק בין מוצרים = הוספה מרובה בבת אחת."},
+  {icon:"🎤",title:"הקלטה קולית",body:"לחץ ממושך על 🎤 ← דבר ← שחרר. הפסקה של שנייה בין מוצרים תפריד ביניהם אוטומטית. אפשר לאמר: חלב, לחם, עגבניות."},
+  {icon:"📷",title:"ברקוד = הכי מדויק!",body:"סרוק ברקוד של מוצר שנגמר ← מקבל שם מלא, מחיר אמיתי מכל הרשתות ומבצעים. מבוסס חוק שקיפות המחירים הממשלתי."},
+  {icon:"⚖️",title:"מוצרי משקל",body:"עוף, בשר, ירקות = לחץ ⚖️ ← הכנס כמות בגרם, ק\"ג, או מספר יחידות. המחיר הכולל מחושב אוטומטית."},
+  {icon:"🏪",title:"מכולת שכונתית",body:"צור מכולת ← צלם קבלות ← AI מחלץ מחירים לזיכרון. בחישוב הסל: מכולת = ₪0 נסיעה. ❓ = מחיר לא ידוע עדיין (יתמלא בצילום הקבלה הבא)."},
+  {icon:"💰",title:"חשב מחיר סל",body:"לחץ 💰 ← ראה מי זול ביותר. לחץ 🚗 הוסף נסיעה ← בחר בנזין/חשמלי/ידני. לחץ שוב להסרת הנסיעה. לחץ 💾 לשמירה."},
+  {icon:"📊",title:"מעקב חיסכון",body:"לחץ 📊 ← גרף הוצאות חודשי + כמה חסכת מאז שהתחלת. כל קנייה שמורה נוספת לגרף."},
 ];
 
 // ── STATE ──
-let CU=null,items=[],SC=["rami_levy","shufersal","yeinot_bitan"],localStores={},activeSD=null,receiptItems=[],tripData=null,history=[];
+let CU=null,items=[],SC=["rami_levy","osher_ad","yeinot_bitan"] // default: 3 cheapest chains by price factor,localStores={},activeSD=null,receiptItems=[],tripData=null,history=[];
 let gs=0,vs="idle",rec=null,ht=null,ss=null,sa=false,lu=null,lsListeners={},tMode="gas",tOpen=false,scanTarget="list";
 let pmId=null,wmId=null,wtab="kg",userLat=null,userLng=null,currentTab="list";
 
@@ -610,7 +614,17 @@ const setCachedAI=async(q,sugs)=>{
 };
 
 // ── LOCATION ──
-const initLoc=()=>{if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(pos=>{userLat=pos.coords.latitude;userLng=pos.coords.longitude;const sc=CH.map(ch=>{let best={dist:Infinity};for(const b of ch.branches){const d=dKm(userLat,userLng,b.lat,b.lng);if(d<best.dist)best={dist:d,n:b.n};}return{id:ch.id,dist:best.dist};});sc.sort((a,b)=>a.dist-b.dist);SC=sc.slice(0,3).map(c=>c.id);toast("📍 רשתות עודכנו");},()=>{},{enableHighAccuracy:true,timeout:10000,maximumAge:300000});};
+const initLoc=()=>{if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(pos=>{userLat=pos.coords.latitude;userLng=pos.coords.longitude;const sc=CH.map(ch=>{let best={dist:Infinity};for(const b of ch.branches){const d=dKm(userLat,userLng,b.lat,b.lng);if(d<best.dist)best={dist:d,n:b.n};}return{id:ch.id,dist:best.dist};});// Sort by combined score: distance (km) weighted + price factor
+  // Normalize: closer + cheaper = better
+  const maxDist=Math.max(...sc.map(x=>x.dist),1);
+  sc.forEach(x=>{
+    const ch=CH.find(c=>c.id===x.id);
+    const fScore=(ch?.f||1)-0.85; // 0=cheapest, 0.35=most expensive
+    const dScore=x.dist/maxDist;  // 0=closest, 1=furthest
+    x.combined=dScore*0.4+fScore*0.6; // price matters more than distance
+  });
+  sc.sort((a,b)=>a.combined-b.combined);
+  SC=sc.slice(0,3).map(c=>c.id);toast("📍 רשתות עודכנו");},()=>{},{enableHighAccuracy:true,timeout:10000,maximumAge:300000});};
 
 // ── WORKER BADGE ──
 const updWB=()=>{const b=$("wb");if(WORKER){b.className="workerb on";b.textContent="🔵 Worker";}else{b.className="workerb off";b.textContent="⚪";}};
@@ -700,6 +714,12 @@ const lookupNamePrice=async name=>{
 const getTravelRate=()=>{if(tMode==="custom")return parseFloat($("tc-rate")?.value||1)||1;return{gas:1.00,ev:0.35}[tMode]||1.00;};
 
 // ── LOGIN ──
+window.togglePw=()=>{
+  const inp=document.getElementById("pi");
+  const eye=document.getElementById("pw-eye");
+  if(inp.type==="password"){inp.type="text";eye.textContent="🙈";}
+  else{inp.type="password";eye.textContent="👁️";}
+};
 window.doLogin=async()=>{$("lerr").textContent="";const email=$("ei").value.trim(),pass=$("pi").value;if(!email||pass.length<6){$("lerr").textContent="מלא מייל וסיסמה (מינ' 6 תווים)";return;}try{try{await signInWithEmailAndPassword(auth,email,pass);}catch(e){if(e.code==="auth/user-not-found"||e.code==="auth/invalid-credential"||e.code==="auth/wrong-password")await createUserWithEmailAndPassword(auth,email,pass);else throw e;}}catch(e){$("lerr").textContent="שגיאה: "+(e.message||e.code);}};
 window.doLogout=async()=>{if(lu){lu();lu=null;}Object.values(lsListeners).forEach(u=>u());lsListeners={};await signOut(auth);items=[];localStores={};$("ls").style.display="flex";$("ms").style.display="none";};
 
@@ -775,7 +795,14 @@ const getTravelCostForChain=(cid,rate)=>{
   return Math.round(rdKm(userLat,userLng,nb.lat,nb.lng)*rate*2*10)/10;
 };
 
-window.toggleTravel=()=>{tOpen=!tOpen;$("travel-panel").style.display=tOpen?"block":"none";$("travel-toggle-btn").style.background=tOpen?"#e3f2fd":"";renderBasket();};
+window.toggleTravel=()=>{
+  tOpen=!tOpen;
+  $("travel-panel").style.display=tOpen?"block":"none";
+  $("travel-toggle-btn").style.background=tOpen?"#e3f2fd":"";
+  const txt=$("travel-btn-txt");
+  if(txt)txt.textContent=tOpen?"הסר עלות נסיעה ":"הוסף עלות נסיעה";
+  renderBasket();
+};
 window.setTMode=mode=>{tMode=mode;["gas","ev","custom"].forEach(m=>{const el=$("tm-"+m);if(el)el.classList.toggle("sel",m===mode);});$("tc-custom").style.display=mode==="custom"?"flex":"none";renderBasket();};
 
 window.renderBasket=()=>{
@@ -823,13 +850,30 @@ window.closeBasket=()=>$("bov").style.display="none";
 
 // ── SAVE TRIP ──
 window.saveTrip=async()=>{
-  if(!tripData||!CU)return;
-  const best=tripData.entries[0],worst=tripData.entries[tripData.entries.length-1];
-  const saving=worst&&best?Math.max(0,worst.total-best.total):0;
-  await setDoc(doc(db,"users",CU.uid,"history",uid()),{total:best.total,prodCost:best.prodCost,travelCost:best.travelCost||0,store:best.name,saving,itemCount:tripData.itemCount,travelIncluded:tOpen,date:Date.now()});
-  toast("קנייה נשמרה ✓");closeBasket();
-  for(const it of items.filter(i=>i.checked))await rI(it.id);
-  setTab("hist");
+  if(!tripData||!tripData.entries||!tripData.entries.length){
+    toast("לחץ על חשב סל קודם");return;
+  }
+  if(!CU){toast("יש להתחבר");return;}
+  try{
+    const best=tripData.entries[0];
+    const worst=tripData.entries[tripData.entries.length-1];
+    const saving=worst&&best?Math.max(0,+(worst.total-best.total).toFixed(1)):0;
+    await setDoc(doc(db,"users",CU.uid,"history",uid()),{
+      total:best.total,
+      prodCost:best.prodCost||best.total,
+      travelCost:best.travelCost||0,
+      store:best.name,
+      saving,
+      itemCount:tripData.itemCount,
+      travelIncluded:tOpen,
+      date:Date.now()
+    });
+    toast("קנייה נשמרה! חסכת ₪"+saving.toFixed(0)+" 💚");
+    closeBasket();
+    // clear checked items
+    for(const it of items.filter(i=>i.checked))await rI(it.id);
+    setTab("hist");
+  }catch(e){toast("שגיאה בשמירה: "+e.message);}
 };
 
 // ── HISTORY ──
@@ -850,7 +894,7 @@ const renderHistory=()=>{
   const maxM=Math.max(...months.map(m=>m.total),1);
 
   el.innerHTML=
-    '<div class="hist-total-card"><div class="htc-label">סה"כ הוצאות</div><div class="htc-amount">&#8362;'+totalSpent.toFixed(0)+'</div><div class="htc-sub">'+history.length+' קניות</div></div>'+
+    '<div style="font-size:18px;font-weight:900;color:#1565c0;margin-bottom:14px">📊 היסטוריית קניות וחיסכון</div>'+'<div class="hist-total-card"><div class="htc-label">סה"כ הוצאות</div><div class="htc-amount">&#8362;'+totalSpent.toFixed(0)+'</div><div class="htc-sub">'+history.length+' קניות</div></div>'+
     '<div class="savings-card" style="background:linear-gradient(135deg,#2e7d32,#43a047);border-radius:18px;padding:16px 20px;margin-bottom:14px;color:white;box-shadow:0 4px 16px rgba(46,125,50,.3)"><div style="font-size:12px;opacity:.8;margin-bottom:4px">💚 חיסכון כולל</div><div style="font-size:28px;font-weight:900">&#8362;'+totalSaved.toFixed(0)+'</div><div style="font-size:11px;opacity:.8">החודש: &#8362;'+thisMonthSaved.toFixed(0)+'</div></div>'+
     '<div class="chart-wrap"><div class="chart-title">הוצאות לפי חודש</div><div class="chart-bars">'+
     months.map((m,i)=>'<div class="cbar-wrap"><div style="font-size:9px;color:#1565c0;font-weight:800">'+(m.total>0?"&#8362;"+Math.round(m.total):"")+'</div><div class="cbar'+(i===months.length-1?" active":"")+'" style="height:'+Math.max(4,Math.round((m.total/maxM)*70))+'px"></div><div style="font-size:9px;color:#aaa;font-weight:700">'+m.label+'</div></div>').join("")+
@@ -894,7 +938,45 @@ window.openStoreSetup=()=>{$("ssov").style.display="flex";setTimeout(()=>$("ss-n
 window.closeSS=()=>{$("ssov").style.display="none";};
 
 // ── VOICE ──
-const sRec=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert("נסה Chrome - הדפדפן לא תומך בזיהוי קול");return;}const r=new SR();r.lang="he-IL";r.continuous=false;r.interimResults=false;r.maxAlternatives=1;r.onresult=async e=>{const text=e.results[0][0].transcript.trim();if(text){$("mi").value=text;setV("processing");$("lh").style.display="block";await aN(text.split(/[,\n]+/).map(s=>s.trim()).filter(Boolean));$("mi").value="";$("lh").style.display="none";}setV("idle");};r.onerror=()=>setV("idle");r.onend=()=>{if(vs==="recording")setV("idle");};rec=r;r.start();setV("recording");if(navigator.vibrate)navigator.vibrate(40);};
+const sRec=()=>{
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert("נסה Chrome");return;}
+  const r=new SR();r.lang="he-IL";
+  r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
+  let finalText="",silenceTimer=null;
+  const SILENCE_MS=1200;
+  r.onresult=e=>{
+    let interim="";
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal)finalText+=e.results[i][0].transcript+" ";
+      else interim+=e.results[i][0].transcript;
+    }
+    $("mi").value=(finalText+interim).trim();
+    clearTimeout(silenceTimer);
+    if(finalText.trim()){
+      silenceTimer=setTimeout(async()=>{
+        const text=finalText.trim();finalText="";$("mi").value="";
+        $("lh").style.display="block";
+        await aN(text.split(/[,
+]+/).map(s=>s.trim()).filter(Boolean));
+        $("lh").style.display="none";
+        toast("נוסף: "+text+" 🎤");
+      },SILENCE_MS);
+    }
+  };
+  r.onerror=()=>setV("idle");
+  r.onend=async()=>{
+    clearTimeout(silenceTimer);
+    if(finalText.trim()){
+      $("lh").style.display="block";
+      await aN(finalText.trim().split(/[,
+]+/).map(s=>s.trim()).filter(Boolean));
+      $("mi").value="";$("lh").style.display="none";
+    }
+    setV("idle");
+  };
+  rec=r;r.start();setV("recording");if(navigator.vibrate)navigator.vibrate(40);
+};
 const eRec=()=>{if(rec){try{rec.stop();}catch{}rec=null;}};
 const setV=s=>{vs=s;const b=$("vbtn");b.className="ib ib-voice"+(s==="recording"?" rec":s==="processing"?" proc":"");b.textContent=s==="recording"?"⏹":s==="processing"?"⏳":"🎤";$("vh").style.display=s==="recording"?"block":"none";};
 const vb=$("vbtn");
