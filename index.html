@@ -613,6 +613,78 @@ const setCachedAI=async(q,sugs)=>{
   try{const hash=btoa(encodeURIComponent(q)).slice(0,40);await setDoc(doc(db,"ai_cache",hash),{q,suggestions:sugs,ts:Date.now()});}catch{}
 };
 
+// ══════════════════════════════════════════════════════
+// COMMUNITY LEARNING - כל סריקה מלמדת את האפליקציה
+// Firestore: products/{barcode} + name_cache/{hash}
+// ══════════════════════════════════════════════════════
+
+// Save barcode scan to community database
+const saveProductScan = async (barcode, name, price, category, priceSource) => {
+  if (!barcode || !name || barcode.length < 6) return;
+  try {
+    const ref = doc(db, "products", barcode);
+    const existing = await getDoc(ref);
+    if (existing.exists()) {
+      // Update scan count + price if more recent
+      await updateDoc(ref, {
+        scans: (existing.data().scans || 0) + 1,
+        lastSeen: Date.now(),
+        ...(priceSource === "real" && price ? {cheapest: price} : {}),
+      });
+    } else {
+      // New product - save full data
+      await setDoc(ref, {
+        name, nameNorm: name.trim().toLowerCase(),
+        category: category || "🛒 אחר",
+        cheapest: price || null,
+        priceSource: priceSource || "estimate",
+        scans: 1,
+        firstSeen: Date.now(),
+        lastSeen: Date.now(),
+      });
+    }
+  } catch(e) { /* silent - learning is best-effort */ }
+};
+
+// Save manual name entry to name cache
+const saveNameCache = async (name, price, category) => {
+  if (!name || name.length < 2) return;
+  try {
+    const hash = btoa(encodeURIComponent(name.trim().toLowerCase())).slice(0, 40);
+    const ref = doc(db, "name_cache", hash);
+    const existing = await getDoc(ref);
+    await setDoc(ref, {
+      name,
+      nameNorm: name.trim().toLowerCase(),
+      price: price || existing.data()?.price || null,
+      category: category || existing.data()?.category || "🛒 אחר",
+      hits: (existing.data()?.hits || 0) + 1,
+      lastSeen: Date.now(),
+    });
+  } catch(e) { /* silent */ }
+};
+
+// Lookup product from community DB by barcode
+const lookupCommunityBarcode = async (barcode) => {
+  if (!barcode) return null;
+  try {
+    const d = await getDoc(doc(db, "products", barcode));
+    if (d.exists() && d.data().scans >= 1) return d.data();
+  } catch {}
+  return null;
+};
+
+// Lookup product from community DB by name
+const lookupCommunityName = async (name) => {
+  if (!name || name.length < 2) return null;
+  try {
+    const hash = btoa(encodeURIComponent(name.trim().toLowerCase())).slice(0, 40);
+    const d = await getDoc(doc(db, "name_cache", hash));
+    if (d.exists()) return d.data();
+  } catch {}
+  return null;
+};
+
 // ── LOCATION ──
 const initLoc=()=>{if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(pos=>{userLat=pos.coords.latitude;userLng=pos.coords.longitude;const sc=CH.map(ch=>{let best={dist:Infinity};for(const b of ch.branches){const d=dKm(userLat,userLng,b.lat,b.lng);if(d<best.dist)best={dist:d,n:b.n};}return{id:ch.id,dist:best.dist};});// Sort by combined score: distance (km) weighted + price factor
   // Normalize: closer + cheaper = better
@@ -694,6 +766,7 @@ window.pAI=async(name,price,isWeight,barcode)=>{
       }
     }catch{}
   }
+  await saveNameCache(name, price||gp(name), catOf(name));
   await addItem(name,price||gp(name),isWeight,"estimate");
 };
 
@@ -741,12 +814,20 @@ const addItem=async(name,price,isWeight,priceSource,promo)=>{
 const aN=async names=>{
   for(const raw of names){
     const name=raw.trim();if(!name)continue;
-    // Try to get real price from Worker
     let price=gp(name),ps="estimate",promo=null;
-    if(WORKER){
+
+    // Step 1: community name cache
+    const cached=await lookupCommunityName(name);
+    if(cached?.price){price=cached.price;ps="community";}
+
+    // Step 2: Worker namePrice (real Gov API)
+    if(ps!=="community"&&WORKER){
       const found=await lookupNamePrice(name);
       if(found){price=found.price;ps="real";promo=found.promo||null;}
     }
+
+    // Save to community name cache
+    await saveNameCache(name, price, catOf(name));
     await addItem(name,price,false,ps,promo);
   }
 };
@@ -1011,7 +1092,17 @@ window.manBC=async()=>{const c=$("bi").value.trim();if(!c)return;closeScanner();
 const lkBC=async code=>{
   toast("מזהה מוצר... 🔍");
   let name=null,price=null,category=null,ps="estimate",promo=null;
-  if(WORKER){
+
+  // ── Step 1: Check community DB first (fastest, free) ──
+  const community = await lookupCommunityBarcode(code);
+  if (community?.name) {
+    name=community.name; price=community.cheapest||null;
+    category=community.category||null; ps="community";
+    toast("זוהה מהמאגר הקהילתי 🌟");
+  }
+
+  // ── Step 2: Worker (Gov API + Gemini normalization) ──
+  if (!name && WORKER) {
     try{
       const params=new URLSearchParams({action:"barcode",barcode:code});
       if(userLat)params.set("lat",userLat);
@@ -1022,10 +1113,29 @@ const lkBC=async code=>{
       if(d.name){name=d.name;price=d.cheapest?.price||null;category=d.category&&d.category!=="🛒 אחר"?d.category:null;if(d.cheapest)ps="real";promo=d.cheapest?.promo||null;}
     }catch{}
   }
-  if(!name){try{const r=await fetch("https://world.openfoodfacts.org/api/v0/product/"+code+".json");const d=await r.json();if(d.status===1)name=d.product.product_name_he||d.product.product_name||null;}catch{}}
-  name=name||"מוצר "+code;category=category||catOf(name);price=price||gp(name);
-  if(scanTarget==="store"){const sid=Object.keys(localStores)[0];if(sid){await addSP(sid,{id:uid(),name,price,barcode:code,addedAt:Date.now()});toast("נוסף למכולת: "+name+" ✓");openSD(sid);}else toast("צור מכולת קודם ב-⚙️");}
-  else{await sI({id:uid(),name,category,price,checked:false,addedAt:Date.now(),priceSource:ps,barcode:code,allPrices:[],isWeight:isWP(name),weightKg:null,promo});toast("נוסף: "+name+" ✓");}
+
+  // ── Step 3: OFF direct fallback ──
+  if(!name){
+    try{const r=await fetch("https://world.openfoodfacts.org/api/v0/product/"+code+".json");const d=await r.json();if(d.status===1)name=d.product.product_name_he||d.product.product_name||null;}catch{}
+  }
+
+  name=name||"מוצר "+code;
+  category=category||catOf(name);
+  price=price||gp(name);
+
+  // ── Step 4: Save to community DB (teach the app) ──
+  await saveProductScan(code, name, price, category, ps);
+
+  if(scanTarget==="store"){
+    const sid=Object.keys(localStores)[0];
+    if(sid){await addSP(sid,{id:uid(),name,price,barcode:code,addedAt:Date.now()});toast("נוסף למכולת: "+name+" ✓");openSD(sid);}
+    else toast("צור מכולת קודם ב-⚙️");
+  } else {
+    await sI({id:uid(),name,category,price,checked:false,addedAt:Date.now(),
+      priceSource:ps,barcode:code,allPrices:[],isWeight:isWP(name),weightKg:null,promo});
+    const srcLabel=ps==="community"?"🌟 מאגר קהילתי":ps==="real"?"🔵 מחיר אמיתי":"⚪";
+    toast("נוסף: "+name+" "+srcLabel);
+  }
 };
 
 // ── SWIPE ──
