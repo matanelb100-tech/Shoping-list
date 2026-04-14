@@ -933,7 +933,7 @@ window.renderBasket=()=>{
   else badge.style.display="none";
 };
 
-window.calcBasket=()=>{const u=items.filter(i=>!i.checked);if(!u.length){$("bov").style.display="flex";$("bchains").innerHTML='<div style="text-align:center;color:#aaa;padding:20px;font-size:14px">הוסף מוצרים לרשימה קודם</div>';return;}renderBasket();$("bov").style.display="flex";};
+window.calcBasket=()=>{$("bov").style.display="flex";const u=items.filter(i=>!i.checked);if(!u.length){$("bchains").innerHTML='<div style="text-align:center;color:#aaa;padding:20px;font-size:14px">הוסף מוצרים לרשימה קודם</div>';return;}renderBasket();};
 window.closeBasket=()=>$("bov").style.display="none";
 
 // ── SAVE TRIP ──
@@ -994,9 +994,9 @@ const renderHistory=()=>{
 window.setTab=tab=>{currentTab=tab;document.querySelectorAll(".tab-page").forEach(p=>p.classList.remove("active"));document.querySelectorAll(".bnav-btn").forEach(b=>b.classList.remove("active"));$("tab-"+tab)?.classList.add("active");$("bnav-"+tab)?.classList.add("active");if(tab==="hist")renderHistory();if(tab==="stores")renderStoresPage();};
 
 // ── LOCAL STORES ──
-const loadLocalStores=()=>{if(!CU)return;const q=query(collection(db,"users",CU.uid,"stores"),orderBy("createdAt","asc"));onSnapshot(q,snap=>{localStores={};snap.docs.forEach(d=>{localStores[d.id]={id:d.id,...d.data(),prices:localStores[d.id]?.prices||{}};});Object.keys(localStores).forEach(id=>{if(!lsListeners[id])listenStorePrices(id);});renderStoresPage();renderLocalCPList();$("scan-store-btn").style.display=Object.keys(localStores).length>0?"block":"none";});};
+const loadLocalStores=()=>{if(!CU)return;const q=query(collection(db,"users",CU.uid,"stores"),orderBy("createdAt","asc"));onSnapshot(q,snap=>{const prev={...localStores};localStores={};snap.docs.forEach(d=>{localStores[d.id]={id:d.id,...d.data(),prices:prev[d.id]?.prices||{}};});Object.keys(localStores).forEach(id=>{if(!lsListeners[id])listenStorePrices(id);});renderStoresPage();renderLocalCPList();$("scan-store-btn").style.display=Object.keys(localStores).length>0?"block":"none";});};
 const listenStorePrices=id=>{const q=query(collection(db,"users",CU.uid,"stores",id,"prices"),orderBy("addedAt","asc"));lsListeners[id]=onSnapshot(q,snap=>{if(localStores[id])localStores[id].prices={};snap.docs.forEach(d=>{if(localStores[id])localStores[id].prices[d.id]={id:d.id,...d.data()};});if(activeSD===id)renderSD();renderStoresPage();});};
-window.createLocalStore=async()=>{const name=$("ss-name").value.trim();if(!name)return;const id=uid();await setDoc(doc(db,"users",CU.uid,"stores",id),{name,createdAt:Date.now()});$("ss-name").value="";closeSS();toast("מכולת נוצרה: "+name);};
+window.createLocalStore=async()=>{const name=$("ss-name").value.trim();if(!name)return;const id=uid();await setDoc(doc(db,"users",CU.uid,"stores",id),{name,createdAt:Date.now()});$("ss-name").value="";closeSS();toast("מכולת נוצרה: "+name+" ✓");setTab("stores");setTimeout(()=>{if(localStores[id])openSD(id);},800);};
 const addSP=async(sid,item)=>setDoc(doc(db,"users",CU.uid,"stores",sid,"prices",item.id),item);
 const delSP=async(sid,iid)=>deleteDoc(doc(db,"users",CU.uid,"stores",sid,"prices",iid));
 
