@@ -591,7 +591,8 @@ const GS=[
 ];
 
 // ── STATE ──
-let CU=null,items=[],SC=["rami_levy","osher_ad","yeinot_bitan"] // default: 3 cheapest chains by price factor,localStores={},activeSD=null,receiptItems=[],tripData=null,history=[];
+let CU=null,items=[],SC=["rami_levy","osher_ad","yeinot_bitan"];
+let localStores={},activeSD=null,receiptItems=[],tripData=null,history=[];
 let gs=0,vs="idle",rec=null,ht=null,ss=null,sa=false,lu=null,lsListeners={},tMode="gas",tOpen=false,scanTarget="list";
 let pmId=null,wmId=null,wtab="kg",userLat=null,userLng=null,currentTab="list";
 
@@ -894,7 +895,7 @@ window.toggleTravel=()=>{
 window.setTMode=mode=>{tMode=mode;["gas","ev","custom"].forEach(m=>{const el=$("tm-"+m);if(el)el.classList.toggle("sel",m===mode);});$("tc-custom").style.display=mode==="custom"?"flex":"none";renderBasket();};
 
 window.renderBasket=()=>{
-  const unc=items.filter(i=>!i.checked);if(!unc.length)return;
+  const unc=items.filter(i=>!i.checked);if(!unc.length){$("bchains").innerHTML='<div style="text-align:center;padding:20px;color:#aaa">הוסף מוצרים ✓ לרשימה</div>';return;}
   const base=unc.reduce((s,it)=>{const pp=+it.price;const kg=it.weightKg&&it.isWeight?+it.weightKg:1;return s+pp*kg;},0);
   const rate=getTravelRate();
   const entries=[];
@@ -918,7 +919,7 @@ window.renderBasket=()=>{
 
   $("bchains").innerHTML=entries.map((c,i)=>{
     const isBest=i===0;
-    const detail=c.isLocal?("🚶 הליכה · ₪0"):(tOpen&&c.travelCost>0?"₪"+c.prodCost.toFixed(1)+" + 🚗₪"+c.travelCost.toFixed(1):(c.branch?"📍 "+c.branch:""));
+    const detail=c.isLocal?("🚶 הליכה · ₪0"):(tOpen?(c.travelCost>0?"₪"+c.prodCost.toFixed(1)+" + 🚗₪"+c.travelCost.toFixed(1):(c.branch?"📍 "+c.branch+" · ⚠️ מיקום לא זמין":"⚠️ אפשר מיקום")):(c.branch?"📍 "+c.branch:""));
     return'<div class="bchain '+(isBest?"best":c.isLocal?"local-store":"other")+'">'+(isBest?'<div class="bc-best">🏆 הכי זול</div>':"")+
       '<div class="bc-name">'+c.name+'</div>'+
       '<div class="bc-total">&#8362;'+c.total.toFixed(1)+'</div>'+
