@@ -255,7 +255,22 @@ input:focus{border-color:#1565c0;}
 .sd-add-row{display:flex;gap:8px;margin-bottom:8px;}
 .sd-add-row input:first-child{flex:2;margin-bottom:0;}
 .sd-add-row input:last-child{flex:1;direction:ltr;margin-bottom:0;}
-/* TOAST */
+/* BASKET CHAIN CARD - swipeable online/physical */
+.bchain-wrap{position:relative;overflow:hidden;border-radius:14px;flex:1;min-width:80px;}
+.bchain-slides{display:flex;transition:transform .3s ease;height:100%;}
+.bchain-slide{flex-shrink:0;width:100%;border-radius:14px;padding:11px 6px;text-align:center;box-sizing:border-box;}
+.bchain-slide.store{background:linear-gradient(135deg,#1565c0,#1e88e5);}
+.bchain-slide.online{background:linear-gradient(135deg,#6a1b9a,#ab47bc);}
+.bchain-slide.store.other-store{background:#f5f8ff;}
+.bchain-slide.online.other-online{background:#f3e5f5;}
+.bchain-swipe-dots{display:flex;justify-content:center;gap:4px;margin-top:4px;}
+.bchain-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.45);}
+.bchain-dot.on{background:white;}
+.bchain-slide.other-store .bchain-dot,.bchain-slide.other-online .bchain-dot{background:rgba(0,0,0,.2);}
+.bchain-slide.other-store .bchain-dot.on,.bchain-slide.other-online .bchain-dot.on{background:#1565c0;}
+.online-badge{font-size:8px;font-weight:700;background:rgba(255,255,255,.25);border-radius:5px;padding:1px 5px;margin-bottom:2px;display:inline-block;color:white;}
+.online-badge.dark{background:rgba(106,27,154,.15);color:#6a1b9a;}
+
 .toast{position:fixed;top:max(70px,calc(55px + env(safe-area-inset-top)));left:50%;transform:translateX(-50%);background:rgba(21,101,192,.95);color:white;padding:9px 18px;border-radius:18px;font-size:13px;font-weight:700;z-index:600;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
 #receipt-file-input{position:absolute;opacity:0;width:0;height:0;}
@@ -283,7 +298,12 @@ input:focus{border-color:#1565c0;}
     <input type="email" id="ei" placeholder="כתובת מייל" style="direction:ltr" onkeydown="if(event.key==='Enter')doLogin()"/>
     <div style="position:relative;margin-bottom:10px">
       <input type="password" id="pi" placeholder="סיסמה (מינ' 6 תווים)" style="direction:ltr;margin-bottom:0;padding-left:44px" onkeydown="if(event.key==='Enter')doLogin()"/>
-      <button type="button" onclick="togglePw()" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#aaa;padding:0;line-height:1" id="pw-eye">👁️</button>
+      <button type="button" id="pw-eye"
+        style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:6px;line-height:1;color:#bbb;transition:color .15s;-webkit-user-select:none;user-select:none;touch-action:none;">
+        <svg id="pw-eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
     </div>
     <div class="lerr" id="lerr"></div>
     <button class="lbtn" onclick="doLogin()">כניסה →</button>
@@ -531,6 +551,25 @@ input:focus{border-color:#1565c0;}
   <button class="scclose" onclick="closeScanner()">✕ סגור</button>
 </div>
 
+<script>
+// Eye button — runs outside module scope so it can attach events immediately
+(function(){
+  var EYE_OPEN='<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  var EYE_SHUT='<line x1="2" y1="2" x2="22" y2="22"/><path d="M6.7 6.7A10 10 0 0 0 1 12s4 8 11 8c2.4 0 4.6-.8 6.3-2.1"/><path d="M10.6 5.1A9.8 9.8 0 0 1 12 5c7 0 11 7 11 7s-1.4 2.5-3.7 4.5"/>';
+  function showPw(e){if(e)e.preventDefault();var i=document.getElementById("pi");if(!i)return;i.type="text";document.getElementById("pw-eye-icon").innerHTML=EYE_SHUT;document.getElementById("pw-eye").style.color="#1565c0";}
+  function hidePw(){var i=document.getElementById("pi");if(!i)return;i.type="password";document.getElementById("pw-eye-icon").innerHTML=EYE_OPEN;document.getElementById("pw-eye").style.color="#bbb";}
+  document.addEventListener("DOMContentLoaded",function(){
+    var btn=document.getElementById("pw-eye");
+    if(!btn)return;
+    btn.addEventListener("mousedown",function(e){e.preventDefault();showPw();});
+    btn.addEventListener("mouseup",hidePw);
+    btn.addEventListener("mouseleave",hidePw);
+    btn.addEventListener("touchstart",function(e){e.preventDefault();showPw();},{passive:false});
+    btn.addEventListener("touchend",function(e){e.preventDefault();hidePw();},{passive:false});
+    btn.addEventListener("touchcancel",hidePw);
+  });
+})();
+</script>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,onAuthStateChanged,signOut,browserLocalPersistence,setPersistence}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -787,12 +826,6 @@ const lookupNamePrice=async name=>{
 const getTravelRate=()=>{if(tMode==="custom")return parseFloat($("tc-rate")?.value||1)||1;return{gas:1.00,ev:0.35}[tMode]||1.00;};
 
 // ── LOGIN ──
-window.togglePw=()=>{
-  const inp=document.getElementById("pi");
-  const eye=document.getElementById("pw-eye");
-  if(inp.type==="password"){inp.type="text";eye.textContent="🙈";}
-  else{inp.type="password";eye.textContent="👁️";}
-};
 window.doLogin=async()=>{$("lerr").textContent="";const email=$("ei").value.trim(),pass=$("pi").value;if(!email||pass.length<6){$("lerr").textContent="מלא מייל וסיסמה (מינ' 6 תווים)";return;}try{try{await signInWithEmailAndPassword(auth,email,pass);}catch(e){if(e.code==="auth/user-not-found"||e.code==="auth/invalid-credential"||e.code==="auth/wrong-password")await createUserWithEmailAndPassword(auth,email,pass);else throw e;}}catch(e){$("lerr").textContent="שגיאה: "+(e.message||e.code);}};
 window.doLogout=async()=>{if(lu){lu();lu=null;}Object.values(lsListeners).forEach(u=>u());lsListeners={};await signOut(auth);items=[];localStores={};$("ls").style.display="flex";$("ms").style.display="none";};
 
@@ -886,6 +919,20 @@ window.toggleTravel=()=>{
 };
 window.setTMode=mode=>{tMode=mode;["gas","ev","custom"].forEach(m=>{const el=$("tm-"+m);if(el)el.classList.toggle("sel",m===mode);});$("tc-custom").style.display=mode==="custom"?"flex":"none";renderBasket();};
 
+// ── ONLINE DELIVERY CONFIG ──
+// מחירים: surcharge (% על המחיר הפיזי) + דמי משלוח קבועים
+const ONLINE={
+  shufersal:{name:"שופרסל אונליין",surcharge:0.06,delivery:25,minOrder:150},
+  rami_levy:{name:"רמי לוי אונליין",surcharge:0.04,delivery:20,minOrder:200},
+  yeinot_bitan:{name:"יינות ביתן דיגיטל",surcharge:0.07,delivery:30,minOrder:199},
+  mega:{name:"מגה אונליין",surcharge:0.08,delivery:35,minOrder:150},
+};
+const getOnlineCost=(cid,prodCost)=>{
+  const o=ONLINE[cid];if(!o)return null;
+  if(prodCost<o.minOrder)return null; // below minimum
+  return{name:o.name,delivery:o.delivery,total:+(prodCost*(1+o.surcharge)+o.delivery).toFixed(1),surcharge:o.surcharge,minOrder:o.minOrder};
+};
+
 window.renderBasket=()=>{
   const unc=items.filter(i=>!i.checked);if(!unc.length)return;
   const base=unc.reduce((s,it)=>{const pp=+it.price;const kg=it.weightKg&&it.isWeight?+it.weightKg:1;return s+pp*kg;},0);
@@ -897,13 +944,14 @@ window.renderBasket=()=>{
       const sid=cid.slice(3);const st=localStores[sid];if(!st)continue;
       const ps=Object.values(st.prices||{});let storeTotal=0,missing=0;
       for(const it of unc){const match=ps.find(p=>p.name.toLowerCase().includes(it.name.toLowerCase())||it.name.toLowerCase().includes(p.name.toLowerCase()));if(match){const kg=it.weightKg&&it.isWeight?+it.weightKg:1;storeTotal+=match.price*kg;}else missing++;}
-      entries.push({id:cid,name:st.name,prodCost:storeTotal,travelCost:0,total:storeTotal,missing,isLocal:true});
+      entries.push({id:cid,name:st.name,prodCost:storeTotal,travelCost:0,total:storeTotal,missing,isLocal:true,online:null});
     }else{
       const ch=CH.find(x=>x.id===cid);if(!ch)continue;
       const prod=Math.round(base*ch.f*10)/10;
       const travel=getTravelCostForChain(cid,rate);
       const nb=getNearBranch(cid,userLat,userLng);
-      entries.push({id:cid,name:ch.name,prodCost:prod,travelCost:travel,total:+(prod+travel).toFixed(1),missing:0,isLocal:false,branch:nb?.n||null});
+      const onlineOpt=getOnlineCost(cid,prod);
+      entries.push({id:cid,name:ch.name,prodCost:prod,travelCost:travel,total:+(prod+travel).toFixed(1),missing:0,isLocal:false,branch:nb?.n||null,online:onlineOpt});
     }
   }
   entries.sort((a,b)=>a.total-b.total);
@@ -911,15 +959,71 @@ window.renderBasket=()=>{
 
   $("bchains").innerHTML=entries.map((c,i)=>{
     const isBest=i===0;
-    const detail=c.isLocal?("🚶 הליכה · ₪0"):(tOpen&&c.travelCost>0?"₪"+c.prodCost.toFixed(1)+" + 🚗₪"+c.travelCost.toFixed(1):(c.branch?"📍 "+c.branch:""));
-    return'<div class="bchain '+(isBest?"best":c.isLocal?"local-store":"other")+'">'+(isBest?'<div class="bc-best">🏆 הכי זול</div>':"")+
-      '<div class="bc-name">'+c.name+'</div>'+
-      '<div class="bc-total">&#8362;'+c.total.toFixed(1)+'</div>'+
-      (i>0?'<div class="bc-diff">+&#8362;'+(c.total-entries[0].total).toFixed(1)+'</div>':"")+
-      '<div class="bc-detail">'+detail+'</div>'+
-      (c.missing>0?'<div class="bc-missing">❓ '+c.missing+' לא ידועים</div>':"")+
-      '</div>';
+    const physDetail=c.isLocal?("🚶 הליכה · ₪0"):(tOpen&&c.travelCost>0?"₪"+c.prodCost.toFixed(1)+" + 🚗₪"+c.travelCost.toFixed(1):(c.branch?"📍 "+c.branch:""));
+    const hasOnline=!!c.online;
+    const physClass=isBest?"store":"other-store";
+    const onlClass=isBest?"online":"other-online";
+    // text colors for non-best physical
+    const physNameColor=isBest?"white":"#555";
+    const physTotalColor=isBest?"white":"#222";
+    const physDetailColor=isBest?"rgba(255,255,255,.7)":"#aaa";
+    const physDiffColor="#e63946";
+    const bestDiff=i>0?"<div style='font-size:10px;color:"+physDiffColor+";font-weight:700'>+&#8362;"+(c.total-entries[0].total).toFixed(1)+"</div>":"";
+
+    let onlineHTML="";
+    if(hasOnline){
+      const oc=c.online;
+      const isCheaperOnline=oc.total<c.total;
+      const onlineNameColor=isBest?"white":"#6a1b9a";
+      const onlineTotalColor=isBest?"white":"#222";
+      const onlineDetailColor=isBest?"rgba(255,255,255,.7)":"#aaa";
+      onlineHTML=`
+        <div class="bchain-slide ${onlClass}">
+          ${isBest?'<div class="bc-best" style="font-size:9px;color:rgba(255,255,255,.85);margin-bottom:2px">🏆 הכי זול</div>':""}
+          <div class="online-badge${isBest?"":" dark"}">🌐 אונליין</div>
+          <div class="bc-name" style="font-size:11px;font-weight:700;margin-bottom:3px;color:${onlineNameColor}">${oc.name}</div>
+          <div class="bc-total" style="font-size:17px;font-weight:900;color:${onlineTotalColor}">&#8362;${oc.total.toFixed(1)}</div>
+          ${i>0?`<div style="font-size:10px;color:${physDiffColor};font-weight:700">+&#8362;${(oc.total-entries[0].total).toFixed(1)}</div>`:""}
+          <div style="font-size:9px;margin-top:2px;color:${onlineDetailColor}">📦 משלוח &#8362;${oc.delivery}</div>
+          ${isCheaperOnline?`<div style="font-size:8px;color:${isBest?"rgba(255,255,255,.85)":"#2e7d32"};font-weight:700;margin-top:2px">✓ זול מהסניף!</div>`:`<div style="font-size:8px;color:${onlineDetailColor};margin-top:2px">+&#8362;${(oc.total-c.total).toFixed(1)} לעומת סניף</div>`}
+          <div class="bchain-swipe-dots"><div class="bchain-dot"></div><div class="bchain-dot on"></div></div>
+        </div>`;
+    }
+
+    const slideCount=hasOnline?2:1;
+    return`<div class="bchain-wrap" id="bw_${c.id}">
+      <div class="bchain-slides" id="bs_${c.id}">
+        <div class="bchain-slide ${physClass}">
+          ${isBest?'<div class="bc-best" style="font-size:9px;color:rgba(255,255,255,.85);margin-bottom:2px">🏆 הכי זול</div>':""}
+          ${hasOnline?'<div class="online-badge'+(isBest?"":" dark")+'">🏪 סניף</div>':""}
+          <div class="bc-name" style="font-size:11px;font-weight:700;margin-bottom:3px;color:${physNameColor}">${c.name}</div>
+          <div class="bc-total" style="font-size:17px;font-weight:900;color:${physTotalColor}">&#8362;${c.total.toFixed(1)}</div>
+          ${bestDiff}
+          <div style="font-size:9px;margin-top:2px;opacity:.75;color:${physDetailColor}">${physDetail}</div>
+          ${c.missing>0?`<div style="font-size:9px;color:rgba(255,255,255,.7)">❓ ${c.missing} לא ידועים</div>`:""}
+          ${hasOnline?`<div class="bchain-swipe-dots"><div class="bchain-dot on"></div><div class="bchain-dot"></div></div>`:""}
+        </div>
+        ${onlineHTML}
+      </div>
+    </div>`;
   }).join("");
+
+  // Init swipe for each card with online option
+  entries.forEach(c=>{
+    if(!c.online)return;
+    const wrap=document.getElementById("bw_"+c.id);
+    const slides=document.getElementById("bs_"+c.id);
+    if(!wrap||!slides)return;
+    let cur=0,sx=null;
+    const go=idx=>{cur=idx;slides.style.transform=`translateX(${-idx*100}%)`;
+      wrap.querySelectorAll(".bchain-dots-all .bchain-dot").forEach((d,i)=>d.classList.toggle("on",i===idx));
+      // update dots in both slides
+      const allDotGroups=slides.querySelectorAll(".bchain-swipe-dots");
+      allDotGroups.forEach(g=>{g.querySelectorAll(".bchain-dot").forEach((d,i)=>d.classList.toggle("on",i===cur));});
+    };
+    wrap.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;},{passive:true});
+    wrap.addEventListener("touchend",e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>30)go(dx<0?1:0);sx=null;},{passive:true});
+  });
 
   const badge=$("travel-badge");
   if(tOpen&&entries.some(e=>e.travelCost>0)){const maxT=Math.max(...entries.map(e=>e.travelCost));badge.style.display="inline-block";badge.textContent="+₪"+maxT.toFixed(0)+" מקס'";}
@@ -1038,8 +1142,7 @@ const sRec=()=>{
       silenceTimer=setTimeout(async()=>{
         const text=finalText.trim();finalText="";$("mi").value="";
         $("lh").style.display="block";
-        await aN(text.split(/[,
-]+/).map(s=>s.trim()).filter(Boolean));
+        await aN(text.split(/[,\n]+/).map(s=>s.trim()).filter(Boolean));
         $("lh").style.display="none";
         toast("נוסף: "+text+" 🎤");
       },SILENCE_MS);
@@ -1050,8 +1153,7 @@ const sRec=()=>{
     clearTimeout(silenceTimer);
     if(finalText.trim()){
       $("lh").style.display="block";
-      await aN(finalText.trim().split(/[,
-]+/).map(s=>s.trim()).filter(Boolean));
+      await aN(finalText.trim().split(/[,\n]+/).map(s=>s.trim()).filter(Boolean));
       $("mi").value="";$("lh").style.display="none";
     }
     setV("idle");
@@ -1172,7 +1274,19 @@ window.gNext=()=>{if(gs<GS.length-1){gs++;rG();}else{$("gs").style.display="none
 window.gBack=()=>{if(gs>0){gs--;rG();}};
 window.clearList=async()=>{if(!confirm("למחוק את כל הרשימה?"))return;for(const it of items)await rI(it.id);};
 
-if("serviceWorker"in navigator)navigator.serviceWorker.register("/Shoping-list/sw.js").catch(()=>{});
+if("serviceWorker"in navigator){
+  navigator.serviceWorker.register("/Shoping-list/sw.js",{scope:"/Shoping-list/"})
+    .then(reg=>{
+      reg.addEventListener("updatefound",()=>{
+        const nw=reg.installing;
+        nw.addEventListener("statechange",()=>{
+          if(nw.state==="installed"&&navigator.serviceWorker.controller)
+            toast("⬆️ עדכון זמין — רענן כדי לקבל");
+        });
+      });
+    })
+    .catch(()=>{});
+}
 </script>
 </body>
 </html>
