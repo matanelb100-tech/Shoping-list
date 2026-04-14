@@ -622,7 +622,7 @@ const GS=[
   {icon:"🛒",title:"ברוך הבא לסלי!",body:"4 כפתורים בתחתית המסך:\n🛒 רשימה · 💰 חשב סל · 📊 חיסכון · 🏪 מכולות.\nהאפליקציה עובדת גם ללא אינטרנט."},
   {icon:"✍️",title:"הוספת מוצרים",body:"הקלד מוצר ← הצעות יופיעו מעל המקלדת. בחר מההצעות לדיוק מקסימלי. פסיק בין מוצרים = הוספה מרובה בבת אחת."},
   {icon:"🎤",title:"הקלטה קולית",body:"לחץ ממושך על 🎤 ← דבר ← שחרר. הפסקה של שנייה בין מוצרים תפריד ביניהם אוטומטית. אפשר לאמר: חלב, לחם, עגבניות."},
-  {icon:"📷",title:"ברקוד = הכי מדויק!",body:"סרוק ברקוד של מוצר שנגמר ← מקבל שם מלא, מחיר אמיתי מכל הרשתות ומבצעים. מבוסס חוק שקיפות המחירים הממשלתי."},
+  {icon:"📷",title:"ברקוד = הכי מדויק!",body:"סרוק ברקוד של מוצר שנגמר ← מקבל שם מלא, מחיר מדויק בזמן אמת מכל הרשתות ומבצעים. מבוסס חוק שקיפות המחירים הממשלתי."},
   {icon:"⚖️",title:"מוצרי משקל",body:"עוף, בשר, ירקות = לחץ ⚖️ ← הכנס כמות בגרם, ק\"ג, או מספר יחידות. המחיר הכולל מחושב אוטומטית."},
   {icon:"🏪",title:"מכולת שכונתית",body:"צור מכולת ← צלם קבלות ← AI מחלץ מחירים לזיכרון. בחישוב הסל: מכולת = ₪0 נסיעה. ❓ = מחיר לא ידוע עדיין (יתמלא בצילום הקבלה הבא)."},
   {icon:"💰",title:"חשב מחיר סל",body:"לחץ 💰 ← ראה מי זול ביותר. לחץ 🚗 הוסף נסיעה ← בחר בנזין/חשמלי/ידני. לחץ שוב להסרת הנסיעה. לחץ 💾 לשמירה."},
@@ -800,7 +800,7 @@ window.pAI=async(name,price,isWeight,barcode)=>{
       const d=await r.json();
       if(d.name&&d.cheapest){
         await addItem(d.name,d.cheapest.price,isWP(d.name),"real",d.cheapest.promo||null);
-        toast("נוסף: "+d.name+" ✓ (מחיר אמיתי 🔵)");
+        toast("נוסף: "+d.name+" ✓ (✅ מחיר מדויק בזמן אמת)");
         return;
       }
     }catch{}
@@ -887,7 +887,7 @@ window.toggleItem=async id=>{const it=items.find(i=>i.id===id);if(!it)return;awa
 window.delItem=(id,el)=>{el.classList.add("removing");setTimeout(()=>rI(id),260);};
 
 // ── PRICE MODAL ──
-window.openPM=(id,e)=>{if(e)e.stopPropagation();const it=items.find(i=>i.id===id);if(!it)return;pmId=id;$("pm-name").textContent=it.name;$("pm-avg").textContent="₪"+(+it.price).toFixed(2);$("pm-src").textContent=it.priceSource==="real"?"🔵 מחיר אמיתי":it.priceSource==="manual"?"✏️ עודכן ידנית":"⚪ ממוצע שוק";const pp=$("pm-promo");if(it.promo){pp.textContent="🏷️ מבצע: "+it.promo;pp.style.display="block";}else pp.style.display="none";$("pm-inp").value=(+it.price).toFixed(2);$("pmov").style.display="flex";setTimeout(()=>$("pm-inp").focus(),100);};
+window.openPM=(id,e)=>{if(e)e.stopPropagation();const it=items.find(i=>i.id===id);if(!it)return;pmId=id;$("pm-name").textContent=it.name;$("pm-avg").textContent="₪"+(+it.price).toFixed(2);$("pm-src").textContent=it.priceSource==="real"?"✅ מחיר מדויק בזמן אמת":it.priceSource==="manual"?"✏️ עודכן ידנית":"⚪ ממוצע שוק";const pp=$("pm-promo");if(it.promo){pp.textContent="🏷️ מבצע: "+it.promo;pp.style.display="block";}else pp.style.display="none";$("pm-inp").value=(+it.price).toFixed(2);$("pmov").style.display="flex";setTimeout(()=>$("pm-inp").focus(),100);};
 window.closePM=()=>{$("pmov").style.display="none";pmId=null;};
 window.savePM=async()=>{const v=parseFloat($("pm-inp").value);if(!isNaN(v)&&v>=0&&pmId){await pI(pmId,{price:+v.toFixed(2),priceSource:"manual"});toast("מחיר עודכן ✓");closePM();}};
 
@@ -1030,7 +1030,15 @@ window.renderBasket=()=>{
   else badge.style.display="none";
 };
 
-window.calcBasket=()=>{renderBasket();$("bov").style.display="flex";};
+window.calcBasket=()=>{
+  $("bov").style.display="flex";
+  const unc=items.filter(i=>!i.checked);
+  if(!unc.length){
+    $("bchains").innerHTML='<div style="text-align:center;color:#aaa;font-size:14px;padding:20px 0">הוסף מוצרים לרשימה כדי לחשב את הסל</div>';
+    return;
+  }
+  renderBasket();
+};
 window.closeBasket=()=>$("bov").style.display="none";
 
 // ── SAVE TRIP ──
@@ -1091,15 +1099,69 @@ const renderHistory=()=>{
 window.setTab=tab=>{currentTab=tab;document.querySelectorAll(".tab-page").forEach(p=>p.classList.remove("active"));document.querySelectorAll(".bnav-btn").forEach(b=>b.classList.remove("active"));$("tab-"+tab)?.classList.add("active");$("bnav-"+tab)?.classList.add("active");if(tab==="hist")renderHistory();if(tab==="stores")renderStoresPage();};
 
 // ── LOCAL STORES ──
-const loadLocalStores=()=>{if(!CU)return;const q=query(collection(db,"users",CU.uid,"stores"),orderBy("createdAt","asc"));onSnapshot(q,snap=>{localStores={};snap.docs.forEach(d=>{localStores[d.id]={id:d.id,...d.data(),prices:localStores[d.id]?.prices||{}};});Object.keys(localStores).forEach(id=>{if(!lsListeners[id])listenStorePrices(id);});renderStoresPage();renderLocalCPList();$("scan-store-btn").style.display=Object.keys(localStores).length>0?"block":"none";});};
-const listenStorePrices=id=>{const q=query(collection(db,"users",CU.uid,"stores",id,"prices"),orderBy("addedAt","asc"));lsListeners[id]=onSnapshot(q,snap=>{if(localStores[id])localStores[id].prices={};snap.docs.forEach(d=>{if(localStores[id])localStores[id].prices[d.id]={id:d.id,...d.data()};});if(activeSD===id)renderSD();renderStoresPage();});};
-window.createLocalStore=async()=>{const name=$("ss-name").value.trim();if(!name)return;const id=uid();await setDoc(doc(db,"users",CU.uid,"stores",id),{name,createdAt:Date.now()});$("ss-name").value="";closeSS();toast("מכולת נוצרה: "+name);};
+const loadLocalStores=()=>{
+  if(!CU)return;
+  const q=query(collection(db,"users",CU.uid,"stores"),orderBy("createdAt","asc"));
+  onSnapshot(q,snap=>{
+    // Keep existing prices while rebuilding store list
+    const prev={...localStores};
+    localStores={};
+    snap.docs.forEach(d=>{
+      localStores[d.id]={id:d.id,...d.data(),prices:prev[d.id]?.prices||{}};
+    });
+    // Start listeners for any new stores
+    Object.keys(localStores).forEach(id=>{
+      if(!lsListeners[id])listenStorePrices(id);
+    });
+    renderStoresPage();
+    renderLocalCPList();
+    $("scan-store-btn").style.display=Object.keys(localStores).length>0?"block":"none";
+  });
+};
+const listenStorePrices=id=>{
+  const q=query(collection(db,"users",CU.uid,"stores",id,"prices"),orderBy("addedAt","asc"));
+  lsListeners[id]=onSnapshot(q,snap=>{
+    if(!localStores[id])return;
+    localStores[id].prices={};
+    snap.docs.forEach(d=>{localStores[id].prices[d.id]={id:d.id,...d.data()};});
+    if(activeSD===id)renderSD();
+    renderStoresPage();
+  });
+};
+window.createLocalStore=async()=>{
+  const name=$("ss-name").value.trim();
+  if(!name){toast("הכנס שם מכולת");return;}
+  const id=uid();
+  try{
+    await setDoc(doc(db,"users",CU.uid,"stores",id),{name,createdAt:Date.now()});
+    $("ss-name").value="";
+    closeSS();
+    toast("מכולת נוצרה: "+name+" ✓");
+    // Open it immediately
+    setTimeout(()=>{if(localStores[id])openSD(id);},600);
+  }catch(e){toast("שגיאה: "+e.message);}
+};
 const addSP=async(sid,item)=>setDoc(doc(db,"users",CU.uid,"stores",sid,"prices",item.id),item);
 const delSP=async(sid,iid)=>deleteDoc(doc(db,"users",CU.uid,"stores",sid,"prices",iid));
 
-const renderStoresPage=()=>{const el=$("stores-list");if(!el)return;el.innerHTML=Object.values(localStores).map(st=>{const ps=Object.values(st.prices||{});return'<div class="store-card"><div class="sc-top"><div class="sc-name">🏪 '+st.name+'</div><div class="sc-count">'+ps.length+' מוצרים</div></div><div class="sc-btns"><button class="sc-btn sc-btn-receipt" onclick="openSD(\''+st.id+'\');triggerReceipt()">📸 קבלה</button><button class="sc-btn sc-btn-detail" onclick="openSD(\''+st.id+'\')">פרטים</button></div>'+(ps.length?'<div class="sc-prices">'+ps.slice(0,6).map(p=>'<div class="sc-price-chip">'+p.name+' &#8362;'+p.price.toFixed(1)+'</div>').join("")+(ps.length>6?'<div class="sc-price-chip">+'+( ps.length-6)+'...</div>':"")+
-  '</div>':'')+
-  '</div>';}).join("");};
+const renderStoresPage=()=>{
+  const el=$("stores-list");if(!el)return;
+  const stores=Object.values(localStores);
+  if(!stores.length){el.innerHTML='';return;}
+  el.innerHTML=stores.map(st=>{
+    const ps=Object.values(st.prices||{});
+    const sid=st.id.replace(/'/g,"\\'");
+    return'<div class="store-card">'+
+      '<div class="sc-top"><div class="sc-name">🏪 '+st.name+'</div><div class="sc-count">'+ps.length+' מוצרים</div></div>'+
+      '<div class="sc-btns">'+
+        '<button class="sc-btn sc-btn-receipt" onclick="openSD(\''+sid+'\');setTimeout(triggerReceipt,100)">📸 קבלה</button>'+
+        '<button class="sc-btn sc-btn-detail" onclick="openSD(\''+sid+'\')">פרטים ›</button>'+
+      '</div>'+
+      (ps.length?'<div class="sc-prices">'+ps.slice(0,6).map(p=>'<div class="sc-price-chip">'+p.name+' &#8362;'+p.price.toFixed(1)+'</div>').join("")+(ps.length>6?'<div class="sc-price-chip">+'+( ps.length-6)+'...</div>':'')+'</div>':
+        '<div style="font-size:12px;color:#ccc;padding:6px 0">📸 צלם קבלה להוסיף מחירים</div>')+
+    '</div>';
+  }).join("");
+};
 
 const renderLocalCPList=()=>{const el=$("local-cp-list");if(!el)return;if(!Object.keys(localStores).length){el.innerHTML='<div style="text-align:center;color:#aaa;font-size:13px;padding:8px 0">אין מכולות עדיין</div>';return;}el.innerHTML=Object.values(localStores).map(s=>{const sid="ls_"+s.id;const sel=SC.includes(sid);return'<button class="cpbtn local'+(sel?" sel":"")+'" onclick="togCH(\''+sid+'\')" style="width:100%;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">'+'<div style="display:flex;align-items:center;gap:7px"><span class="cpdot"></span>🏪 '+s.name+(sel?" ✓":"")+'</div>'+'<button onclick="event.stopPropagation();closeCP();openSD(\''+s.id+'\')" style="background:#fff8e1;border:1px solid #f57c00;border-radius:7px;padding:3px 8px;font-size:11px;color:#f57c00;font-weight:700;cursor:pointer">פרטים</button></button>';}).join("");};
 
@@ -1126,39 +1188,47 @@ window.closeSS=()=>{$("ssov").style.display="none";};
 const sRec=()=>{
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){alert("נסה Chrome");return;}
+  if(rec)return; // prevent double-start
   const r=new SR();r.lang="he-IL";
-  r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
-  let finalText="",silenceTimer=null;
-  const SILENCE_MS=1200;
+  r.continuous=false; // single utterance — prevents restart loop
+  r.interimResults=true;r.maxAlternatives=1;
+  let committed="",didAdd=false,silenceTimer=null;
+
   r.onresult=e=>{
-    let interim="";
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal)finalText+=e.results[i][0].transcript+" ";
+    let final="",interim="";
+    for(let i=0;i<e.results.length;i++){
+      if(e.results[i].isFinal)final+=e.results[i][0].transcript+" ";
       else interim+=e.results[i][0].transcript;
     }
-    $("mi").value=(finalText+interim).trim();
+    committed=final;
+    $("mi").value=(final+interim).trim();
+    // Auto-submit after 1s silence of final text
     clearTimeout(silenceTimer);
-    if(finalText.trim()){
-      silenceTimer=setTimeout(async()=>{
-        const text=finalText.trim();finalText="";$("mi").value="";
-        $("lh").style.display="block";
-        await aN(text.split(/[,\n]+/).map(s=>s.trim()).filter(Boolean));
-        $("lh").style.display="none";
-        toast("נוסף: "+text+" 🎤");
-      },SILENCE_MS);
+    if(final.trim()){
+      silenceTimer=setTimeout(()=>{
+        if(!didAdd&&committed.trim()){try{r.stop();}catch{}}
+      },1000);
     }
   };
-  r.onerror=()=>setV("idle");
+
+  r.onerror=e=>{clearTimeout(silenceTimer);setV("idle");rec=null;};
+
   r.onend=async()=>{
     clearTimeout(silenceTimer);
-    if(finalText.trim()){
-      $("lh").style.display="block";
-      await aN(finalText.trim().split(/[,\n]+/).map(s=>s.trim()).filter(Boolean));
-      $("mi").value="";$("lh").style.display="none";
-    }
-    setV("idle");
+    setV("idle");rec=null;
+    if(didAdd||!committed.trim())return;
+    didAdd=true;
+    const text=committed.trim();
+    $("mi").value="";$("lh").style.display="block";
+    await aN(text.split(/[,\n]+/).map(s=>s.trim()).filter(Boolean));
+    $("lh").style.display="none";
+    toast("נוסף: "+text+" 🎤");
   };
-  rec=r;r.start();setV("recording");if(navigator.vibrate)navigator.vibrate(40);
+
+  rec=r;
+  try{r.start();}catch(e){rec=null;return;}
+  setV("recording");
+  if(navigator.vibrate)navigator.vibrate(40);
 };
 const eRec=()=>{if(rec){try{rec.stop();}catch{}rec=null;}};
 const setV=s=>{vs=s;const b=$("vbtn");b.className="ib ib-voice"+(s==="recording"?" rec":s==="processing"?" proc":"");b.textContent=s==="recording"?"⏹":s==="processing"?"⏳":"🎤";$("vh").style.display=s==="recording"?"block":"none";};
@@ -1182,7 +1252,21 @@ window.startScan=async target=>{
     try{await vid.play();}catch{vid.setAttribute("autoplay","");vid.setAttribute("muted","");vid.setAttribute("playsinline","");vid.load();await vid.play().catch(()=>{});}
     if("BarcodeDetector"in window){
       const det=new window.BarcodeDetector({formats:["ean_13","ean_8","upc_a","code_128","qr_code"]});
-      const scan=async()=>{if(!sa)return;try{const f=await det.detect(vid);if(f.length>0){closeScanner();await lkBC(f[0].rawValue);return;}}catch{}requestAnimationFrame(scan);};
+      const scan=async()=>{
+        if(!sa)return;
+        try{
+          const f=await det.detect(vid);
+          if(f.length>0){
+            sa=false; // stop scanning loop immediately
+            if(navigator.vibrate)navigator.vibrate([80,40,80]);
+            toast("ברקוד זוהה ✓ מחפש מחיר...");
+            closeScanner();
+            await lkBC(f[0].rawValue);
+            return;
+          }
+        }catch{}
+        requestAnimationFrame(scan);
+      };
       vid.addEventListener("loadedmetadata",()=>requestAnimationFrame(scan),{once:true});
       if(vid.readyState>=2)requestAnimationFrame(scan);
     }
@@ -1192,51 +1276,64 @@ window.closeScanner=()=>{sa=false;if(ss){ss.getTracks().forEach(t=>t.stop());ss=
 window.manBC=async()=>{const c=$("bi").value.trim();if(!c)return;closeScanner();await lkBC(c);};
 
 const lkBC=async code=>{
-  toast("מזהה מוצר... 🔍");
+  toast("מזהה ברקוד "+code+"... 🔍");
   let name=null,price=null,category=null,ps="estimate",promo=null;
 
-  // ── Step 1: Check community DB first (fastest, free) ──
-  const community = await lookupCommunityBarcode(code);
-  if (community?.name) {
-    name=community.name; price=community.cheapest||null;
-    category=community.category||null; ps="community";
-    toast("זוהה מהמאגר הקהילתי 🌟");
+  // ── Step 1: Community DB ──
+  const community=await lookupCommunityBarcode(code);
+  if(community?.name){
+    name=community.name;price=community.cheapest||null;
+    category=community.category||null;ps="community";
   }
 
-  // ── Step 2: Worker (Gov API + Gemini normalization) ──
-  if (!name && WORKER) {
+  // ── Step 2: Worker (Gov API + Gemini) ──
+  if(!name&&WORKER){
     try{
+      toast("מחפש מחיר בממשלת השקיפות... ⏳");
       const params=new URLSearchParams({action:"barcode",barcode:code});
       if(userLat)params.set("lat",userLat);
       if(userLng)params.set("lng",userLng);
       params.set("rate",getTravelRate());
       const r=await fetch(WORKER+"?"+params.toString());
       const d=await r.json();
-      if(d.name){name=d.name;price=d.cheapest?.price||null;category=d.category&&d.category!=="🛒 אחר"?d.category:null;if(d.cheapest)ps="real";promo=d.cheapest?.promo||null;}
+      if(d.name){
+        name=d.name;
+        price=d.cheapest?.price||null;
+        category=d.category&&d.category!=="🛒 אחר"?d.category:null;
+        if(d.cheapest)ps="real";
+        promo=d.cheapest?.promo||null;
+      }
     }catch{}
   }
 
-  // ── Step 3: OFF direct fallback ──
+  // ── Step 3: OpenFoodFacts fallback ──
   if(!name){
-    try{const r=await fetch("https://world.openfoodfacts.org/api/v0/product/"+code+".json");const d=await r.json();if(d.status===1)name=d.product.product_name_he||d.product.product_name||null;}catch{}
+    try{
+      toast("מחפש ב-OpenFoodFacts... 🌐");
+      const r=await fetch("https://world.openfoodfacts.org/api/v0/product/"+code+".json");
+      const d=await r.json();
+      if(d.status===1)name=d.product.product_name_he||d.product.product_name||null;
+    }catch{}
   }
 
   name=name||"מוצר "+code;
   category=category||catOf(name);
-  price=price||gp(name);
+  // Only use fallback price if we have NO real price at all
+  if(!price)price=gp(name);
 
-  // ── Step 4: Save to community DB (teach the app) ──
-  await saveProductScan(code, name, price, category, ps);
+  // ── Step 4: Save to community DB ──
+  await saveProductScan(code,name,price,category,ps);
+
+  const srcLabel=ps==="real"?"✅ מחיר מדויק בזמן אמת":ps==="community"?"🌟 מאגר קהילתי":"⚪ הערכה";
 
   if(scanTarget==="store"){
     const sid=Object.keys(localStores)[0];
     if(sid){await addSP(sid,{id:uid(),name,price,barcode:code,addedAt:Date.now()});toast("נוסף למכולת: "+name+" ✓");openSD(sid);}
     else toast("צור מכולת קודם ב-⚙️");
-  } else {
+  }else{
     await sI({id:uid(),name,category,price,checked:false,addedAt:Date.now(),
       priceSource:ps,barcode:code,allPrices:[],isWeight:isWP(name),weightKg:null,promo});
-    const srcLabel=ps==="community"?"🌟 מאגר קהילתי":ps==="real"?"🔵 מחיר אמיתי":"⚪";
-    toast("נוסף: "+name+" "+srcLabel);
+    toast("נוסף: "+name+"\n"+srcLabel+(ps==="real"&&price?" · ₪"+price.toFixed(2):""),3500);
   }
 };
 
@@ -1257,7 +1354,7 @@ const rL=()=>{
       '</div><div style="flex:1">'+
       '<div class="itname'+(it.checked?" done":"")+'">'+(it.name||"")+(it.promo?'  <span style="font-size:9px;background:#fff3e0;color:#e65100;border-radius:5px;padding:1px 5px">🏷️</span>':'')+'</div>'+
       (it.weightKg?'<div class="itsub">'+it.weightKg.toFixed(2)+' ק"ג · ₪'+((+it.price*it.weightKg).toFixed(1))+'</div>':'')+(it.weightCount&&!it.weightKg?'<div class="itsub">'+it.weightCount+' יחידות</div>':'')+
-      (it.priceSource==="real"?'<div class="itsub" style="color:#1e88e5">🔵 מחיר אמיתי</div>':'')+
+      (it.priceSource==="real"?'<div class="itsub" style="color:#1e88e5">✅ מחיר מדויק בזמן אמת</div>':'')+
       '</div><div class="itbtns">'+
       (it.isWeight?'<button class="weight-btn'+(it.checked?" done":"")+'" onclick="openWM(\''+it.id+'\',event)">⚖️</button>':"")+
       '<button class="price-btn'+(it.checked?" done":"")+'" onclick="openPM(\''+it.id+'\',event)">&#8362;</button>'+
