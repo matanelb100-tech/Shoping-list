@@ -409,6 +409,15 @@ body{font-family:var(--font);direction:rtl;background:var(--surface);color:var(-
 }
 .item-btn:active{background:var(--blue-pale);}
 .item-btn.done{color:var(--ink-4);border-color:#f0f0f0;background:white;}
+.qty-btn{
+  min-width:33px;height:33px;border-radius:9px;padding:0 7px;
+  border:2px solid var(--blue-pale);background:var(--blue-paler);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:12px;font-weight:900;color:var(--blue);
+  transition:all var(--trans);white-space:nowrap;
+}
+.qty-btn:active{background:var(--blue-pale);}
+.qty-btn.done{color:var(--ink-4);border-color:#f0f0f0;background:white;}
 
 /* ═══════════════════════════════════════════════
    BASKET SCREEN
@@ -628,6 +637,13 @@ body{font-family:var(--font);direction:rtl;background:var(--surface);color:var(-
   border:2px solid var(--border);background:white;color:var(--ink-3);
   font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);margin-top:8px;
 }
+.qty-preset-btn{
+  padding:10px 16px;border-radius:12px;border:2px solid var(--blue-pale);
+  background:var(--blue-paler);font-size:15px;font-weight:800;
+  color:var(--blue);cursor:pointer;font-family:var(--font);
+  transition:all var(--trans);
+}
+.qty-preset-btn:active,.qty-preset-btn.active{background:var(--blue);color:white;border-color:var(--blue);}
 
 /* ═══════════════════════════════════════════════
    PRICE MODAL
@@ -1011,6 +1027,32 @@ input[type=text],input[type=email],input[type=password],input[type=number]{
 </div>
 
 <!-- ═══════════════════════════════════════════════
+     MODAL: QUANTITY
+═══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="qty-modal" onclick="closeQtyModal()">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-title">× כמות</div>
+    <div class="price-modal-name" id="qty-modal-name"></div>
+    <div style="display:flex;gap:10px;justify-content:center;margin:14px 0;flex-wrap:wrap;">
+      <button class="qty-preset-btn" onclick="setQtyPreset(1)">×1</button>
+      <button class="qty-preset-btn" onclick="setQtyPreset(2)">×2</button>
+      <button class="qty-preset-btn" onclick="setQtyPreset(3)">×3</button>
+      <button class="qty-preset-btn" onclick="setQtyPreset(4)">×4</button>
+      <button class="qty-preset-btn" onclick="setQtyPreset(5)">×5</button>
+      <button class="qty-preset-btn" onclick="setQtyPreset(6)">×6</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <button onclick="changeQty(-1)" style="width:44px;height:44px;border-radius:12px;border:2px solid var(--border);background:white;font-size:22px;font-weight:700;cursor:pointer;color:var(--blue);">−</button>
+      <input class="price-edit-input" type="number" id="qty-input" min="1" max="99" step="1" value="1" style="text-align:center;font-size:22px;"/>
+      <button onclick="changeQty(1)" style="width:44px;height:44px;border-radius:12px;border:2px solid var(--border);background:white;font-size:22px;font-weight:700;cursor:pointer;color:var(--blue);">+</button>
+    </div>
+    <div class="wm-result" id="qty-result">₪0.00</div>
+    <button class="modal-save-btn" onclick="saveQtyModal()">שמור ✓</button>
+    <button class="modal-cancel-btn" onclick="closeQtyModal()">סגור</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
      MODAL: PRICE
 ═══════════════════════════════════════════════ -->
 <div class="modal-overlay" id="price-modal" onclick="closePriceModal()">
@@ -1338,6 +1380,60 @@ const LOCAL_SUGGESTIONS={
   "אבקת כביסה":[{l:"אריאל 4.5 ק״ג",s:"גדול",p:54.90},{l:"פרסיל 3 ק״ג",s:"בינוני",p:44.90},{l:"אבקת כביסה לנג׳יל",s:"עדין",p:44.90}],
   "נוזל כלים":[{l:"פיירי לימון",s:"500 מל",p:9.90},{l:"פיירי קלאסי",s:"750 מל",p:12.90},{l:"ספונג׳קס",s:"500 מל",p:8.90}],
   "נוזל ניקוי":[{l:"ממס שומן",s:"750 מל",p:14.90},{l:"וים",s:"750 מל",p:11.90},{l:"ממס אמבטיה",s:"750 מל",p:13.90}],
+  // ── תינוקות ──
+  "טיטול":[{l:"טיטולים פמפרס 1 (2-5 ק״ג)",s:"27 יח׳",p:44.90},{l:"טיטולים פמפרס 2 (4-8 ק״ג)",s:"37 יח׳",p:49.90},{l:"טיטולים פמפרס 3 (6-10 ק״ג)",s:"40 יח׳",p:54.90},{l:"טיטולים פמפרס 4 (9-14 ק״ג)",s:"33 יח׳",p:54.90},{l:"טיטולים פמפרס 5 (11-16 ק״ג)",s:"30 יח׳",p:54.90}],
+  "טיטולי":[{l:"טיטולים פמפרס 1",s:"2-5 ק״ג · 27 יח׳",p:44.90},{l:"טיטולים פמפרס 2",s:"4-8 ק״ג · 37 יח׳",p:49.90},{l:"טיטולים פמפרס 3",s:"6-10 ק״ג · 40 יח׳",p:54.90},{l:"טיטולים פמפרס 4",s:"9-14 ק״ג · 33 יח׳",p:54.90},{l:"טיטולים פמפרס 5",s:"11-16 ק״ג · 30 יח׳",p:54.90}],
+  "חיתול":[{l:"חיתולים פמפרס 1",s:"2-5 ק״ג · 27 יח׳",p:44.90},{l:"חיתולים פמפרס 2",s:"4-8 ק״ג · 37 יח׳",p:49.90},{l:"חיתולים פמפרס 3",s:"6-10 ק״ג · 40 יח׳",p:54.90},{l:"חיתולים חגלה 4",s:"9-14 ק״ג · 32 יח׳",p:49.90},{l:"חיתולים חגלה 5",s:"11+ ק״ג · 28 יח׳",p:49.90}],
+  "מגבון":[{l:"מגבונים לחים 72",s:"72 יח׳",p:12.90},{l:"מגבונים לחים 144",s:"144 יח׳ · מארז כפול",p:22.90},{l:"מגבונים לחים מינים",s:"20 יח׳",p:5.90},{l:"מגבונים אנטיבקטריאל",s:"72 יח׳",p:14.90}],
+  "פורמולה":[{l:"פורמולה תינוקות 0-6",s:"900 גרם",p:84.90},{l:"פורמולה תינוקות 6-12",s:"900 גרם",p:84.90},{l:"פורמולה מעבר 1-3",s:"900 גרם",p:74.90}],
+  "מזון תינוק":[{l:"מחית ירקות 4+",s:"190 גרם",p:8.90},{l:"מחית פירות 4+",s:"190 גרם",p:8.90},{l:"מחית בשר וירק 8+",s:"190 גרם",p:11.90},{l:"ביסקוויט תינוקות",s:"150 גרם",p:12.90}],
+  // ── בית ──
+  "נייר מגבת":[{l:"נייר מגבת מטבח",s:"3 גלילות",p:18.90},{l:"נייר מגבת מטבח",s:"6 גלילות",p:29.90}],
+  "שקית":[{l:"שקיות אשפה 60 ליטר",s:"20 יח׳",p:14.90},{l:"שקיות אשפה 30 ליטר",s:"30 יח׳",p:12.90},{l:"שקיות הקפאה",s:"30 יח׳",p:9.90},{l:"שקיות זיפלוק",s:"15 יח׳",p:11.90}],
+  "ניילון":[{l:"ניילון נצמד",s:"30 מטר",p:9.90},{l:"ניילון אלומיניום",s:"20 מטר",p:12.90},{l:"נייר אפייה",s:"10 מטר",p:12.90}],
+  "תרסיס":[{l:"תרסיס ניקוי כללי",s:"750 מל",p:12.90},{l:"תרסיס חלונות",s:"500 מל",p:11.90},{l:"תרסיס חדר אמבטיה",s:"750 מל",p:14.90}],
+  "ספוג":[{l:"ספוגיות שטיפה",s:"3 יח׳",p:7.90},{l:"ספוגיות פד",s:"2 יח׳",p:8.90}],
+  "נורה":[{l:"נורת LED 9W",s:"חבילה",p:14.90},{l:"נורת LED 7W",s:"חבילה",p:12.90}],
+  // ── תבלינים ──
+  "תבלין":[{l:"פלפל שחור טחון",s:"50 גרם",p:8.90},{l:"פפריקה מתוקה",s:"50 גרם",p:6.90},{l:"כמון",s:"50 גרם",p:6.90},{l:"קינמון",s:"50 גרם",p:7.90},{l:"כורכום",s:"50 גרם",p:6.90}],
+  "פלפל שחור":[{l:"פלפל שחור טחון",s:"50 גרם",p:8.90},{l:"גרגירי פלפל שחור",s:"50 גרם",p:9.90},{l:"פלפל שחור גרוס",s:"50 גרם",p:8.90}],
+  "פפריקה":[{l:"פפריקה מתוקה",s:"50 גרם",p:6.90},{l:"פפריקה חריפה",s:"50 גרם",p:6.90},{l:"פפריקה מעושנת",s:"50 גרם",p:9.90}],
+  "כורכום":[{l:"כורכום",s:"50 גרם",p:6.90},{l:"כורכום אורגני",s:"50 גרם",p:11.90}],
+  "קינמון":[{l:"קינמון טחון",s:"50 גרם",p:7.90},{l:"מקלות קינמון",s:"30 גרם",p:8.90}],
+  "עשבי תיבול":[{l:"בזיליקום טרי",s:"20 גרם",p:9.90},{l:"כוסברה טרייה",s:"20 גרם",p:6.90},{l:"פטרוזיליה",s:"50 גרם",p:5.90},{l:"נענע טרייה",s:"20 גרם",p:7.90}],
+  // ── קפואים ──
+  "קפוא":[{l:"ירקות מעורבים קפואים",s:"750 גרם",p:14.90},{l:"תירס קפוא",s:"400 גרם",p:8.90},{l:"אפונה קפואה",s:"400 גרם",p:8.90},{l:"שעועית ירוקה קפואה",s:"400 גרם",p:9.90}],
+  "פיצה":[{l:"פיצה מרגריטה קפואה",s:"360 גרם",p:18.90},{l:"פיצה ירקות קפואה",s:"360 גרם",p:19.90},{l:"פיצה פפרוני קפואה",s:"360 גרם",p:22.90}],
+  "שניצל קפוא":[{l:"שניצל עוף קפוא",s:"1 ק״ג",p:38.90},{l:"שניצל הודו קפוא",s:"1 ק״ג",p:42.90},{l:"נאגטס עוף",s:"500 גרם",p:24.90}],
+  "גלידה קפואה":[{l:"גלידת וניל שמנת",s:"1 ליטר",p:24.90},{l:"ארטיק שוקו",s:"6 יח׳",p:22.90},{l:"גלידת פירות",s:"500 מל",p:18.90}],
+  // ── אפייה ──
+  "קמח תופח":[{l:"קמח תופח",s:"1 ק״ג",p:8.90},{l:"אבקת אפייה",s:"20 גרם",p:4.90},{l:"סודה לשתייה",s:"500 גרם",p:5.90}],
+  "שמרים":[{l:"שמרים יבשים",s:"11 גרם",p:5.90},{l:"שמרים טריים",s:"50 גרם",p:4.90}],
+  "וניל":[{l:"תמצית וניל",s:"50 מל",p:12.90},{l:"סוכר וניל",s:"8 גרם",p:3.90},{l:"מקל וניל",s:"2 יח׳",p:14.90}],
+  "קקאו":[{l:"קקאו שחור",s:"200 גרם",p:12.90},{l:"שוקו אבקה",s:"200 גרם",p:11.90},{l:"ממרח קקאו",s:"200 גרם",p:14.90}],
+  "דבש דבורים":[{l:"דבש פרחים",s:"500 גרם",p:22.90},{l:"דבש יוקליפטוס",s:"500 גרם",p:24.90},{l:"דבש הר",s:"500 גרם",p:28.90}],
+  // ── שימורים נוספים ──
+  "שימורים":[{l:"טונה בשמן",s:"קופסה 160 גרם",p:8.90},{l:"עגבניות מרוסקות",s:"400 גרם",p:5.90},{l:"גרגירי תירס",s:"400 גרם",p:7.90},{l:"אפונה ירוקה",s:"400 גרם",p:6.90}],
+  "תירס":[{l:"גרגירי תירס שימורים",s:"400 גרם",p:7.90},{l:"תירס קפוא",s:"400 גרם",p:8.90},{l:"קלחי תירס",s:"2 יח׳",p:9.90}],
+  "אפונה":[{l:"אפונה ירוקה שימורים",s:"400 גרם",p:6.90},{l:"אפונה קפואה",s:"400 גרם",p:8.90}],
+  // ── בריאות וטבעי ──
+  "שמן קוקוס":[{l:"שמן קוקוס",s:"500 מל",p:28.90},{l:"שמן קוקוס אורגני",s:"300 מל",p:32.90}],
+  "אגוזים":[{l:"אגוזי מלך",s:"150 גרם",p:14.90},{l:"אגוזי קשיו",s:"100 גרם",p:16.90},{l:"שקדים",s:"100 גרם",p:14.90},{l:"בוטנים קלויים",s:"200 גרם",p:9.90}],
+  "שקדים":[{l:"שקדים קלויים",s:"100 גרם",p:14.90},{l:"שקדים גולמיים",s:"200 גרם",p:18.90},{l:"שקדים טחונים",s:"200 גרם",p:19.90}],
+  "גרעינים":[{l:"גרעיני חמנייה",s:"200 גרם",p:8.90},{l:"גרעיני דלעת",s:"150 גרם",p:12.90},{l:"גרעיני פשתן",s:"200 גרם",p:9.90}],
+  "פירות יבשים":[{l:"צימוקים",s:"200 גרם",p:8.90},{l:"תמרים מג׳הול",s:"500 גרם",p:22.90},{l:"משמשים מיובשים",s:"200 גרם",p:12.90},{l:"שזיפים מיובשים",s:"200 גרם",p:11.90}],
+  "ויטמין":[{l:"ויטמין C 1000",s:"30 טבליות",p:24.90},{l:"ויטמין D3",s:"60 כמוסות",p:29.90},{l:"מולטי ויטמין",s:"30 טבליות",p:34.90}],
+  // ── לחיות מחמד ──
+  "מזון כלב":[{l:"פדיגרי כלב בוגר",s:"3 ק״ג",p:44.90},{l:"רויאל קנין כלב",s:"2 ק״ג",p:64.90},{l:"פוצ׳ טעמים",s:"6 × 100 גרם",p:19.90}],
+  "מזון חתול":[{l:"פורינה חתול",s:"1.5 ק״ג",p:34.90},{l:"פליקס שקיות",s:"12 × 85 גרם",p:34.90},{l:"וויסקס טעמים",s:"12 × 100 גרם",p:29.90}],
+  // ── בשרים מעובדים ──
+  "קציצות":[{l:"קציצות עוף קפואות",s:"500 גרם",p:22.90},{l:"קציצות בשר קפואות",s:"500 גרם",p:28.90},{l:"קציצות ירקות",s:"300 גרם",p:18.90}],
+  "המבורגר":[{l:"המבורגר בקר",s:"2 × 150 גרם",p:22.90},{l:"המבורגר עוף",s:"2 × 130 גרם",p:18.90},{l:"המבורגר הודו",s:"2 × 130 גרם",p:19.90}],
+  "נקניקייה":[{l:"נקניקיות עוף",s:"300 גרם",p:16.90},{l:"נקניקיות בקר",s:"300 גרם",p:21.90},{l:"נקניקיות מרגז",s:"300 גרם",p:19.90},{l:"פרנקפורטר",s:"200 גרם",p:18.90}],
+  // ── מאפים ──
+  "קרואסון":[{l:"קרואסון חמאה",s:"יח׳",p:8.90},{l:"קרואסון שוקולד",s:"יח׳",p:9.90},{l:"קרואסון גבינה",s:"יח׳",p:9.90}],
+  "עוגה":[{l:"עוגת שוקולד",s:"חתיכה",p:14.90},{l:"עוגת גבינה",s:"חתיכה",p:16.90},{l:"מאפין שוקולד",s:"יח׳",p:8.90}],
+  "בורקס":[{l:"בורקס גבינה",s:"יח׳",p:7.90},{l:"בורקס תפוחי אדמה",s:"יח׳",p:7.90},{l:"בורקס פטריות",s:"יח׳",p:8.90}],
 };
 const getLocalSuggestions=text=>{
   const l=text.trim().toLowerCase();
@@ -1933,6 +2029,57 @@ window.updateWeightCalc=()=>{
     $("wm-result").textContent=`סה"כ: ₪${((+it.price)*kg).toFixed(2)} (${kg.toFixed(2)} ק"ג × ₪${(+it.price).toFixed(2)}/ק"ג)`;
   }else $("wm-result").textContent="הזן משקל או כמות";
 };
+// ════════════════════════════════════════════════════════════
+// QTY MODAL
+// ════════════════════════════════════════════════════════════
+window.openQtyModal=(id,ev)=>{
+  if(ev)ev.stopPropagation();
+  const it=state.items.find(i=>i.id===id);
+  if(!it)return;
+  state.editingItemId=id;
+  $("qty-modal-name").textContent=it.name;
+  const current=it.qty||1;
+  $("qty-input").value=current;
+  updateQtyResult();
+  $("qty-modal").classList.add("open");
+  setTimeout(()=>$("qty-input").focus(),100);
+};
+window.closeQtyModal=()=>{$("qty-modal").classList.remove("open");state.editingItemId=null;};
+window.setQtyPreset=n=>{
+  $("qty-input").value=n;
+  // Highlight active preset
+  document.querySelectorAll(".qty-preset-btn").forEach((b,i)=>b.classList.toggle("active",i+1===n));
+  updateQtyResult();
+};
+window.changeQty=delta=>{
+  const inp=$("qty-input");
+  const v=Math.max(1,Math.min(99,(parseInt(inp.value)||1)+delta));
+  inp.value=v;
+  updateQtyResult();
+};
+const updateQtyResult=()=>{
+  const it=state.items.find(i=>i.id===state.editingItemId);
+  if(!it)return;
+  const q=parseInt($("qty-input").value)||1;
+  const total=(+it.price)*q;
+  $("qty-result").textContent=q===1
+    ?`מחיר יחידה: ₪${(+it.price).toFixed(2)}`
+    :`×${q} יח׳ · ₪${(+it.price).toFixed(2)} × ${q} = ₪${total.toFixed(2)}`;
+};
+window.saveQtyModal=async()=>{
+  const q=Math.max(1,parseInt($("qty-input").value)||1);
+  if(state.editingItemId){
+    await patchItem(state.editingItemId,{qty:q});
+    showToast(q===1?"כמות עודכנה: 1 יח׳":`כמות עודכנה: ×${q}`);
+    closeQtyModal();
+  }
+};
+// Update qty result when input changes
+document.addEventListener("DOMContentLoaded",()=>{
+  const qi=$("qty-input");
+  if(qi)qi.addEventListener("input",updateQtyResult);
+});
+
 window.saveWeightModal=async()=>{
   const it=state.items.find(i=>i.id===state.editingItemId);
   if(!it||!state.editingItemId)return;
@@ -2205,8 +2352,10 @@ const renderList=()=>{
                 <div class="item-name${it.checked?" done":""}">${it.name||""}</div>
                 ${it.weightKg?`<div class="item-sub">${it.weightKg.toFixed(2)} ק"ג · ₪${(+it.price*it.weightKg).toFixed(1)}</div>`:""}
                 ${it.weightCount&&!it.weightKg?`<div class="item-sub">${it.weightCount} יח׳</div>`:""}
+                ${(it.qty&&it.qty>1&&!it.weightKg)?`<div class="item-sub">×${it.qty} · ₪${((+it.price)*(it.qty)).toFixed(1)} סה"כ</div>`:""}
               </div>
               <div class="item-actions">
+                <button class="qty-btn${it.checked?" done":""}" onclick="openQtyModal('${it.id}',event)">${(it.qty&&it.qty>1)?"×"+it.qty:"×1"}</button>
                 ${it.isWeight?`<button class="item-btn${it.checked?" done":""}" onclick="openWeightModal('${it.id}',event)">⚖️</button>`:""}
                 <button class="item-btn${it.checked?" done":""}" onclick="openPriceModal('${it.id}',event)">₪</button>
               </div>
@@ -2248,7 +2397,8 @@ const renderBasketScreen=()=>{
 
   const baseTotal=active.reduce((s,it)=>{
     const kg=it.weightKg&&it.isWeight?+it.weightKg:1;
-    return s+(+it.price)*kg;
+    const qty=(!it.weightKg&&it.qty&&it.qty>1)?+it.qty:1;
+    return s+(+it.price)*kg*qty;
   },0);
 
   // Build chain entries
