@@ -41,7 +41,7 @@
   --surface:#f4f8ff;
   --card:#ffffff;
   --border:#dce8f8;
-  --nav-h:64px;
+  --nav-h:68px;
   --safe-top:env(safe-area-inset-top,0px);
   --safe-bot:env(safe-area-inset-bottom,0px);
   --r-card:20px;
@@ -198,6 +198,8 @@ body{font-family:var(--font);direction:rtl;background:var(--surface);color:var(-
   transition:background var(--trans);
 }
 .hdr-btn:active{background:rgba(255,255,255,.25);}
+.hdr-btn-danger{background:rgba(229,57,53,.25);border-color:rgba(229,57,53,.4);}
+.hdr-btn-danger:active{background:rgba(229,57,53,.45);}
 
 /* ═══════════════════════════════════════════════
    SCREENS
@@ -227,9 +229,10 @@ body{font-family:var(--font);direction:rtl;background:var(--surface);color:var(-
   border:none;background:transparent;cursor:pointer;
   font-family:var(--font);position:relative;
   transition:all var(--trans);
+  -webkit-tap-highlight-color:transparent;
 }
-.nav-tab-icon{font-size:22px;margin-bottom:2px;transition:transform var(--trans);}
-.nav-tab-label{font-size:10px;font-weight:700;color:var(--ink-4);transition:color var(--trans);}
+.nav-tab-icon{font-size:24px;margin-bottom:3px;transition:transform var(--trans);}
+.nav-tab-label{font-size:11px;font-weight:700;color:var(--ink-4);transition:color var(--trans);}
 .nav-tab.active .nav-tab-label{color:var(--blue);}
 .nav-tab.active .nav-tab-icon{transform:scale(1.12);}
 .nav-tab.active::before{
@@ -480,9 +483,9 @@ body{font-family:var(--font);direction:rtl;background:var(--surface);color:var(-
 .savings-wrap{padding:14px 13px;}
 .savings-empty{text-align:center;padding:50px 20px;color:var(--ink-4);line-height:1.8;font-size:14px;}
 .savings-hero{
-  background:linear-gradient(135deg,var(--blue-deep),var(--blue-light));
+  background:linear-gradient(135deg,#1b5e20,#43a047);
   border-radius:22px;padding:22px;margin-bottom:14px;text-align:center;
-  box-shadow:0 6px 24px rgba(21,101,192,.3);
+  box-shadow:0 6px 24px rgba(46,125,50,.3);
 }
 .savings-hero-label{font-size:12px;color:rgba(255,255,255,.7);margin-bottom:4px;font-weight:600;}
 .savings-hero-val{font-size:40px;font-weight:900;color:white;}
@@ -490,6 +493,8 @@ body{font-family:var(--font);direction:rtl;background:var(--surface);color:var(-
 .savings-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
 .stat-card{background:white;border-radius:16px;padding:15px;text-align:center;box-shadow:var(--shadow-sm);}
 .stat-val{font-size:24px;font-weight:900;color:var(--blue);}
+.stat-val.green{color:var(--green-light);}
+.stat-val.spent{color:var(--ink-3);}
 .stat-label{font-size:11px;color:var(--ink-4);margin-top:3px;font-weight:600;}
 .chart-card{background:white;border-radius:16px;padding:16px;box-shadow:var(--shadow-sm);margin-bottom:14px;}
 .chart-title{font-size:14px;font-weight:800;color:var(--ink-2);margin-bottom:14px;}
@@ -509,7 +514,7 @@ body{font-family:var(--font);direction:rtl;background:var(--surface);color:var(-
 .history-date{font-size:11px;color:var(--ink-4);min-width:50px;font-weight:600;}
 .history-chain{flex:1;font-size:13px;font-weight:700;color:var(--ink-2);}
 .history-items-count{font-size:11px;color:var(--ink-4);font-weight:500;}
-.history-saved{font-size:13px;font-weight:800;color:var(--green-light);}
+.history-saved{font-size:14px;font-weight:900;color:var(--green-light);background:#e8f5e9;border-radius:8px;padding:2px 8px;}
 
 /* ═══════════════════════════════════════════════
    SETTINGS SCREEN
@@ -770,7 +775,9 @@ input[type=text],input[type=email],input[type=password],input[type=number]{
   font-family:var(--font);outline:none;
 }
 .field-wrap input[type=email],
-.field-wrap input[type=password]{padding-left:42px;}
+.field-wrap input[type=password]{padding-left:46px;}
+/* Eye btn - ensure no text selection during hold */
+.eye-btn{-webkit-user-select:none;user-select:none;touch-action:none;}
 </style>
 </head>
 <body>
@@ -862,6 +869,10 @@ input[type=text],input[type=email],input[type=password],input[type=number]{
       <button class="hdr-btn" onclick="openGuide()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
         מדריך
+      </button>
+      <button class="hdr-btn hdr-btn-danger" id="hdr-clear-btn" onclick="clearList()" title="נקה רשימה">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        נקה
       </button>
       <button class="hdr-btn" onclick="doLogout()">יצא</button>
     </div>
@@ -2152,7 +2163,7 @@ const renderBasketScreen=()=>{
   el.innerHTML=`
     <button class="travel-toggle-btn${state.travelOpen?" active":""}" id="travel-toggle-btn" onclick="toggleTravel()">
       <span style="font-size:18px">🚗</span>
-      <span class="travel-toggle-btn-text">הוסף עלות נסיעה</span>
+      <span class="travel-toggle-btn-text">${state.travelOpen?"הסר עלות נסיעה":"הוסף עלות נסיעה"}</span>
       <span class="travel-badge" id="travel-badge-el" style="display:${state.travelOpen&&entries.some(e=>e.travel>0)?"block":"none"}">
         +₪${entries.reduce((m,e)=>Math.max(m,e.travel||0),0).toFixed(0)}
       </span>
@@ -2227,8 +2238,8 @@ const renderSavings=()=>{
       <div class="savings-hero-sub">ב-${state.history.length} קניות · ממוצע ₪${avgSaved.toFixed(0)} לקנייה</div>
     </div>
     <div class="savings-stats">
-      <div class="stat-card"><div class="stat-val">${state.history.length}</div><div class="stat-label">קניות שנשמרו</div></div>
-      <div class="stat-card"><div class="stat-val">₪${totalSpent.toFixed(0)}</div><div class="stat-label">סה"כ הוצאה</div></div>
+      <div class="stat-card"><div class="stat-val green">₪${totalSaved.toFixed(0)}</div><div class="stat-label">💚 סה"כ חסכת</div></div>
+      <div class="stat-card"><div class="stat-val spent">₪${totalSpent.toFixed(0)}</div><div class="stat-label">💳 סה"כ הוצאה</div></div>
     </div>
     <div class="chart-card">
       <div class="chart-title">חיסכון חודשי 📈</div>
@@ -2248,7 +2259,7 @@ const renderSavings=()=>{
           <div class="history-date">${new Date(h.date).toLocaleDateString("he",{day:"numeric",month:"numeric"})}</div>
           <div>
             <div class="history-chain">${h.chain||"—"}</div>
-            <div class="history-items-count">${h.items} פריטים · ₪${(+h.total||0).toFixed(0)}</div>
+            <div class="history-items-count">${h.items} פריטים · <span style="color:var(--ink-3)">₪${(+h.total||0).toFixed(0)}</span></div>
           </div>
           <div class="history-saved">+₪${(+h.saved||0).toFixed(0)}</div>
         </div>`).join("")}
@@ -2270,6 +2281,22 @@ const renderSettings=()=>{
   renderLocalStoresList();
 };
 
+window.deleteLocalStore=async(sid)=>{
+  if(!confirm("למחוק את המכולת לצמיתות? כל המחירים שנשמרו יימחקו."))return;
+  // Remove from selected chains
+  state.selectedChains=state.selectedChains.filter(c=>c!=="ls_"+sid);
+  // Unsubscribe price listener
+  if(state.localStoreListeners[sid]){state.localStoreListeners[sid]();delete state.localStoreListeners[sid];}
+  // Delete all prices first
+  const pricesSnap=await getDocs(collection(db,"users",state.currentUser.uid,"stores",sid,"prices"));
+  for(const d of pricesSnap.docs)await deleteDoc(d.ref);
+  // Delete the store itself
+  await deleteDoc(doc(db,"users",state.currentUser.uid,"stores",sid));
+  delete state.localStores[sid];
+  showToast("המכולת נמחקה");
+  renderSettings();
+};
+
 const renderLocalStoresList=()=>{
   const el=$("local-stores-list");if(!el)return;
   const stores=Object.values(state.localStores);
@@ -2284,6 +2311,7 @@ const renderLocalStoresList=()=>{
         <span class="chain-dot"></span>🏪 ${s.name}${active?" ✓":""}
       </button>
       <button onclick="openStoreDetail('${s.id}')" style="padding:8px 12px;border-radius:10px;border:2px solid #ffe0b2;background:#fff8e1;color:#e65100;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">פרטים</button>
+      <button onclick="deleteLocalStore('${s.id}')" style="padding:8px 10px;border-radius:10px;border:2px solid #ffcdd2;background:#fff5f5;color:#e53935;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🗑️</button>
     </div>`;
   }).join("");
 };
