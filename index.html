@@ -1256,13 +1256,14 @@ const getCategoryOf=name=>{
 // CHAIN DATA
 // ════════════════════════════════════════════════════════════
 const CHAINS=[
-  {id:"rami_levy",name:"רמי לוי",factor:.87,branches:[{n:"תל אביב",lat:32.081,lng:34.781},{n:"ירושלים",lat:31.771,lng:35.213},{n:"חיפה",lat:32.819,lng:34.999},{n:"באר שבע",lat:31.252,lng:34.791},{n:"נתניה",lat:32.322,lng:34.857},{n:"אשדוד",lat:31.804,lng:34.655},{n:"ראשל\"צ",lat:31.971,lng:34.801},{n:"מודיעין",lat:31.893,lng:35.010},{n:"אשקלון",lat:31.669,lng:34.571},{n:"אילת",lat:29.558,lng:34.952},{n:"קריות",lat:32.832,lng:35.075},{n:"טבריה",lat:32.796,lng:35.531}]},
-  {id:"osher_ad",name:"אושר עד",factor:.91,branches:[{n:"תל אביב",lat:32.078,lng:34.783},{n:"ירושלים",lat:31.778,lng:35.224},{n:"חיפה",lat:32.820,lng:34.998},{n:"בני ברק",lat:32.083,lng:34.838},{n:"פ\"ת",lat:32.089,lng:34.888},{n:"חדרה",lat:32.435,lng:34.918},{n:"בית שמש",lat:31.746,lng:34.988}]},
-  {id:"yeinot_bitan",name:"יינות ביתן",factor:.98,branches:[{n:"תל אביב",lat:32.071,lng:34.789},{n:"רמת השרון",lat:32.147,lng:34.836},{n:"הרצליה",lat:32.165,lng:34.843},{n:"נס ציונה",lat:31.930,lng:34.797},{n:"כפר סבא",lat:32.178,lng:34.907},{n:"חיפה",lat:32.810,lng:34.990},{n:"באר שבע",lat:31.252,lng:34.791},{n:"אשדוד",lat:31.800,lng:34.650}]},
-  {id:"victory",name:"ויקטורי",factor:.99,branches:[{n:"גבעתיים",lat:32.068,lng:34.813},{n:"חיפה",lat:32.815,lng:34.992},{n:"פ\"ת",lat:32.094,lng:34.878},{n:"רחובות",lat:31.893,lng:34.811},{n:"חולון",lat:32.012,lng:34.778}]},
-  {id:"yochananof",name:"יוחננוף",factor:.97,branches:[{n:"ירושלים מרכז",lat:31.780,lng:35.220},{n:"ירושלים גילה",lat:31.720,lng:35.165},{n:"מבשרת ציון",lat:31.801,lng:35.141}]},
-  {id:"shufersal",name:"שופרסל",factor:1.00,branches:[{n:"תל אביב",lat:32.080,lng:34.780},{n:"ירושלים",lat:31.775,lng:35.215},{n:"חיפה",lat:32.814,lng:34.994},{n:"באר שבע",lat:31.248,lng:34.789},{n:"ראשל\"צ",lat:31.965,lng:34.803},{n:"נתניה",lat:32.330,lng:34.862},{n:"רמת גן",lat:32.082,lng:34.813},{n:"פ\"ת",lat:32.091,lng:34.875},{n:"אשקלון",lat:31.669,lng:34.571},{n:"אילת",lat:29.558,lng:34.952}]},
+  {id:"rami_levy",name:"רמי לוי",factor:.87,branches:[{n:"בית שאן",lat:32.503,lng:35.499},{n:"עפולה",lat:32.607,lng:35.289},{n:"טבריה",lat:32.796,lng:35.531},{n:"כרמיאל",lat:32.914,lng:35.297},{n:"נהריה",lat:33.007,lng:35.098},{n:"קריות",lat:32.832,lng:35.075},{n:"צפת",lat:32.964,lng:35.498},{n:"קריית שמונה",lat:33.207,lng:35.569},{n:"ירושלים",lat:31.771,lng:35.213},{n:"תל אביב",lat:32.081,lng:34.781},{n:"חיפה",lat:32.819,lng:34.999},{n:"נתניה",lat:32.322,lng:34.857},{n:"אשדוד",lat:31.804,lng:34.655},{n:'ראשל"צ',lat:31.971,lng:34.801},{n:"באר שבע",lat:31.252,lng:34.791},{n:"אשקלון",lat:31.669,lng:34.571},{n:"אילת",lat:29.558,lng:34.952},{n:"מודיעין",lat:31.893,lng:35.010}]},
+  {id:"osher_ad",name:"אושר עד",factor:.91,branches:[{n:"בית שאן",lat:32.501,lng:35.497},{n:"נצרת",lat:32.699,lng:35.303},{n:"עכו",lat:32.926,lng:35.077},{n:"זכרון יעקב",lat:32.568,lng:34.953},{n:"ירושלים",lat:31.778,lng:35.224},{n:"מודיעין",lat:31.893,lng:35.010},{n:"בית שמש",lat:31.746,lng:34.988},{n:"בני ברק",lat:32.083,lng:34.838},{n:'פ"ת',lat:32.089,lng:34.888},{n:"חדרה",lat:32.435,lng:34.918}]},
+  {id:"yochananof",name:"יוחננוף",factor:.97,branches:[{n:"ירושלים מרכז",lat:31.780,lng:35.220},{n:"ירושלים גילה",lat:31.720,lng:35.165},{n:"מבשרת ציון",lat:31.801,lng:35.141},{n:"מעלה אדומים",lat:31.776,lng:35.298}]},
+  {id:"yeinot_bitan",name:"יינות ביתן",factor:.98,branches:[{n:"בית שאן",lat:32.500,lng:35.500},{n:"עפולה",lat:32.606,lng:35.291},{n:"טבריה",lat:32.789,lng:35.526},{n:"תל אביב",lat:32.071,lng:34.789},{n:"רמת השרון",lat:32.147,lng:34.836},{n:"הרצליה",lat:32.165,lng:34.843},{n:"נס ציונה",lat:31.930,lng:34.797},{n:"באר שבע",lat:31.252,lng:34.791},{n:"חיפה",lat:32.810,lng:34.990},{n:"כפר סבא",lat:32.178,lng:34.907},{n:"אשדוד",lat:31.800,lng:34.650}]},
+  {id:"victory",name:"ויקטורי",factor:.99,branches:[{n:"בית שאן",lat:32.502,lng:35.498},{n:"עפולה",lat:32.604,lng:35.292},{n:"חיפה",lat:32.815,lng:34.992},{n:"גבעתיים",lat:32.068,lng:34.813},{n:'פ"ת',lat:32.094,lng:34.878},{n:"רחובות",lat:31.893,lng:34.811},{n:"חולון",lat:32.012,lng:34.778}]},
+  {id:"shufersal",name:"שופרסל",factor:1.00,branches:[{n:"בית שאן",lat:32.500,lng:35.500},{n:"עפולה",lat:32.605,lng:35.290},{n:"טבריה",lat:32.793,lng:35.528},{n:"נצרת",lat:32.699,lng:35.303},{n:"קריית שמונה",lat:33.207,lng:35.569},{n:"תל אביב",lat:32.080,lng:34.780},{n:"ירושלים",lat:31.775,lng:35.215},{n:"חיפה",lat:32.814,lng:34.994},{n:"באר שבע",lat:31.248,lng:34.789},{n:'ראשל"צ',lat:31.965,lng:34.803},{n:"נתניה",lat:32.330,lng:34.862},{n:"אשקלון",lat:31.669,lng:34.571},{n:"אילת",lat:29.558,lng:34.952},{n:"רמת גן",lat:32.082,lng:34.813},{n:'פ"ת',lat:32.091,lng:34.875}]},
   {id:"mega",name:"מגה",factor:1.03,branches:[{n:"תל אביב",lat:32.076,lng:34.791}]},
+  {id:"am_pm",name:"am:pm",factor:1.18,branches:[{n:"תל אביב",lat:32.073,lng:34.782}]},
 ];
 
 const distKm=(la1,lo1,la2,lo2)=>{
@@ -1404,9 +1405,10 @@ onAuthStateChanged(auth,user=>{
 // ════════════════════════════════════════════════════════════
 const checkWorker=async()=>{
   try{
-    const r=await fetch(WORKER_URL+"?action=ping",{signal:AbortSignal.timeout(5000)});
-    // Even 400 means worker is alive
-    state.workerOnline=r.status<500;
+    // Use autocomplete with a test query - worker returns JSON if alive
+    const r=await fetch(WORKER_URL+"?action=autocomplete&q=חלב",{signal:AbortSignal.timeout(6000)});
+    const d=await r.json();
+    state.workerOnline=!!(d && (d.suggestions!==undefined || d.local!==undefined));
   }catch{state.workerOnline=false;}
   const wb=$("status-worker");
   const wl=$("worker-status-label");
@@ -1598,7 +1600,7 @@ window.onInputChange=text=>{
   if(localSug&&text.trim()){
     lsEl.innerHTML=`<div class="sug-box">
       <div class="sug-header">🎯 איזה ${localSug.key}? <span class="sug-badge">מקומי</span></div>
-      ${localSug.list.map(s=>`<div class="sug-item" onclick="pickLocalSug('${s.l.replace(/'/g,"\\'")}')">
+      ${localSug.list.map(s=>`<div class="sug-item" onclick="pickLocalSug('${s.l.replace(/'/g,"\\'")}',${s.p})">
         <div><div class="sug-name">${s.l}</div><div class="sug-hint">${s.s}</div></div>
         <div class="sug-price">₪${s.p.toFixed(1)}</div>
       </div>`).join("")}
@@ -1609,12 +1611,18 @@ window.onInputChange=text=>{
   else{$("ai-suggestions").innerHTML="";$("status-ai").style.display="none";}
 };
 
-window.pickLocalSug=async name=>{
+window.pickLocalSug=async(name,price)=>{
   $("main-input").value="";
   $("local-suggestions").innerHTML="";
   $("ai-suggestions").innerHTML="";
   state.lastAIQuery="";
-  await addItemsByName([name]);
+  // Local suggestions have known prices
+  if(price&&price>0){
+    const cat=getCategoryOf(name);
+    await saveItem({id:uid(),name,category:cat,price:+price,checked:false,addedAt:Date.now(),priceSource:"estimate",isWeight:isWeightProduct(name),weightKg:null,weightCount:null});
+  }else{
+    await addItemsByName([name]);
+  }
 };
 
 const triggerAIComplete=text=>{
@@ -1632,21 +1640,30 @@ const triggerAIComplete=text=>{
       if(!sugs.length){$("ai-suggestions").innerHTML="";return;}
       $("ai-suggestions").innerHTML=`<div class="sug-box ai-sug-box">
         <div class="sug-header">✨ AI מציע <span class="sug-badge">${d.source==="cache"?"cache":"live"}</span></div>
-        ${sugs.slice(0,5).map(s=>`<div class="sug-item" onclick="pickAISug('${(s.name||s.n||"").replace(/'/g,"\\'")}')">
+        ${sugs.slice(0,5).map(s=>{
+          const sn=(s.name||s.n||"").replace(/'/g,"\\'");
+          const sp=+(s.price||s.p||0);
+          return`<div class="sug-item" onclick="pickAISug('${sn}',${sp})">
           <div><div class="sug-name">${s.name||s.n||""}</div><div class="sug-hint">${s.hint||""}</div></div>
-          <div class="sug-price">₪${(+(s.price||s.p||0)).toFixed(1)}</div>
-        </div>`).join("")}
+          <div class="sug-price">₪${sp.toFixed(1)}</div>
+        </div>`;}).join("")}
       </div>`;
     }catch{$("status-ai").style.display="none";$("ai-suggestions").innerHTML="";}
   },700);
 };
 
-window.pickAISug=async name=>{
+window.pickAISug=async(name,price)=>{
   $("main-input").value="";
   $("local-suggestions").innerHTML="";
   $("ai-suggestions").innerHTML="";
   state.lastAIQuery="";
-  await addItemsByName([name]);
+  // Use AI-provided price directly (more accurate than local DB)
+  if(price&&price>0){
+    const cat=getCategoryOf(name);
+    await saveItem({id:uid(),name,category:cat,price:+price,checked:false,addedAt:Date.now(),priceSource:"ai",isWeight:isWeightProduct(name),weightKg:null,weightCount:null});
+  }else{
+    await addItemsByName([name]);
+  }
 };
 
 window.addFromInput=async()=>{
@@ -1711,7 +1728,8 @@ window.openPriceModal=(id,ev)=>{
   $("price-modal-val").textContent="₪"+(+it.price).toFixed(2);
   $("price-modal-src").textContent=
     it.priceSource==="real"?"מחיר ממשלתי אמיתי":
-    it.priceSource==="manual"?"עודכן ידנית":"ממוצע שוק";
+    it.priceSource==="manual"?"עודכן ידנית":
+    it.priceSource==="ai"?"מחיר AI ✨":"ממוצע שוק";
   $("price-modal-input").value=(+it.price).toFixed(2);
   $("price-modal").classList.add("open");
   setTimeout(()=>$("price-modal-input").focus(),120);
