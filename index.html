@@ -206,10 +206,15 @@ body{font-family:var(--font);direction:rtl;background:var(--surface);color:var(-
 ═══════════════════════════════════════════════ */
 .screen{
   display:none;flex:1;
-  padding-bottom:calc(var(--nav-h) + var(--safe-bot) + 8px);
   overflow-y:auto;-webkit-overflow-scrolling:touch;
+  /* default: just nav padding */
+  padding-bottom:calc(var(--nav-h) + var(--safe-bot) + 8px);
 }
 .screen.active{display:block;}
+/* list screen: extra room for fixed input bar (~68px) */
+#screen-list{
+  padding-bottom:calc(var(--nav-h) + var(--safe-bot) + 76px);
+}
 
 /* ═══════════════════════════════════════════════
    BOTTOM NAV
@@ -245,11 +250,27 @@ body{font-family:var(--font);direction:rtl;background:var(--surface);color:var(-
    INPUT AREA (WhatsApp style)
 ═══════════════════════════════════════════════ */
 .input-area{
-  padding:10px 12px;
-  background:rgba(255,255,255,.96);
-  border-bottom:1px solid var(--border);
-  position:sticky;top:0;z-index:50;
-  backdrop-filter:blur(8px);
+  position:fixed;
+  bottom:var(--nav-h);
+  left:0;right:0;
+  z-index:80;
+  padding:8px 12px;
+  background:rgba(255,255,255,.97);
+  border-top:1px solid var(--border);
+  box-shadow:0 -2px 12px rgba(13,71,161,.07);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
+}
+/* suggestions pop UPWARD from input */
+.sug-container{position:relative;}
+#ai-suggestions,#local-suggestions{
+  position:absolute;
+  bottom:100%;left:0;right:0;
+  margin-bottom:4px;
+  max-height:52vh;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
 }
 .input-row{display:flex;gap:8px;align-items:center;}
 .input-field-wrap{
@@ -880,28 +901,6 @@ input[type=text],input[type=email],input[type=password],input[type=number]{
 
   <!-- ── SCREEN: LIST ── -->
   <div class="screen active" id="screen-list">
-    <div class="input-area">
-      <div class="input-row">
-        <div class="input-field-wrap">
-          <input id="main-input" type="text" placeholder="חלב, עגבניות, עוף..."
-            oninput="onInputChange(this.value)"
-            onkeydown="if(event.key==='Enter')addFromInput()"/>
-        </div>
-        <button class="action-btn btn-scan" onclick="openScanType()">📷</button>
-        <button class="action-btn btn-voice" id="voice-btn">🎤</button>
-        <button class="action-btn btn-add" id="add-btn" onclick="addFromInput()">➕</button>
-      </div>
-      <div class="voice-hint" id="voice-hint" style="display:none">🔴 מקליט... שחרר כשתסיים</div>
-      <div class="adding-hint" id="adding-hint">מוסיף...</div>
-      <div class="status-row">
-        <div class="status-sync" id="status-sync">✓ מסונכרן</div>
-        <div class="status-worker" id="status-worker">⚪ ממוצע שוק</div>
-        <div class="status-offline" id="status-offline">📵 אופליין</div>
-        <div class="status-ai" id="status-ai">✨ AI חושב...</div>
-      </div>
-      <div class="sug-container" id="ai-suggestions"></div>
-      <div class="sug-container" id="local-suggestions"></div>
-    </div>
     <div class="list-area" id="list-area">
       <div class="list-empty">
         <div class="empty-icon">🛒</div>
@@ -963,6 +962,30 @@ input[type=text],input[type=email],input[type=password],input[type=number]{
           <button class="settings-action-btn danger" onclick="clearHistory()">מחק</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ── WHATSAPP-STYLE INPUT BAR (fixed above bottom nav) ── -->
+  <div class="input-area" id="input-area">
+    <div class="sug-container" id="ai-suggestions"></div>
+    <div class="sug-container" id="local-suggestions"></div>
+    <div class="input-row">
+      <div class="input-field-wrap">
+        <input id="main-input" type="text" placeholder="חלב, עגבניות, עוף..."
+          oninput="onInputChange(this.value)"
+          onkeydown="if(event.key==='Enter')addFromInput()"/>
+      </div>
+      <button class="action-btn btn-scan" onclick="openScanType()">📷</button>
+      <button class="action-btn btn-voice" id="voice-btn">🎤</button>
+      <button class="action-btn btn-add" id="add-btn" onclick="addFromInput()">➕</button>
+    </div>
+    <div class="voice-hint" id="voice-hint" style="display:none">🔴 מקליט... שחרר כשתסיים</div>
+    <div class="adding-hint" id="adding-hint">מוסיף...</div>
+    <div class="status-row">
+      <div class="status-sync" id="status-sync">✓ מסונכרן</div>
+      <div class="status-worker" id="status-worker">⚪ ממוצע שוק</div>
+      <div class="status-offline" id="status-offline">📵 אופליין</div>
+      <div class="status-ai" id="status-ai">✨ AI חושב...</div>
     </div>
   </div>
 
@@ -1591,6 +1614,9 @@ window.showTab=tab=>{
     $("screen-"+t).classList.toggle("active",t===tab);
     $("nav-"+t).classList.toggle("active",t===tab);
   });
+  // Show input bar only on list tab (WhatsApp style)
+  const inputArea=$("input-area");
+  if(inputArea)inputArea.style.display=tab==="list"?"block":"none";
   if(tab==="basket")renderBasketScreen();
   if(tab==="savings")renderSavings();
   if(tab==="settings")renderSettings();
