@@ -1,46 +1,25 @@
 {
-  "name": "סלי - רשימת קניות חכמה",
+  "name": "סלי – רשימת קניות חכמה",
   "short_name": "סלי",
-  "description": "רשימת קניות חכמה עם השוואת מחירים בזמן אמת",
-  "id": "com.sali.shopping",
+  "description": "רשימת קניות חכמה עם השוואת מחירים בין רשתות",
   "start_url": "/Shoping-list/",
   "scope": "/Shoping-list/",
   "display": "standalone",
-  "background_color": "#1565c0",
-  "theme_color": "#1565c0",
-  "orientation": "portrait-primary",
+  "orientation": "portrait",
+  "background_color": "#f4f8ff",
+  "theme_color": "#0d47a1",
   "lang": "he",
   "dir": "rtl",
-  "prefer_related_applications": false,
   "icons": [
-    {
-      "src": "/Shoping-list/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/Shoping-list/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "/Shoping-list/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/Shoping-list/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
   "categories": ["shopping", "utilities"],
-  "screenshots": [
-    {
-      "src": "/Shoping-list/screenshot1.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "רשימת קניות חכמה"
-    }
-  ],
   "shortcuts": [
     {
-      "name": "הוסף מוצר",
-      "short_name": "הוסף",
-      "url": "/Shoping-list/?action=add",
+      "name": "פתח רשימה",
+      "short_name": "רשימה",
+      "url": "/Shoping-list/",
       "icons": [{ "src": "/Shoping-list/icon-192.png", "sizes": "192x192" }]
     }
   ]
