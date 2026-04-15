@@ -1438,11 +1438,12 @@ onAuthStateChanged(auth,user=>{
 // WORKER CHECK
 // ════════════════════════════════════════════════════════════
 const checkWorker=async()=>{
+  // Silent background check — just updates UI label
+  // triggerAIComplete always fires regardless of this result
   try{
-    // Use autocomplete with a test query - worker returns JSON if alive
     const r=await fetch(WORKER_URL+"?action=autocomplete&q=חלב",{signal:AbortSignal.timeout(6000)});
     const d=await r.json();
-    state.workerOnline=!!(d && (d.suggestions!==undefined || d.local!==undefined));
+    state.workerOnline=!!(d&&(d.suggestions!==undefined||d.local!==undefined));
   }catch{state.workerOnline=false;}
   const wb=$("status-worker");
   const wl=$("worker-status-label");
@@ -1663,31 +1664,46 @@ window.pickLocalSug=async(name,price)=>{
 };
 
 const triggerAIComplete=text=>{
-  if(!state.workerOnline){$("ai-suggestions").innerHTML="";return;}
+  // Always fire — no workerOnline gate (flag may not be set on first keystroke)
   if(text===state.lastAIQuery)return;
   clearTimeout(state.aiTimer);
   $("status-ai").style.display="block";
   state.aiTimer=setTimeout(async()=>{
     state.lastAIQuery=text;
     try{
-      const r=await fetch(`${WORKER_URL}?action=autocomplete&q=${encodeURIComponent(text.trim())}`);
+      const r=await fetch(`${WORKER_URL}?action=autocomplete&q=${encodeURIComponent(text.trim())}`,
+        {signal:AbortSignal.timeout(8000)});
       const d=await r.json();
       $("status-ai").style.display="none";
+      // Mark worker online on first success
+      if(!state.workerOnline){
+        state.workerOnline=true;
+        const wb=$("status-worker");
+        if(wb){wb.className="status-worker connected";wb.textContent="🔵 AI מחובר";}
+      }
+      // AI suggestions (Gemini/cache) or local fallback
       const sugs=d.suggestions||[];
-      if(!sugs.length){$("ai-suggestions").innerHTML="";return;}
+      const locals=d.local||[];
+      const shown=sugs.length?sugs:locals;
+      if(!shown.length){$("ai-suggestions").innerHTML="";return;}
+      const srcLabel=d.source==="cache"?"💾 cache":d.source==="gemini"?"✨ Gemini":"📦 מקומי";
       $("ai-suggestions").innerHTML=`<div class="sug-box ai-sug-box">
-        <div class="sug-header">✨ AI מציע <span class="sug-badge">${d.source==="cache"?"cache":"live"}</span></div>
-        ${sugs.slice(0,5).map(s=>{
-          const sn=(s.name||s.n||"").replace(/'/g,"\\'");
+        <div class="sug-header">✨ הצעות AI <span class="sug-badge">${srcLabel}</span></div>
+        ${shown.slice(0,5).map(s=>{
+          const nm=(s.name||s.n||"");
+          const sn=nm.replace(/'/g,"\'");
           const sp=+(s.price||s.p||0);
           return`<div class="sug-item" onclick="pickAISug('${sn}',${sp})">
-          <div><div class="sug-name">${s.name||s.n||""}</div><div class="sug-hint">${s.hint||""}</div></div>
-          <div class="sug-price">₪${sp.toFixed(1)}</div>
-        </div>`;}).join("")}
+            <div><div class="sug-name">${nm}</div><div class="sug-hint">${s.hint||""}</div></div>
+            <div class="sug-price">${sp>0?"₪"+sp.toFixed(1):""}</div>
+          </div>`;}).join("")}
       </div>`;
-    }catch{$("status-ai").style.display="none";$("ai-suggestions").innerHTML="";}
-  },700);
-};
+    }catch{
+      $("status-ai").style.display="none";
+      $("ai-suggestions").innerHTML="";
+    }
+  },600);
+}
 
 window.pickAISug=async(name,price)=>{
   $("main-input").value="";
@@ -1926,13 +1942,12 @@ window.lookupManualBarcode=async()=>{
 const lookupBarcode=async code=>{
   showToast("מזהה מוצר... 🔍");
   let name=null,price=null,category=null,priceSource="estimate";
-  if(state.workerOnline){
-    try{
-      const r=await fetch(`${WORKER_URL}?action=barcode&barcode=${code}`);
-      const d=await r.json();
-      if(d.name){name=d.name;price=d.cheapest?.price||null;category=d.category&&d.category!=="🛒 אחר"?d.category:null;if(d.cheapest)priceSource="real";}
-    }catch{}
-  }
+  try{
+    const r=await fetch(`${WORKER_URL}?action=barcode&barcode=${code}`,
+      {signal:AbortSignal.timeout(10000)});
+    const d=await r.json();
+    if(d.name){name=d.name;price=d.cheapest?.price||null;category=d.category&&d.category!=="🛒 אחר"?d.category:null;if(d.cheapest)priceSource="real";}
+  }catch{}
   if(!name){
     try{
       const r=await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
