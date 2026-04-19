@@ -1,2660 +1,444 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"/>
-<meta name="mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="סלי"/>
-<meta name="theme-color" content="#0d47a1"/>
-<link rel="manifest" href="/Shoping-list/manifest.json"/>
-<link rel="apple-touch-icon" href="/Shoping-list/icon-192.png"/>
-<title>סלי – רשימת קניות חכמה</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-<style>
-/* ═══════════════════════════════════════════════
-   RESET & TOKENS
-═══════════════════════════════════════════════ */
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-:root{
-  --blue-deep:#0d47a1;
-  --blue:#1565c0;
-  --blue-mid:#1976d2;
-  --blue-light:#1e88e5;
-  --blue-pale:#e3f2fd;
-  --blue-paler:#f0f7ff;
-  --teal:#00acc1;
-  --green:#2e7d32;
-  --green-light:#43a047;
-  --orange:#e65100;
-  --orange-light:#f57c00;
-  --red:#c62828;
-  --red-light:#e53935;
-  --gold:#f9a825;
-  --ink:#0d1b2a;
-  --ink-2:#2c3e50;
-  --ink-3:#546e7a;
-  --ink-4:#90a4ae;
-  --white:#ffffff;
-  --surface:#f4f8ff;
-  --card:#ffffff;
-  --border:#dce8f8;
-  --nav-h:68px;
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bot:env(safe-area-inset-bottom,0px);
-  --r-card:20px;
-  --r-btn:14px;
-  --r-chip:10px;
-  --shadow-sm:0 2px 8px rgba(13,71,161,.08);
-  --shadow-md:0 4px 20px rgba(13,71,161,.12);
-  --shadow-lg:0 8px 40px rgba(13,71,161,.18);
-  --font:'Heebo',sans-serif;
-  --trans:.18s cubic-bezier(.4,0,.2,1);
-}
-html,body{height:100%;overscroll-behavior:none;}
-body{font-family:var(--font);direction:rtl;background:var(--surface);color:var(--ink);-webkit-text-size-adjust:100%;overflow-x:hidden;}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="description" content="רשימת קניות חכמה - השוואת מחירים בין רשתות השיווק בישראל" />
+  <meta name="theme-color" content="#7BC4E2" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="רשימת קניות" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="format-detection" content="telephone=no" />
 
-/* ═══════════════════════════════════════════════
-   BACKGROUND TEXTURE
-═══════════════════════════════════════════════ */
-.bg-texture{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
-.bg-emoji{position:absolute;font-size:var(--sz,20px);opacity:var(--op,.04);transform:rotate(var(--rot,0deg));user-select:none;}
+  <title>רשימת קניות חכמה</title>
 
-/* ═══════════════════════════════════════════════
-   PAGES
-═══════════════════════════════════════════════ */
-.page{position:relative;z-index:1;display:none;}
-.page.active{display:flex;}
-#page-login{min-height:100vh;align-items:center;justify-content:center;padding:20px;}
-#page-guide{min-height:100vh;align-items:center;justify-content:center;padding:20px;}
-#page-main{flex-direction:column;min-height:100vh;}
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
 
-/* ═══════════════════════════════════════════════
-   LOGIN CARD
-═══════════════════════════════════════════════ */
-.login-card{
-  background:rgba(255,255,255,.97);
-  border-radius:28px;
-  padding:40px 28px 32px;
-  max-width:380px;width:100%;
-  box-shadow:var(--shadow-lg);
-  border:1px solid rgba(255,255,255,.8);
-}
-.login-brand{text-align:center;margin-bottom:32px;}
-.login-icon{
-  width:88px;height:88px;
-  background:linear-gradient(135deg,var(--blue-deep),var(--blue-light));
-  border-radius:26px;
-  margin:0 auto 14px;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 8px 28px rgba(21,101,192,.38);
-  position:relative;overflow:hidden;
-}
-.login-icon::after{
-  content:"";position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,.18),transparent);
-}
-.login-brand h1{font-size:32px;font-weight:900;color:var(--blue-deep);letter-spacing:-.5px;}
-.login-brand p{font-size:13px;color:var(--ink-4);margin-top:3px;font-weight:500;}
-.login-divider{font-size:12px;font-weight:700;color:var(--ink-4);text-align:center;margin-bottom:14px;letter-spacing:.5px;}
-.field-wrap{position:relative;margin-bottom:12px;}
-.field-wrap input{
-  width:100%;padding:14px 16px;
-  border-radius:var(--r-btn);
-  border:2px solid var(--border);
-  font-size:15px;font-family:var(--font);
-  background:#fafcff;outline:none;
-  transition:border-color var(--trans),box-shadow var(--trans);
-  direction:ltr;color:var(--ink);
-}
-.field-wrap input:focus{border-color:var(--blue-light);box-shadow:0 0 0 3px rgba(30,136,229,.12);}
-.field-wrap input::placeholder{color:var(--ink-4);direction:rtl;}
-.eye-btn{
-  position:absolute;left:14px;top:50%;transform:translateY(-50%);
-  background:none;border:none;cursor:pointer;color:var(--ink-4);
-  padding:4px;display:flex;align-items:center;justify-content:center;
-  transition:color var(--trans);
-}
-.eye-btn:hover{color:var(--blue);}
-.login-err{
-  min-height:20px;font-size:13px;font-weight:600;
-  color:var(--red-light);text-align:center;margin-bottom:8px;
-}
-.login-btn{
-  width:100%;padding:15px;border-radius:var(--r-btn);
-  border:none;
-  background:linear-gradient(135deg,var(--blue-deep),var(--blue-light));
-  color:white;font-size:16px;font-weight:800;
-  font-family:var(--font);cursor:pointer;
-  box-shadow:0 4px 18px rgba(21,101,192,.35);
-  transition:transform var(--trans),box-shadow var(--trans);
-  position:relative;overflow:hidden;
-}
-.login-btn::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.12),transparent);}
-.login-btn:active{transform:scale(.98);box-shadow:0 2px 10px rgba(21,101,192,.3);}
-.login-note{font-size:12px;color:var(--ink-4);text-align:center;margin-top:16px;line-height:1.6;}
-.login-note b{color:var(--blue);}
+  <!-- Preload קריטי -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://runprice.matanelb100.workers.dev" />
 
-/* ═══════════════════════════════════════════════
-   GUIDE
-═══════════════════════════════════════════════ */
-.guide-card{
-  background:rgba(255,255,255,.97);border-radius:28px;
-  padding:32px 24px;max-width:360px;width:100%;
-  box-shadow:var(--shadow-lg);text-align:center;
-}
-.guide-emoji{font-size:56px;margin-bottom:10px;display:block;}
-.guide-title{font-size:20px;font-weight:900;color:var(--blue-deep);margin-bottom:10px;}
-.guide-body{font-size:14px;color:var(--ink-3);line-height:1.7;text-align:right;margin-bottom:22px;}
-.guide-body b{color:var(--blue);}
-.guide-dots{display:flex;gap:7px;justify-content:center;margin-bottom:20px;}
-.guide-dot{width:7px;height:7px;border-radius:50%;background:var(--blue-pale);transition:all var(--trans);}
-.guide-dot.on{background:var(--blue);width:20px;border-radius:4px;}
-.guide-btns{display:flex;gap:10px;}
-.guide-back{
-  flex:1;padding:12px;border-radius:var(--r-btn);
-  border:2px solid var(--blue);background:white;
-  color:var(--blue);font-size:14px;font-weight:700;
-  cursor:pointer;font-family:var(--font);
-}
-.guide-next{
-  flex:2;padding:12px;border-radius:var(--r-btn);
-  border:none;background:linear-gradient(135deg,var(--blue-deep),var(--blue-light));
-  color:white;font-size:14px;font-weight:800;
-  cursor:pointer;font-family:var(--font);
-  box-shadow:0 3px 14px rgba(21,101,192,.3);
-}
+  <!-- פונטים: Rubik - מעוצב היטב לעברית, Assistant לגיבוי -->
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&family=Heebo:wght@400;600;700&display=swap" rel="stylesheet" />
 
-/* ═══════════════════════════════════════════════
-   HEADER
-═══════════════════════════════════════════════ */
-.header{
-  background:linear-gradient(135deg,var(--blue-deep) 0%,var(--blue-mid) 100%);
-  padding:0 16px;
-  padding-top:max(14px,var(--safe-top));
-  padding-bottom:12px;
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:100;
-  box-shadow:0 2px 16px rgba(13,71,161,.25);
-}
-.header-brand{display:flex;align-items:center;gap:11px;}
-.header-logo{
-  width:36px;height:36px;
-  background:rgba(255,255,255,.15);
-  border-radius:11px;border:1px solid rgba(255,255,255,.2);
-  display:flex;align-items:center;justify-content:center;
-  backdrop-filter:blur(4px);
-}
-.header-title{color:white;font-weight:900;font-size:16px;line-height:1.1;}
-.header-sub{color:rgba(255,255,255,.6);font-size:10px;font-weight:500;margin-top:1px;}
-.header-actions{display:flex;gap:6px;}
-.hdr-btn{
-  background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);
-  border-radius:10px;padding:8px 10px;color:white;cursor:pointer;
-  font-size:12px;font-weight:700;font-family:var(--font);
-  display:flex;align-items:center;gap:5px;
-  transition:background var(--trans);
-}
-.hdr-btn:active{background:rgba(255,255,255,.25);}
-.hdr-btn-danger{background:rgba(229,57,53,.25);border-color:rgba(229,57,53,.4);}
-.hdr-btn-danger:active{background:rgba(229,57,53,.45);}
+  <!-- ============================================================
+       CSS קריטי inline - רק מה שצריך כדי להציג את מסך הטעינה
+       שאר ה-CSS נטען אסינכרוני כדי לא לחסום את הרנדר הראשוני
+       ============================================================ -->
+  <style>
+    :root {
+      /* פלטת צבעים עיקרית - תכלת רך על בז' */
+      --color-primary: #7BC4E2;
+      --color-primary-dark: #4A9BC7;
+      --color-primary-light: #B8DFED;
+      --color-primary-ultra-light: #E8F4FA;
 
-/* ═══════════════════════════════════════════════
-   SCREENS
-═══════════════════════════════════════════════ */
-.screen{
-  display:none;flex:1;
-  overflow-y:auto;-webkit-overflow-scrolling:touch;
-  /* default: just nav padding */
-  padding-bottom:calc(var(--nav-h) + var(--safe-bot) + 8px);
-}
-.screen.active{display:block;}
-/* list screen: extra room for fixed input bar (~68px) */
-#screen-list{
-  padding-bottom:calc(var(--nav-h) + var(--safe-bot) + 76px);
-}
+      --color-accent: #F2A649;      /* כתום חם להדגשות */
+      --color-success: #7DB87D;
+      --color-danger: #E57373;
+      --color-warning: #F5C678;
+      --color-premium: #D4AF37;     /* זהב לפרימיום */
 
-/* ═══════════════════════════════════════════════
-   BOTTOM NAV
-═══════════════════════════════════════════════ */
-.bottom-nav{
-  position:fixed;bottom:0;left:0;right:0;z-index:100;
-  background:var(--white);
-  border-top:1px solid var(--border);
-  display:flex;
-  padding-bottom:var(--safe-bot);
-  box-shadow:0 -3px 16px rgba(13,71,161,.07);
-}
-.nav-tab{
-  flex:1;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:10px 4px 8px;
-  border:none;background:transparent;cursor:pointer;
-  font-family:var(--font);position:relative;
-  transition:all var(--trans);
-  -webkit-tap-highlight-color:transparent;
-}
-.nav-tab-icon{font-size:24px;margin-bottom:3px;transition:transform var(--trans);}
-.nav-tab-label{font-size:11px;font-weight:700;color:var(--ink-4);transition:color var(--trans);}
-.nav-tab.active .nav-tab-label{color:var(--blue);}
-.nav-tab.active .nav-tab-icon{transform:scale(1.12);}
-.nav-tab.active::before{
-  content:"";position:absolute;top:0;
-  width:32px;height:3px;
-  background:var(--blue);border-radius:0 0 3px 3px;
-}
+      --color-bg: #FAF6EF;          /* בז' בסיסי */
+      --color-bg-alt: #F5EFE4;
+      --color-surface: #FFFFFF;
+      --color-surface-2: #FEFCF7;
 
-/* ═══════════════════════════════════════════════
-   INPUT AREA (WhatsApp style)
-═══════════════════════════════════════════════ */
-.input-area{
-  position:fixed;
-  bottom:var(--nav-h);
-  left:0;right:0;
-  z-index:80;
-  padding:8px 12px;
-  background:rgba(255,255,255,.97);
-  border-top:1px solid var(--border);
-  box-shadow:0 -2px 12px rgba(13,71,161,.07);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
-  padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
-}
-/* suggestions pop UPWARD from input */
-.sug-container{position:relative;}
-#ai-suggestions,#local-suggestions{
-  position:absolute;
-  bottom:100%;left:0;right:0;
-  margin-bottom:4px;
-  max-height:52vh;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-}
-.input-row{display:flex;gap:8px;align-items:center;}
-.input-field-wrap{
-  flex:1;display:flex;align-items:center;
-  background:var(--blue-paler);
-  border:2px solid var(--blue-pale);
-  border-radius:18px;overflow:hidden;
-  transition:border-color var(--trans);
-}
-.input-field-wrap:focus-within{border-color:var(--blue-light);}
-#main-input{
-  flex:1;border:none;outline:none;background:transparent;
-  padding:12px 14px;font-size:15px;direction:rtl;
-  font-family:var(--font);color:var(--ink);
-}
-#main-input::placeholder{color:var(--ink-4);}
-.action-btn{
-  width:44px;height:44px;border-radius:13px;border:none;
-  color:white;font-size:18px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;transition:all var(--trans);
-  box-shadow:0 2px 8px rgba(0,0,0,.15);
-}
-.action-btn:active{transform:scale(.93);}
-.btn-scan{background:linear-gradient(135deg,#f59e0b,#d97706);}
-.btn-voice{background:linear-gradient(135deg,var(--blue),var(--blue-light));}
-.btn-voice.rec{background:linear-gradient(135deg,var(--red),var(--red-light));box-shadow:0 0 0 6px rgba(229,57,53,.2);transform:scale(1.08);}
-.btn-voice.proc{background:linear-gradient(135deg,#f59e0b,#d97706);}
-.btn-add{background:linear-gradient(135deg,var(--blue-mid),var(--blue-light));}
-.btn-add:disabled{background:#ccc;box-shadow:none;}
+      --color-text: #2C3E50;
+      --color-text-soft: #5A6C7D;
+      --color-text-muted: #8A9AAA;
+      --color-border: #E8DFD0;
 
-.voice-hint{text-align:center;font-size:13px;font-weight:700;color:var(--red-light);margin-top:7px;animation:pulse .8s ease-in-out infinite;}
-.status-row{display:flex;justify-content:center;gap:12px;margin-top:5px;flex-wrap:wrap;}
-.status-sync{font-size:11px;color:var(--green-light);display:none;font-weight:600;}
-.status-worker{font-size:11px;font-weight:600;}
-.status-worker.connected{color:var(--blue);}
-.status-worker.offline-mode{color:var(--ink-4);}
-.status-offline{font-size:11px;color:#e65100;display:none;font-weight:600;}
-.status-ai{font-size:11px;color:#7c3aed;animation:pulse .8s ease-in-out infinite;display:none;font-weight:600;}
-.adding-hint{text-align:center;font-size:11px;color:var(--ink-4);margin-top:5px;display:none;}
+      /* רווחים */
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
 
-/* ═══════════════════════════════════════════════
-   SUGGESTIONS
-═══════════════════════════════════════════════ */
-.sug-container{margin-top:8px;}
-.sug-box{
-  background:var(--white);border-radius:16px;
-  box-shadow:var(--shadow-md);overflow:hidden;
-  border:1px solid var(--border);
-}
-.sug-header{
-  padding:7px 14px;font-size:11px;font-weight:800;
-  color:var(--blue);display:flex;align-items:center;gap:6px;
-  background:linear-gradient(90deg,var(--blue-paler),var(--blue-pale));
-  border-bottom:1px solid var(--blue-pale);
-}
-.sug-badge{font-size:9px;background:var(--blue);color:white;border-radius:5px;padding:1px 6px;margin-right:auto;}
-.sug-item{
-  display:flex;align-items:center;padding:11px 14px;
-  border-bottom:1px solid #f5f8ff;cursor:pointer;gap:10px;
-  transition:background var(--trans);
-}
-.sug-item:last-child{border-bottom:none;}
-.sug-item:active{background:var(--blue-paler);}
-.sug-name{font-size:14px;font-weight:700;color:var(--ink);flex:1;}
-.sug-hint{font-size:11px;color:var(--ink-4);margin-top:1px;}
-.sug-price{font-size:15px;font-weight:900;color:var(--blue);}
-.ai-sug-box{margin-top:8px;}
+      /* פינות מעוגלות */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
 
-/* ═══════════════════════════════════════════════
-   LIST SCREEN
-═══════════════════════════════════════════════ */
-.list-area{padding:12px 12px 8px;}
-.list-empty{text-align:center;padding:60px 20px;}
-.empty-icon{font-size:56px;margin-bottom:14px;}
-.empty-title{font-size:17px;font-weight:800;color:var(--ink-4);}
-.empty-sub{font-size:13px;color:var(--ink-4);margin-top:6px;font-weight:500;}
+      /* צללים */
+      --shadow-sm: 0 1px 3px rgba(44, 62, 80, 0.08);
+      --shadow-md: 0 4px 12px rgba(44, 62, 80, 0.1);
+      --shadow-lg: 0 8px 24px rgba(44, 62, 80, 0.12);
+      --shadow-primary: 0 4px 14px rgba(123, 196, 226, 0.35);
 
-.cat-block{margin-bottom:14px;}
-.cat-header{
-  font-size:12px;font-weight:800;color:var(--blue);
-  padding:4px 4px 6px;display:flex;align-items:center;gap:8px;
-  letter-spacing:.3px;
-}
-.cat-count{
-  background:var(--blue-pale);color:var(--blue);
-  border-radius:6px;padding:1px 8px;font-size:11px;font-weight:800;
-}
-.cat-items{
-  background:var(--card);border-radius:var(--r-card);
-  overflow:hidden;box-shadow:var(--shadow-sm);
-  border:1px solid rgba(220,232,248,.5);
-}
+      /* אנימציות */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
-/* Item row */
-.item-wrap{position:relative;overflow:hidden;}
-.item-wrap:not(:last-child){border-bottom:1px solid #f0f5ff;}
-.item-delete-bg{
-  position:absolute;right:0;top:0;bottom:0;width:90px;
-  background:linear-gradient(90deg,transparent,var(--red-light));
-  display:flex;align-items:center;justify-content:flex-end;padding-right:20px;
-  font-size:20px;
-}
-.item-row{
-  position:relative;z-index:1;
-  display:flex;align-items:center;gap:10px;
-  padding:12px 13px;background:var(--card);cursor:pointer;
-  user-select:none;-webkit-user-select:none;
-  transition:transform .25s cubic-bezier(.4,0,.2,1),opacity .25s;
-}
-.item-row.checked{background:#fafcff;}
-.item-row.removing{opacity:0!important;transform:translateX(100px)!important;}
-.item-checkbox{
-  width:24px;height:24px;border-radius:8px;
-  border:2.5px solid var(--border);background:white;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;transition:all var(--trans);
-}
-.item-checkbox.done{border-color:var(--blue-light);background:var(--blue-light);}
-.item-check-icon{color:white;font-size:13px;font-weight:900;}
-.item-info{flex:1;min-width:0;}
-.item-name{
-  font-size:14px;font-weight:700;color:var(--ink);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  transition:all var(--trans);
-}
-.item-name.done{color:var(--ink-4);text-decoration:line-through;}
-.item-sub{font-size:11px;color:var(--blue);font-weight:600;margin-top:2px;}
-.item-actions{display:flex;gap:5px;flex-shrink:0;}
-.item-btn{
-  width:33px;height:33px;border-radius:9px;
-  border:2px solid var(--blue-pale);background:var(--blue-paler);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:13px;font-weight:900;color:var(--blue);
-  transition:all var(--trans);
-}
-.item-btn:active{background:var(--blue-pale);}
-.item-btn.done{color:var(--ink-4);border-color:#f0f0f0;background:white;}
-.qty-btn{
-  min-width:33px;height:33px;border-radius:9px;padding:0 7px;
-  border:2px solid var(--blue-pale);background:var(--blue-paler);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:12px;font-weight:900;color:var(--blue);
-  transition:all var(--trans);white-space:nowrap;
-}
-.qty-btn:active{background:var(--blue-pale);}
-.qty-btn.done{color:var(--ink-4);border-color:#f0f0f0;background:white;}
+      /* בטיחות - safe area לאייפון */
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
 
-/* ═══════════════════════════════════════════════
-   BASKET SCREEN
-═══════════════════════════════════════════════ */
-.basket-wrap{padding:14px 13px;}
-.basket-empty{text-align:center;padding:50px 20px;color:var(--ink-4);font-size:14px;font-weight:600;}
-.basket-transparency{
-  background:linear-gradient(135deg,#fff8e1,#fffde7);
-  border-radius:14px;padding:12px 14px;margin-bottom:12px;
-  font-size:12px;color:#5d4037;line-height:1.6;
-  border:1px solid #ffe082;
-}
-.travel-toggle-btn{
-  width:100%;padding:13px 16px;border-radius:var(--r-btn);
-  border:2px solid var(--blue-pale);background:var(--blue-paler);
-  color:var(--blue);font-size:14px;font-weight:700;cursor:pointer;
-  font-family:var(--font);display:flex;align-items:center;gap:10px;
-  margin-bottom:12px;transition:all var(--trans);
-}
-.travel-toggle-btn.active{background:var(--blue-pale);border-color:var(--blue);}
-.travel-toggle-btn-text{flex:1;text-align:right;}
-.travel-badge{
-  font-size:11px;background:var(--blue);color:white;
-  border-radius:7px;padding:2px 9px;display:none;
-}
-.travel-panel{
-  background:var(--blue-paler);border-radius:14px;
-  padding:14px;margin-bottom:12px;border:1px solid var(--blue-pale);
-}
-.travel-modes{display:flex;gap:8px;margin-bottom:10px;}
-.travel-mode{
-  flex:1;padding:11px 4px;border-radius:12px;
-  border:2px solid var(--blue-pale);background:white;
-  font-size:11px;font-weight:700;cursor:pointer;
-  text-align:center;font-family:var(--font);color:var(--ink-3);
-  transition:all var(--trans);line-height:1.4;
-}
-.travel-mode.active{border-color:var(--blue);background:var(--blue-pale);color:var(--blue);}
-.travel-custom-row{display:flex;align-items:center;gap:8px;margin-top:8px;}
-.travel-custom-row input{
-  flex:1;padding:9px 12px;border:2px solid #90caf9;
-  border-radius:10px;font-size:15px;font-weight:700;
-  color:var(--blue);direction:ltr;font-family:var(--font);
-  outline:none;text-align:center;background:white;
-}
-.travel-per-chain{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
-.tpc-item{
-  background:white;border-radius:10px;padding:7px 10px;
-  border:1px solid var(--blue-pale);text-align:center;flex:1;min-width:72px;
-}
-.tpc-name{font-size:9px;color:var(--ink-3);font-weight:700;margin-bottom:2px;}
-.tpc-val{font-size:12px;font-weight:900;color:var(--blue);}
+      /* גבהים */
+      --header-height: 60px;
+      --input-bar-height: 72px;
+    }
 
-.chains-grid{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
-.chain-card{
-  flex:1;min-width:90px;border-radius:16px;
-  padding:13px 10px;text-align:center;position:relative;
-  transition:all var(--trans);
-}
-.chain-card.best{
-  background:linear-gradient(135deg,var(--blue-deep),var(--blue-light));
-  box-shadow:0 6px 20px rgba(21,101,192,.35);
-}
-.chain-card.alt{background:white;border:1.5px solid var(--border);}
-.chain-card.local{background:linear-gradient(135deg,var(--orange),var(--orange-light));box-shadow:0 4px 16px rgba(230,81,0,.3);}
-.chain-best-label{font-size:9px;color:rgba(255,255,255,.8);margin-bottom:3px;font-weight:700;}
-.chain-name{font-size:12px;font-weight:700;margin-bottom:4px;}
-.chain-card.best .chain-name,.chain-card.best .chain-total,.chain-card.local .chain-name,.chain-card.local .chain-total{color:white;}
-.chain-card.alt .chain-name{color:var(--ink-3);}
-.chain-total{font-size:20px;font-weight:900;}
-.chain-card.alt .chain-total{color:var(--ink);}
-.chain-diff{font-size:10px;color:var(--red-light);font-weight:700;margin-top:1px;}
-.chain-branch{font-size:9px;margin-top:3px;font-weight:600;}
-.chain-card.best .chain-branch,.chain-card.local .chain-branch{color:rgba(255,255,255,.65);}
-.chain-card.alt .chain-branch{color:var(--ink-4);}
-.chain-missing{font-size:9px;margin-top:2px;font-weight:600;}
-.chain-card.best .chain-missing,.chain-card.local .chain-missing{color:rgba(255,255,255,.7);}
-.chain-card.alt .chain-missing{color:#f59e0b;}
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+    }
 
-.save-basket-btn{
-  width:100%;padding:14px;border-radius:var(--r-btn);border:none;
-  background:linear-gradient(135deg,var(--green),var(--green-light));
-  color:white;font-size:15px;font-weight:800;
-  cursor:pointer;font-family:var(--font);margin-top:6px;
-  box-shadow:0 4px 16px rgba(46,125,50,.3);
-  transition:all var(--trans);
-}
-.save-basket-btn:active{transform:scale(.98);}
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      font-family: 'Rubik', 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      color: var(--color-text);
+      background: var(--color-bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
 
-/* ═══════════════════════════════════════════════
-   SAVINGS SCREEN
-═══════════════════════════════════════════════ */
-.savings-wrap{padding:14px 13px;}
-.savings-empty{text-align:center;padding:50px 20px;color:var(--ink-4);line-height:1.8;font-size:14px;}
-.savings-hero{
-  background:linear-gradient(135deg,#1b5e20,#43a047);
-  border-radius:22px;padding:22px;margin-bottom:14px;text-align:center;
-  box-shadow:0 6px 24px rgba(46,125,50,.3);
-}
-.savings-hero-label{font-size:12px;color:rgba(255,255,255,.7);margin-bottom:4px;font-weight:600;}
-.savings-hero-val{font-size:40px;font-weight:900;color:white;}
-.savings-hero-sub{font-size:12px;color:rgba(255,255,255,.65);margin-top:4px;font-weight:600;}
-.savings-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.stat-card{background:white;border-radius:16px;padding:15px;text-align:center;box-shadow:var(--shadow-sm);}
-.stat-val{font-size:24px;font-weight:900;color:var(--blue);}
-.stat-val.green{color:var(--green-light);}
-.stat-val.spent{color:var(--ink-3);}
-.stat-label{font-size:11px;color:var(--ink-4);margin-top:3px;font-weight:600;}
-.chart-card{background:white;border-radius:16px;padding:16px;box-shadow:var(--shadow-sm);margin-bottom:14px;}
-.chart-title{font-size:14px;font-weight:800;color:var(--ink-2);margin-bottom:14px;}
-.bar-chart{display:flex;align-items:flex-end;gap:6px;height:90px;justify-content:space-around;}
-.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
-.bar{width:100%;background:linear-gradient(to top,var(--blue),var(--blue-light));border-radius:5px 5px 0 0;min-height:4px;transition:height .6s cubic-bezier(.4,0,.2,1);}
-.bar.empty{background:var(--blue-pale);}
-.bar-label{font-size:9px;color:var(--ink-4);font-weight:700;}
-.bar-val{font-size:10px;color:var(--blue);font-weight:800;}
-.history-card{background:white;border-radius:16px;padding:14px;box-shadow:var(--shadow-sm);}
-.history-title{font-size:14px;font-weight:800;color:var(--ink-2);margin-bottom:10px;}
-.history-item{
-  display:flex;align-items:center;gap:10px;
-  padding:11px 0;border-bottom:1px solid #f0f5ff;
-}
-.history-item:last-child{border-bottom:none;}
-.history-date{font-size:11px;color:var(--ink-4);min-width:50px;font-weight:600;}
-.history-chain{flex:1;font-size:13px;font-weight:700;color:var(--ink-2);}
-.history-items-count{font-size:11px;color:var(--ink-4);font-weight:500;}
-.history-saved{font-size:14px;font-weight:900;color:var(--green-light);background:#e8f5e9;border-radius:8px;padding:2px 8px;}
+    #app-root {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-/* ═══════════════════════════════════════════════
-   SETTINGS SCREEN
-═══════════════════════════════════════════════ */
-.settings-wrap{padding:14px 13px;}
-.settings-section{
-  background:white;border-radius:var(--r-card);
-  padding:16px;margin-bottom:14px;
-  box-shadow:var(--shadow-sm);border:1px solid rgba(220,232,248,.5);
-}
-.settings-title{font-size:13px;font-weight:800;color:var(--blue);margin-bottom:14px;letter-spacing:.3px;}
-.chains-grid-settings{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
-.chain-toggle-btn{
-  padding:10px 8px;border-radius:12px;border:2px solid var(--border);
-  background:white;font-weight:700;font-size:12px;cursor:pointer;
-  color:var(--ink-3);display:flex;align-items:center;gap:7px;
-  font-family:var(--font);transition:all var(--trans);
-}
-.chain-toggle-btn.active{border-color:var(--blue);background:var(--blue-paler);color:var(--blue);}
-.chain-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background var(--trans);}
-.chain-toggle-btn.active .chain-dot{background:var(--blue);}
-.chain-toggle-btn.local-type{border-color:#ffe0b2;}
-.chain-toggle-btn.local-type.active{border-color:var(--orange);background:#fff8e1;color:var(--orange);}
-.chain-toggle-btn.local-type.active .chain-dot{background:var(--orange);}
-.settings-divider{font-size:11px;color:var(--ink-4);font-weight:700;margin:10px 0 8px;letter-spacing:.3px;}
-.add-store-btn{
-  width:100%;padding:11px;border-radius:12px;
-  border:2px dashed var(--orange-light);background:white;
-  color:var(--orange-light);font-size:13px;font-weight:700;
-  cursor:pointer;font-family:var(--font);margin-bottom:8px;
-  transition:all var(--trans);
-}
-.add-store-btn:active{background:#fff8e1;}
-.settings-row{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 0;border-bottom:1px solid #f0f5ff;
-}
-.settings-row:last-child{border-bottom:none;}
-.settings-row-label{font-size:13px;font-weight:600;color:var(--ink-2);}
-.settings-row-val{font-size:12px;color:var(--ink-4);}
-.settings-action-btn{
-  padding:8px 15px;border-radius:10px;border:none;
-  background:var(--blue);color:white;
-  font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);
-  transition:all var(--trans);
-}
-.settings-action-btn.danger{background:var(--red-light);}
-.settings-action-btn:active{opacity:.85;}
+    /* ===== רקע טקסטורה של מוצרי מזון ===== */
+    .app-background {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: var(--color-bg);
+      overflow: hidden;
+      pointer-events: none;
+    }
 
-/* ═══════════════════════════════════════════════
-   MODALS – base
-═══════════════════════════════════════════════ */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(13,27,42,.5);
-  z-index:300;display:none;align-items:flex-end;
-  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
-}
-.modal-overlay.open{display:flex;}
-.modal-sheet{
-  background:white;width:100%;
-  border-radius:24px 24px 0 0;
-  padding:22px 18px max(30px,var(--safe-bot));
-  animation:slideUp .28s cubic-bezier(.4,0,.2,1);
-}
-.modal-center-overlay{
-  position:fixed;inset:0;background:rgba(13,27,42,.5);
-  z-index:300;display:none;
-  align-items:center;justify-content:center;padding:20px;
-  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
-}
-.modal-center-overlay.open{display:flex;}
-.modal-center-card{
-  background:white;border-radius:24px;
-  padding:24px;max-width:360px;width:100%;
-  animation:popIn .22s cubic-bezier(.4,0,.2,1);
-}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-@keyframes popIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
-.modal-title{font-size:17px;font-weight:900;color:var(--blue);margin-bottom:4px;}
-.modal-sub{font-size:13px;color:var(--ink-4);margin-bottom:16px;}
-.modal-save-btn{
-  width:100%;padding:13px;border-radius:var(--r-btn);border:none;
-  background:linear-gradient(135deg,var(--blue-deep),var(--blue-light));
-  color:white;font-size:15px;font-weight:800;cursor:pointer;
-  font-family:var(--font);margin-top:8px;
-  box-shadow:0 3px 14px rgba(21,101,192,.3);
-}
-.modal-cancel-btn{
-  width:100%;padding:12px;border-radius:var(--r-btn);
-  border:2px solid var(--border);background:white;color:var(--ink-3);
-  font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);margin-top:8px;
-}
-.qty-preset-btn{
-  padding:10px 16px;border-radius:12px;border:2px solid var(--blue-pale);
-  background:var(--blue-paler);font-size:15px;font-weight:800;
-  color:var(--blue);cursor:pointer;font-family:var(--font);
-  transition:all var(--trans);
-}
-.qty-preset-btn:active,.qty-preset-btn.active{background:var(--blue);color:white;border-color:var(--blue);}
+    .app-background::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 30%, rgba(123, 196, 226, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(242, 166, 73, 0.05) 0%, transparent 50%);
+    }
 
-/* ═══════════════════════════════════════════════
-   PRICE MODAL
-═══════════════════════════════════════════════ */
-.price-modal-name{font-size:13px;color:var(--ink-4);margin-bottom:16px;font-weight:600;}
-.price-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
-.price-label{font-size:13px;font-weight:700;color:var(--ink-3);min-width:64px;}
-.price-value{font-size:19px;font-weight:900;color:var(--blue);}
-.price-source{font-size:10px;color:var(--ink-4);margin-top:2px;}
-.price-edit-label{font-size:12px;font-weight:700;color:var(--ink-3);margin-bottom:8px;}
-.price-edit-input{
-  width:100%;padding:11px 14px;border:2px solid #90caf9;
-  border-radius:12px;font-size:17px;font-weight:800;
-  color:var(--blue);direction:ltr;font-family:var(--font);
-  outline:none;text-align:center;background:var(--blue-paler);
-}
+    /* SVG pattern של מוצרי מזון מפוזרים ברקע - תמלא על ידי js */
+    .app-background-pattern {
+      position: absolute;
+      inset: 0;
+      opacity: 0.06;
+      background-repeat: repeat;
+      background-size: 300px 300px;
+    }
 
-/* ═══════════════════════════════════════════════
-   WEIGHT MODAL
-═══════════════════════════════════════════════ */
-.wm-tabs{display:flex;background:#f0f4ff;border-radius:11px;padding:3px;margin-bottom:14px;}
-.wm-tab{
-  flex:1;padding:9px;border-radius:8px;border:none;
-  background:transparent;color:var(--ink-3);
-  font-weight:700;font-size:13px;cursor:pointer;font-family:var(--font);
-  transition:all var(--trans);
-}
-.wm-tab.active{background:var(--blue);color:white;}
-.wm-panel{display:none;}.wm-panel.active{display:block;}
-.wm-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
-.wm-input{
-  flex:1;padding:11px 13px;border:2px solid #90caf9;
-  border-radius:11px;font-size:17px;font-weight:800;color:var(--blue);
-  direction:ltr;font-family:var(--font);outline:none;text-align:center;background:var(--blue-paler);
-}
-.wm-unit{font-size:12px;color:var(--ink-4);min-width:32px;font-weight:600;}
-.wm-result{
-  background:var(--blue-pale);border-radius:11px;
-  padding:11px 14px;font-size:14px;color:var(--blue);
-  font-weight:700;text-align:center;margin-bottom:12px;
-}
-.wm-avg-note{font-size:11px;color:var(--ink-4);text-align:center;margin-bottom:8px;font-weight:600;}
+    /* ===== מסך טעינה ראשוני (Splash) ===== */
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--color-primary-ultra-light) 0%, var(--color-bg) 100%);
+      transition: opacity 0.4s var(--ease-out), visibility 0.4s;
+    }
 
-/* ═══════════════════════════════════════════════
-   STORE MODALS
-═══════════════════════════════════════════════ */
-.store-title{font-size:17px;font-weight:900;color:var(--orange);margin-bottom:4px;}
-.store-sub{font-size:12px;color:var(--ink-4);margin-bottom:16px;line-height:1.6;}
-.store-save-btn{
-  width:100%;padding:13px;border-radius:var(--r-btn);border:none;
-  background:var(--orange);color:white;font-size:15px;font-weight:800;
-  cursor:pointer;font-family:var(--font);margin-top:8px;
-}
-.sd-items-list{max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
-.sd-item{
-  display:flex;align-items:center;gap:8px;
-  background:#fff8e1;border-radius:10px;
-  padding:8px 12px;border:1px solid #ffe0b2;
-}
-.sd-item-name{flex:1;font-size:12px;font-weight:700;color:var(--ink-2);}
-.sd-item-price{font-size:13px;font-weight:900;color:var(--orange);}
-.sd-item-del{background:none;border:none;color:var(--ink-4);font-size:16px;cursor:pointer;}
-.sd-add-row{display:flex;gap:7px;margin-bottom:10px;}
-.sd-add-row input{margin-bottom:0;}
-.receipt-scan-btn{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:10px 15px;border-radius:11px;
-  border:2px solid var(--orange);background:#fff8e1;
-  color:var(--orange);font-size:13px;font-weight:700;
-  cursor:pointer;font-family:var(--font);margin-bottom:12px;
-}
-.receipt-processing{font-size:12px;color:var(--orange);text-align:center;margin-top:6px;animation:pulse .8s infinite;display:none;font-weight:700;}
-.receipt-results{margin-top:8px;display:none;}
-.receipt-item{
-  display:flex;align-items:center;gap:8px;
-  padding:9px 11px;background:white;border-radius:9px;
-  margin-bottom:5px;border:1px solid #ffe082;
-}
-.receipt-check{
-  width:22px;height:22px;border-radius:7px;
-  border:2px solid var(--border);cursor:pointer;flex-shrink:0;
-  transition:all var(--trans);display:flex;align-items:center;justify-content:center;
-}
-.receipt-check.on{background:var(--orange);border-color:var(--orange);}
-.receipt-check.on::after{content:"✓";color:white;font-size:12px;font-weight:900;}
-.receipt-item-name{flex:1;font-size:12px;font-weight:600;color:var(--ink-2);}
-.receipt-item-price{font-size:12px;font-weight:800;color:var(--orange);}
-.receipt-import-btn{
-  width:100%;padding:11px;border-radius:12px;border:none;
-  background:var(--orange);color:white;font-size:13px;font-weight:800;
-  cursor:pointer;font-family:var(--font);margin-top:8px;
-}
+    #splash-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
 
-/* ═══════════════════════════════════════════════
-   SCAN TYPE MODAL
-═══════════════════════════════════════════════ */
-.scan-choice-btn{
-  width:100%;padding:14px;border-radius:var(--r-btn);
-  border:2px solid var(--blue-pale);background:var(--blue-paler);
-  font-size:14px;font-weight:700;cursor:pointer;color:var(--blue);
-  font-family:var(--font);margin-bottom:8px;
-  transition:all var(--trans);
-}
-.scan-choice-btn:active{background:var(--blue-pale);}
-.scan-choice-btn.cancel{border-color:var(--border);background:white;color:var(--ink-3);}
+    .splash-logo {
+      width: 96px;
+      height: 96px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-lg), 0 0 0 6px rgba(123, 196, 226, 0.15);
+      animation: splashPulse 1.8s var(--ease-in-out) infinite;
+    }
 
-/* ═══════════════════════════════════════════════
-   SCANNER
-═══════════════════════════════════════════════ */
-#scanner-screen{
-  position:fixed;inset:0;background:#000;
-  z-index:500;display:none;flex-direction:column;
-  align-items:center;justify-content:center;
-}
-#scanner-video{width:100%;height:60vh;object-fit:cover;}
-.scanner-frame{
-  position:absolute;top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  width:70vw;max-width:260px;height:110px;
-  border:3px solid var(--blue-light);border-radius:14px;
-  box-shadow:0 0 0 2000px rgba(0,0,0,.68);
-}
-.scanner-corners::before,.scanner-corners::after{
-  content:"";position:absolute;
-  width:22px;height:22px;
-  border-color:var(--gold);border-style:solid;
-}
-.scanner-label{color:white;font-size:14px;margin-top:18px;font-weight:700;text-align:center;padding:0 22px;font-family:var(--font);}
-.scanner-manual{margin-top:12px;display:flex;gap:8px;}
-.scanner-manual input{
-  padding:11px 14px;border-radius:11px;border:none;
-  font-size:14px;direction:ltr;width:158px;font-family:var(--font);
-}
-.scanner-manual button{
-  padding:11px 14px;border-radius:11px;border:none;
-  background:var(--blue-light);color:white;font-weight:700;
-  cursor:pointer;font-family:var(--font);
-}
-.scanner-close{
-  margin-top:14px;padding:11px 30px;border-radius:12px;
-  border:2px solid rgba(255,255,255,.4);background:transparent;
-  color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);
-}
+    .splash-logo svg {
+      width: 56px;
+      height: 56px;
+      color: #fff;
+    }
 
-/* ═══════════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════════ */
-.toast{
-  position:fixed;
-  top:max(75px,calc(65px + var(--safe-top)));
-  left:50%;transform:translateX(-50%);
-  background:rgba(13,71,161,.95);color:white;
-  padding:10px 20px;border-radius:20px;
-  font-size:13px;font-weight:700;z-index:600;
-  opacity:0;transition:opacity .3s;pointer-events:none;
-  white-space:nowrap;font-family:var(--font);
-  box-shadow:0 4px 16px rgba(13,71,161,.35);
-}
-.toast.show{opacity:1;}
+    .splash-title {
+      margin-top: 24px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--color-text);
+      letter-spacing: -0.3px;
+    }
 
-/* ═══════════════════════════════════════════════
-   UTILS
-═══════════════════════════════════════════════ */
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-input[type=text],input[type=email],input[type=password],input[type=number]{
-  font-family:var(--font);outline:none;
-}
-.field-wrap input[type=email],
-.field-wrap input[type=password]{padding-left:46px;}
-/* Eye btn - ensure no text selection during hold */
-.eye-btn{-webkit-user-select:none;user-select:none;touch-action:none;}
-</style>
+    .splash-subtitle {
+      margin-top: 4px;
+      font-size: 14px;
+      color: var(--color-text-muted);
+      font-weight: 400;
+    }
+
+    .splash-spinner {
+      margin-top: 32px;
+      width: 28px;
+      height: 28px;
+      border: 3px solid var(--color-primary-light);
+      border-top-color: var(--color-primary-dark);
+      border-radius: 50%;
+      animation: spinnerRotate 0.8s linear infinite;
+    }
+
+    @keyframes splashPulse {
+      0%, 100% { transform: scale(1); box-shadow: var(--shadow-lg), 0 0 0 6px rgba(123, 196, 226, 0.15); }
+      50% { transform: scale(1.05); box-shadow: var(--shadow-lg), 0 0 0 12px rgba(123, 196, 226, 0.08); }
+    }
+
+    @keyframes spinnerRotate {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== קונטיינרים עיקריים ===== */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      z-index: 1;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* ===== הודעות טוסט (Toast) ===== */
+    #toast-container {
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 20px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      max-width: 90%;
+    }
+
+    .toast {
+      background: var(--color-text);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: var(--radius-full);
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      animation: toastIn 0.3s var(--ease-out);
+      pointer-events: auto;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .toast.success { background: var(--color-success); }
+    .toast.error { background: var(--color-danger); }
+    .toast.warning { background: var(--color-warning); color: var(--color-text); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== זמינות הנגשה ===== */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* הודעת "אין אינטרנט" */
+    #offline-banner {
+      position: fixed;
+      top: var(--safe-top);
+      left: 0;
+      right: 0;
+      background: var(--color-warning);
+      color: var(--color-text);
+      padding: 6px 12px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 9998;
+      transform: translateY(-100%);
+      transition: transform 0.3s var(--ease-out);
+    }
+
+    #offline-banner.visible {
+      transform: translateY(0);
+    }
+  </style>
+
+  <!-- CSS חיצוני - ייטען אסינכרוני לאחר ה-CSS הקריטי -->
+  <link rel="stylesheet" href="/css/base.css" media="print" onload="this.media='all'" />
+  <link rel="stylesheet" href="/css/auth.css" media="print" onload="this.media='all'" />
+  <link rel="stylesheet" href="/css/app.css" media="print" onload="this.media='all'" />
+  <link rel="stylesheet" href="/css/modals.css" media="print" onload="this.media='all'" />
+  <noscript>
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/auth.css" />
+    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/css/modals.css" />
+  </noscript>
 </head>
+
 <body>
-
-<!-- Hidden file input for receipt -->
-<input type="file" id="receipt-file" accept="image/*" capture="environment" style="position:absolute;opacity:0;width:0;height:0;"/>
-
-<!-- Background texture -->
-<div class="bg-texture" id="bg-texture"></div>
-
-<!-- Toast -->
-<div class="toast" id="toast"></div>
-
-<!-- ═══════════════════════════════════════════════
-     PAGE: LOGIN
-═══════════════════════════════════════════════ -->
-<div id="page-login" class="page active">
-  <div class="login-card">
-    <div class="login-brand">
-      <div class="login-icon">
-        <svg width="46" height="46" viewBox="0 0 46 46" fill="none">
-          <path d="M7 9h5l6 20h19l5-15H14" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="19" cy="34" r="2.8" fill="white"/>
-          <circle cx="32" cy="34" r="2.8" fill="white"/>
-        </svg>
-      </div>
-      <h1>סלי</h1>
-      <p>רשימת קניות חכמה</p>
-    </div>
-    <div class="login-divider">כניסה / הרשמה</div>
-    <div class="field-wrap">
-      <input type="email" id="login-email" placeholder="כתובת מייל" autocomplete="email"/>
-    </div>
-    <div class="field-wrap">
-      <input type="password" id="login-pass" placeholder="סיסמה (מינ׳ 6 תווים)" autocomplete="current-password"/>
-      <button class="eye-btn" id="eye-btn" type="button">
-        <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-          <circle cx="12" cy="12" r="3"/>
-        </svg>
-      </button>
-    </div>
-    <div class="login-err" id="login-err"></div>
-    <button class="login-btn" id="login-btn" type="button">כניסה לאפליקציה →</button>
-    <div class="login-note">
-      📧 <b>אותו מייל בכל מכשירי המשפחה</b> לרשימה משותפת<br>
-      עובד גם ללא חיבור לאינטרנט
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════
-     PAGE: GUIDE
-═══════════════════════════════════════════════ -->
-<div id="page-guide" class="page">
-  <div class="guide-card">
-    <span class="guide-emoji" id="guide-emoji"></span>
-    <div class="guide-title" id="guide-title"></div>
-    <div class="guide-body" id="guide-body"></div>
-    <div class="guide-dots" id="guide-dots"></div>
-    <div class="guide-btns">
-      <button class="guide-back" id="guide-back-btn" onclick="guideBack()">הקודם</button>
-      <button class="guide-next" id="guide-next-btn" onclick="guideNext()">הבא</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════
-     PAGE: MAIN APP
-═══════════════════════════════════════════════ -->
-<div id="page-main" class="page">
-
-  <!-- Header -->
-  <div class="header">
-    <div class="header-brand">
-      <div class="header-logo">
-        <svg width="20" height="20" viewBox="0 0 46 46" fill="none">
-          <path d="M7 9h5l6 20h19l5-15H14" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="19" cy="34" r="2.8" fill="white"/>
-          <circle cx="32" cy="34" r="2.8" fill="white"/>
-        </svg>
-      </div>
-      <div>
-        <div class="header-title">סלי</div>
-        <div class="header-sub" id="header-sub">טוען...</div>
-      </div>
-    </div>
-    <div class="header-actions">
-      <button class="hdr-btn" onclick="openGuide()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-        מדריך
-      </button>
-      <button class="hdr-btn hdr-btn-danger" id="hdr-clear-btn" onclick="clearList()" title="נקה רשימה">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-        נקה
-      </button>
-      <button class="hdr-btn" onclick="doLogout()">יצא</button>
-    </div>
+  <!-- רקע טקסטורה -->
+  <div class="app-background" aria-hidden="true">
+    <div class="app-background-pattern" id="bg-pattern"></div>
   </div>
 
-  <!-- ── SCREEN: LIST ── -->
-  <div class="screen active" id="screen-list">
-    <div class="list-area" id="list-area">
-      <div class="list-empty">
-        <div class="empty-icon">🛒</div>
-        <div class="empty-title">הרשימה ריקה</div>
-        <div class="empty-sub">הקלד, דבר, או סרוק ברקוד</div>
-      </div>
-    </div>
+  <!-- הודעת אופליין -->
+  <div id="offline-banner" role="status" aria-live="polite">
+    <span>אין חיבור לאינטרנט - האפליקציה פועלת במצב אופליין</span>
   </div>
 
-  <!-- ── SCREEN: BASKET ── -->
-  <div class="screen" id="screen-basket">
-    <div class="basket-wrap">
-      <div id="basket-content">
-        <div class="basket-empty">🛒 הוסף פריטים לרשימה קודם</div>
-      </div>
+  <!-- מסך טעינה ראשוני - מוצג מיד -->
+  <div id="splash-screen" role="status" aria-label="טוען אפליקציה">
+    <div class="splash-logo" aria-hidden="true">
+      <!-- אייקון עגלת קניות -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="21" r="1.5" fill="currentColor" />
+        <circle cx="18" cy="21" r="1.5" fill="currentColor" />
+        <path d="M2.5 3h2.5l2.7 12.6a2 2 0 0 0 2 1.6h9.4a2 2 0 0 0 2-1.5L22 7H6" />
+      </svg>
     </div>
+    <div class="splash-title">רשימת קניות חכמה</div>
+    <div class="splash-subtitle">השוואת מחירים בזמן אמת</div>
+    <div class="splash-spinner" aria-hidden="true"></div>
   </div>
 
-  <!-- ── SCREEN: SAVINGS ── -->
-  <div class="screen" id="screen-savings">
-    <div class="savings-wrap" id="savings-wrap">
-      <div class="savings-empty">📊 עוד אין היסטוריה<br><span style="font-size:12px">שמור קנייה לאחר חישוב הסל</span></div>
-    </div>
+  <!-- שורש האפליקציה - כל המסכים נטענים בתוכו דינמית -->
+  <div id="app-root">
+
+    <!-- מסך התחברות / הרשמה -->
+    <section class="screen" id="screen-auth" aria-label="מסך התחברות">
+      <!-- יתמלא ע"י js/auth.js -->
+    </section>
+
+    <!-- מסך האפליקציה הראשית (רשימת קניות) -->
+    <section class="screen" id="screen-main" aria-label="רשימת קניות">
+      <!-- Header עליון -->
+      <header id="main-header"></header>
+
+      <!-- תוכן מרכזי - רשימת מוצרים מקובצת לקטגוריות -->
+      <main id="main-content"></main>
+
+      <!-- שורת כתיבה תחתונה -->
+      <footer id="main-input-bar"></footer>
+    </section>
+
+    <!-- מסך היסטוריה -->
+    <section class="screen" id="screen-history" aria-label="היסטוריית קניות">
+      <!-- יתמלא ע"י js/history.js -->
+    </section>
+
   </div>
 
-  <!-- ── SCREEN: SETTINGS ── -->
-  <div class="screen" id="screen-settings">
-    <div class="settings-wrap">
-      <div class="settings-section">
-        <div class="settings-title">🔍 בחר רשתות להשוואה (עד 3)</div>
-        <div class="chains-grid-settings" id="chains-grid-settings"></div>
-        <div class="settings-divider">🏪 מכולות שכונתיות</div>
-        <div id="local-stores-list"></div>
-        <button class="add-store-btn" onclick="openAddStore()">+ הוסף מכולת שכונתית</button>
-      </div>
-      <div class="settings-section">
-        <div class="settings-title">⚡ מידע טכני</div>
-        <div class="settings-row">
-          <div class="settings-row-label">Worker AI</div>
-          <div class="settings-row-val" id="worker-status-label">בודק...</div>
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-label">מחירים</div>
-          <div class="settings-row-val">ממשלתי לברקוד · ממוצע שוק לשם</div>
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-label">אופליין</div>
-          <div class="settings-row-val">✓ עובד ללא אינטרנט</div>
-        </div>
-      </div>
-      <div class="settings-section">
-        <div class="settings-title">🗑️ ניהול נתונים</div>
-        <div class="settings-row">
-          <div class="settings-row-label">נקה רשימה</div>
-          <button class="settings-action-btn danger" onclick="clearList()">מחק הכל</button>
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-label">נקה היסטוריה</div>
-          <button class="settings-action-btn danger" onclick="clearHistory()">מחק</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Modals וחלונות קופצים - רנדור ע"י js/ui.js -->
+  <div id="modal-root" aria-live="polite"></div>
 
-  <!-- ── WHATSAPP-STYLE INPUT BAR (fixed above bottom nav) ── -->
-  <div class="input-area" id="input-area">
-    <div class="sug-container" id="ai-suggestions"></div>
-    <div class="sug-container" id="local-suggestions"></div>
-    <div class="input-row">
-      <div class="input-field-wrap">
-        <input id="main-input" type="text" placeholder="חלב, עגבניות, עוף..."
-          oninput="onInputChange(this.value)"
-          onkeydown="if(event.key==='Enter')addFromInput()"/>
-      </div>
-      <button class="action-btn btn-scan" onclick="openScanType()">📷</button>
-      <button class="action-btn btn-voice" id="voice-btn">🎤</button>
-      <button class="action-btn btn-add" id="add-btn" onclick="addFromInput()">➕</button>
-    </div>
-    <div class="voice-hint" id="voice-hint" style="display:none">🔴 מקליט... שחרר כשתסיים</div>
-    <div class="adding-hint" id="adding-hint">מוסיף...</div>
-    <div class="status-row">
-      <div class="status-sync" id="status-sync">✓ מסונכרן</div>
-      <div class="status-worker" id="status-worker">⚪ ממוצע שוק</div>
-      <div class="status-offline" id="status-offline">📵 אופליין</div>
-      <div class="status-ai" id="status-ai">✨ AI חושב...</div>
-    </div>
-  </div>
+  <!-- Toasts -->
+  <div id="toast-container" aria-live="polite" aria-atomic="false"></div>
 
-  <!-- Bottom Navigation -->
-  <nav class="bottom-nav">
-    <button class="nav-tab active" id="nav-list" onclick="showTab('list')">
-      <div class="nav-tab-icon">🛒</div>
-      <div class="nav-tab-label">רשימה</div>
-    </button>
-    <button class="nav-tab" id="nav-basket" onclick="showTab('basket')">
-      <div class="nav-tab-icon">💰</div>
-      <div class="nav-tab-label">חשב סל</div>
-    </button>
-    <button class="nav-tab" id="nav-savings" onclick="showTab('savings')">
-      <div class="nav-tab-icon">📊</div>
-      <div class="nav-tab-label">חיסכון</div>
-    </button>
-    <button class="nav-tab" id="nav-settings" onclick="showTab('settings')">
-      <div class="nav-tab-icon">⚙️</div>
-      <div class="nav-tab-label">הגדרות</div>
-    </button>
-  </nav>
-</div>
+  <!-- ============================================================
+       Scripts - הכל כ-ES6 modules
+       האתחול מתחיל מ-app.js שמזמן את שאר המודולים
+       ============================================================ -->
+  <script type="module" src="/js/config.js"></script>
+  <script type="module" src="/js/storage.js"></script>
+  <script type="module" src="/js/state.js"></script>
+  <script type="module" src="/js/api.js"></script>
+  <script type="module" src="/js/ui.js"></script>
+  <script type="module" src="/js/location.js"></script>
+  <script type="module" src="/js/products.js"></script>
+  <script type="module" src="/js/scanner.js"></script>
+  <script type="module" src="/js/cart.js"></script>
+  <script type="module" src="/js/history.js"></script>
+  <script type="module" src="/js/tutorial.js"></script>
+  <script type="module" src="/js/premium.js"></script>
+  <script type="module" src="/js/auth.js"></script>
+  <script type="module" src="/js/app.js"></script>
 
-<!-- ═══════════════════════════════════════════════
-     MODAL: QUANTITY
-═══════════════════════════════════════════════ -->
-<div class="modal-overlay" id="qty-modal" onclick="closeQtyModal()">
-  <div class="modal-sheet" onclick="event.stopPropagation()">
-    <div class="modal-title">× כמות</div>
-    <div class="price-modal-name" id="qty-modal-name"></div>
-    <div style="display:flex;gap:10px;justify-content:center;margin:14px 0;flex-wrap:wrap;">
-      <button class="qty-preset-btn" onclick="setQtyPreset(1)">×1</button>
-      <button class="qty-preset-btn" onclick="setQtyPreset(2)">×2</button>
-      <button class="qty-preset-btn" onclick="setQtyPreset(3)">×3</button>
-      <button class="qty-preset-btn" onclick="setQtyPreset(4)">×4</button>
-      <button class="qty-preset-btn" onclick="setQtyPreset(5)">×5</button>
-      <button class="qty-preset-btn" onclick="setQtyPreset(6)">×6</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-      <button onclick="changeQty(-1)" style="width:44px;height:44px;border-radius:12px;border:2px solid var(--border);background:white;font-size:22px;font-weight:700;cursor:pointer;color:var(--blue);">−</button>
-      <input class="price-edit-input" type="number" id="qty-input" min="1" max="99" step="1" value="1" style="text-align:center;font-size:22px;"/>
-      <button onclick="changeQty(1)" style="width:44px;height:44px;border-radius:12px;border:2px solid var(--border);background:white;font-size:22px;font-weight:700;cursor:pointer;color:var(--blue);">+</button>
-    </div>
-    <div class="wm-result" id="qty-result">₪0.00</div>
-    <button class="modal-save-btn" onclick="saveQtyModal()">שמור ✓</button>
-    <button class="modal-cancel-btn" onclick="closeQtyModal()">סגור</button>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════
-     MODAL: PRICE
-═══════════════════════════════════════════════ -->
-<div class="modal-overlay" id="price-modal" onclick="closePriceModal()">
-  <div class="modal-sheet" onclick="event.stopPropagation()">
-    <div class="modal-title">₪ מחיר מוצר</div>
-    <div class="price-modal-name" id="price-modal-name"></div>
-    <div class="price-row">
-      <div class="price-label">מחיר:</div>
-      <div><div class="price-value" id="price-modal-val"></div><div class="price-source" id="price-modal-src"></div></div>
-    </div>
-    <div class="price-edit-label">עדכן ידנית:</div>
-    <input class="price-edit-input" type="number" id="price-modal-input" step="0.1" min="0" placeholder="0.00"/>
-    <button class="modal-save-btn" onclick="savePriceModal()">שמור ✓</button>
-    <button class="modal-cancel-btn" onclick="closePriceModal()">סגור</button>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════
-     MODAL: WEIGHT
-═══════════════════════════════════════════════ -->
-<div class="modal-overlay" id="weight-modal" onclick="closeWeightModal()">
-  <div class="modal-sheet" onclick="event.stopPropagation()">
-    <div class="modal-title">⚖️ כמות ומשקל</div>
-    <div class="price-modal-name" id="weight-modal-name"></div>
-    <div class="wm-tabs">
-      <button class="wm-tab active" id="wm-tab-kg" onclick="setWeightTab('kg')">גרם / ק״ג</button>
-      <button class="wm-tab" id="wm-tab-cnt" onclick="setWeightTab('cnt')">מספר יחידות</button>
-    </div>
-    <div class="wm-panel active" id="wm-panel-kg">
-      <div class="wm-row">
-        <input class="wm-input" type="number" id="wm-grams" placeholder="0" step="50" min="0" oninput="updateWeightCalc()"/>
-        <div class="wm-unit">גרם</div>
-      </div>
-      <div class="wm-row" style="margin-top:-4px">
-        <input class="wm-input" type="number" id="wm-kg" placeholder="0.0" step="0.1" min="0" oninput="updateWeightCalc()"/>
-        <div class="wm-unit">ק״ג</div>
-      </div>
-    </div>
-    <div class="wm-panel" id="wm-panel-cnt">
-      <div class="wm-row">
-        <input class="wm-input" type="number" id="wm-cnt" placeholder="1" step="1" min="1" oninput="updateWeightCalc()"/>
-        <div class="wm-unit">יח׳</div>
-      </div>
-      <div class="wm-avg-note" id="wm-avg-note"></div>
-    </div>
-    <div class="wm-result" id="wm-result">הזן משקל או כמות</div>
-    <button class="modal-save-btn" onclick="saveWeightModal()">שמור ✓</button>
-    <button class="modal-cancel-btn" onclick="closeWeightModal()">סגור</button>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════
-     MODAL: ADD STORE
-═══════════════════════════════════════════════ -->
-<div class="modal-center-overlay" id="add-store-modal" onclick="closeAddStore()">
-  <div class="modal-center-card" onclick="event.stopPropagation()">
-    <div class="store-title">🏪 הוסף מכולת שכונתית</div>
-    <div class="store-sub">מחירים יצטברו מסריקת קבלות. פריטים ללא מחיר יופיעו כ-❓ בחישוב הסל.</div>
-    <input type="text" id="new-store-name" placeholder="שם המכולת (למשל: מינימרקט יוסי)"
-      style="width:100%;padding:13px 15px;border-radius:12px;border:2px solid var(--border);font-size:15px;margin-bottom:4px;direction:rtl;"/>
-    <button class="store-save-btn" onclick="createLocalStore()">צור מכולת</button>
-    <button class="modal-cancel-btn" onclick="closeAddStore()">ביטול</button>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════
-     MODAL: STORE DETAIL
-═══════════════════════════════════════════════ -->
-<div class="modal-overlay" id="store-detail-modal" onclick="closeStoreDetail()">
-  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:88vh;overflow-y:auto;">
-    <div class="store-title" id="store-detail-title"></div>
-    <div class="store-sub">📸 צלם קבלה ← AI מוסיף מחירים אוטומטית</div>
-    <button class="receipt-scan-btn" onclick="triggerReceiptScan()">
-      <span>📸</span><span>סרוק קבלה</span>
-    </button>
-    <div class="receipt-processing" id="receipt-processing">מעבד עם AI... ⏳</div>
-    <div class="receipt-results" id="receipt-results"></div>
-    <div class="sd-items-list" id="store-detail-items"></div>
-    <div class="sd-add-row">
-      <input type="text" id="sd-name-input" placeholder="שם מוצר" style="flex:2;padding:10px 12px;border-radius:11px;border:2px solid var(--border);font-size:13px;direction:rtl;"/>
-      <input type="number" id="sd-price-input" placeholder="מחיר" step="0.1" min="0" style="flex:1;padding:10px 12px;border-radius:11px;border:2px solid var(--border);font-size:13px;direction:ltr;text-align:center;"/>
-    </div>
-    <button class="store-save-btn" style="margin-top:8px" onclick="addToStoreManual()">הוסף ידנית ➕</button>
-    <button class="modal-cancel-btn" onclick="closeStoreDetail()">סגור</button>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════
-     MODAL: SCAN TYPE
-═══════════════════════════════════════════════ -->
-<div class="modal-center-overlay" id="scan-type-modal" onclick="closeScanType()">
-  <div class="modal-center-card" onclick="event.stopPropagation()">
-    <div class="modal-title" style="text-align:center;margin-bottom:16px;">📷 מה לסרוק?</div>
-    <button class="scan-choice-btn" onclick="closeScanType();startScan('list')">🛒 לרשימת הקניות</button>
-    <button class="scan-choice-btn" id="scan-store-choice" onclick="closeScanType();startScan('store')" style="display:none">🏪 למכולת השכונתית</button>
-    <button class="scan-choice-btn cancel" onclick="closeScanType()">ביטול</button>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════
-     SCANNER SCREEN
-═══════════════════════════════════════════════ -->
-<div id="scanner-screen" style="display:none;flex-direction:column;align-items:center;justify-content:center;">
-  <div style="position:relative;width:100%;height:60vh;overflow:hidden;background:#000;">
-    <video id="scanner-video" playsinline webkit-playsinline muted autoplay style="width:100%;height:100%;object-fit:cover;"></video>
-    <div class="scanner-frame"></div>
-  </div>
-  <div class="scanner-label" id="scanner-label">כוון את הברקוד למסגרת</div>
-  <div class="scanner-manual">
-    <input id="manual-barcode" placeholder="הזן ברקוד ידנית" type="text"/>
-    <button onclick="lookupManualBarcode()">חפש</button>
-  </div>
-  <button class="scanner-close" onclick="closeScanner()">✕ סגור</button>
-</div>
-
-<script type="module">
-// ════════════════════════════════════════════════════════════
-// FIREBASE INIT
-// ════════════════════════════════════════════════════════════
-import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,onAuthStateChanged,signOut,browserLocalPersistence,setPersistence}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import{getFirestore,collection,doc,setDoc,deleteDoc,onSnapshot,query,orderBy,updateDoc,enableIndexedDbPersistence,getDocs}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const FB_CONFIG={
-  apiKey:"AIzaSyB0ofm8cUnZ1pAQS3ZKvenV83bSa_FvH_A",
-  authDomain:"mytasksapp-68e71.firebaseapp.com",
-  projectId:"mytasksapp-68e71",
-  storageBucket:"mytasksapp-68e71.firebasestorage.app",
-  messagingSenderId:"673661240265",
-  appId:"1:673661240265:web:2eb7aad37f608be6be1e18"
-};
-const WORKER_URL="https://runprice.matanelb100.workers.dev";
-
-const fbApp=initializeApp(FB_CONFIG);
-const auth=getAuth(fbApp);
-const db=getFirestore(fbApp);
-setPersistence(auth,browserLocalPersistence).catch(()=>{});
-enableIndexedDbPersistence(db).catch(()=>{});
-
-// ════════════════════════════════════════════════════════════
-// BACKGROUND TEXTURE
-// ════════════════════════════════════════════════════════════
-(function(){
-  const EMOJIS=["🥛","🍞","🥚","🧀","🍎","🥕","🧃","🍫","🧴","🥩","🐟","🍋","🧅","🥦","🍊","🫙","🧂","🥬","🫐","🥑"];
-  const bg=document.getElementById("bg-texture");
-  for(let r=0;r<8;r++){
-    for(let c=0;c<5;c++){
-      const el=document.createElement("div");
-      el.className="bg-emoji";
-      el.textContent=EMOJIS[(r*5+c)%EMOJIS.length];
-      const x=(c/5)*100+(Math.random()-.5)*16;
-      const y=(r/8)*100+(Math.random()-.5)*10;
-      el.style.cssText=`left:${x}%;top:${y}%;--sz:${16+Math.random()*14}px;--op:${.03+Math.random()*.04};--rot:${(Math.random()-.5)*65}deg;`;
-      bg.appendChild(el);
-    }
-  }
-})();
-
-// ════════════════════════════════════════════════════════════
-// PRICE DATABASE (local fallback)
-// ════════════════════════════════════════════════════════════
-const PRICE_DB=[
-  {k:["חלב דל לקטוז"],p:8.90},{k:["חלב שקדים"],p:14.90},{k:["חלב שיבולת שועל"],p:16.90},
-  {k:["חלב 5%"],p:7.20},{k:["חלב 3%"],p:6.90},{k:["חלב 1%","חלב רזה"],p:6.50},{k:["חלב"],p:6.90},
-  {k:["ביצים 12"],p:15.90},{k:["ביצים חופשיות"],p:19.90},{k:["ביצים 6"],p:8.90},{k:["ביצים"],p:15.90},
-  {k:["גבינה צהובה"],p:24.90},{k:["גבינה לבנה 9%"],p:8.50},{k:["גבינה לבנה 5%"],p:7.90},
-  {k:["גבינה קשה"],p:34.90},{k:["קוטג"],p:8.90},{k:["שמנת חמוצה 27%"],p:8.90},
-  {k:["שמנת חמוצה 15%"],p:7.90},{k:["שמנת לבישול"],p:6.90},{k:["שמנת"],p:7.90},
-  {k:["יוגורט יווני"],p:8.90},{k:["יוגורט ביו"],p:6.90},{k:["יוגורט"],p:5.90},{k:["לבן"],p:5.50},
-  {k:["חמאה"],p:14.90},{k:["לחם שיפון"],p:13.90},{k:["לחם מלא"],p:11.90},
-  {k:["לחם אחיד","לחם לבן"],p:7.90},{k:["לחם"],p:8.50},{k:["פיתות","פיתה"],p:6.90},
-  {k:["לחמניות"],p:9.90},{k:["חלה"],p:12.90},{k:["בגט"],p:8.90},
-  {k:["עגבניות שרי"],p:12.90},{k:["עגבניות"],p:7.90},{k:["מלפפונים"],p:6.90},
-  {k:["בצל"],p:4.90},{k:["שום"],p:9.90},{k:["גזר"],p:5.90},{k:["תפוחי אדמה"],p:5.90},
-  {k:["פלפל אדום"],p:14.90},{k:["פלפל ירוק"],p:9.90},{k:["פלפל"],p:11.90},
-  {k:["חסה"],p:7.90},{k:["ברוקולי"],p:9.90},{k:["אבוקדו"],p:9.90},
-  {k:["תפוחים"],p:8.90},{k:["בננה"],p:7.90},{k:["לימון"],p:6.90},
-  {k:["תפוז"],p:8.90},{k:["ענבים"],p:16.90},{k:["מנגו"],p:12.90},{k:["תות"],p:18.90},
-  {k:["חזה עוף","פילה עוף"],p:38.90},{k:["שוקיים עוף"],p:22.90},
-  {k:["כנפיים עוף"],p:18.90},{k:["עוף שלם"],p:29.90},{k:["עוף טחון"],p:28.90},{k:["עוף"],p:29.90},
-  {k:["בשר טחון"],p:44.90},{k:["אנטריקוט"],p:89.90},{k:["סינטה"],p:79.90},
-  {k:["נקניקיות"],p:18.90},{k:["שניצל"],p:42.90},
-  {k:["סלמון"],p:89.90},{k:["טונה"],p:8.90},{k:["בורי"],p:42.90},{k:["דג"],p:45.90},
-  {k:["אורז בסמטי"],p:12.90},{k:["אורז חום"],p:11.90},{k:["אורז"],p:9.90},
-  {k:["ספגטי"],p:7.90},{k:["פנה"],p:8.90},{k:["פסטה מלאה"],p:9.90},{k:["פסטה"],p:8.90},
-  {k:["קמח"],p:7.90},{k:["סוכר"],p:6.90},{k:["מלח"],p:3.90},
-  {k:["שמן זית"],p:34.90},{k:["שמן קנולה","שמן"],p:16.90},
-  {k:["עדשים"],p:8.90},{k:["שעועית"],p:8.90},
-  {k:["מיץ תפוזים"],p:16.90},{k:["מיץ"],p:12.90},
-  {k:["מים 1.5"],p:4.90},{k:["מים"],p:2.90},
-  {k:["קולה 2 ליטר"],p:9.90},{k:["קולה"],p:8.90},{k:["ספרייט"],p:8.90},
-  {k:["קפה נמס"],p:38.90},{k:["קפסולות קפה"],p:49.90},{k:["קפה"],p:34.90},{k:["תה"],p:14.90},
-  {k:["שוקולד מריר"],p:11.90},{k:["שוקולד"],p:10.90},{k:["נוטלה"],p:19.90},
-  {k:["עוגיות"],p:11.90},{k:["גלידה"],p:24.90},{k:["במבה"],p:6.90},{k:["חטיף"],p:7.90},
-  {k:["חומוס"],p:6.90},{k:["טחינה"],p:14.90},{k:["זיתים"],p:16.90},
-  {k:["רסק עגבניות"],p:5.90},{k:["רוטב עגבניות"],p:9.90},
-  {k:["קטשופ"],p:9.90},{k:["מיונז"],p:12.90},{k:["חרדל"],p:8.90},
-  {k:["ריבה"],p:12.90},{k:["דבש"],p:18.90},
-  {k:["שמפו"],p:19.90},{k:["מרכך שיער"],p:22.90},{k:["סבון גוף"],p:12.90},
-  {k:["סבון ידיים","סבון"],p:8.90},{k:["נייר טואלט 32"],p:44.90},
-  {k:["נייר טואלט"],p:24.90},{k:["אבקת כביסה"],p:34.90},
-  {k:["נוזל כלים"],p:9.90},
-];
-const getLocalPrice=name=>{
-  const l=name.trim().toLowerCase();
-  for(const e of PRICE_DB)for(const k of e.k)if(l===k.toLowerCase())return e.p;
-  for(const e of PRICE_DB)for(const k of e.k)if(l.includes(k.toLowerCase()))return e.p;
-  for(const e of PRICE_DB)for(const k of e.k)if(k.toLowerCase().includes(l))return e.p;
-  return+(Math.random()*12+6).toFixed(2);
-};
-
-// ════════════════════════════════════════════════════════════
-// WEIGHT AVERAGES
-// ════════════════════════════════════════════════════════════
-const AVG_WEIGHTS={
-  "מלפפון":200,"מלפפונים":200,"עגבנייה":120,"עגבניות":120,
-  "תפוח":180,"תפוחים":180,"בננה":120,"לימון":100,"תפוז":180,
-  "אבוקדו":200,"פלפל":150,"גזר":100,"בצל":150,"תפוחי אדמה":200,
-  "ברוקולי":400,"כרוב":800,"קישוא":200,"בטטה":200,"חסה":300,
-  "עוף שלם":1200,"חזה עוף":300,"שוקיים עוף":250,"כנפיים עוף":100,
-  "ביצה":60,"שניצל":200,
-};
-const getAvgWeight=name=>{
-  const l=name.toLowerCase();
-  for(const[k,v]of Object.entries(AVG_WEIGHTS))if(l.includes(k.toLowerCase()))return v;
-  return null;
-};
-const WEIGHT_KEYWORDS=["בשר","עוף","דג","עגבניות","מלפפון","בצל","גזר","תפוחי אדמה","פלפל","חסה","ברוקולי","אבוקדו","תפוח","בננ","לימון","תפוז","ענבים","מנגו","תות","קישוא","כרוב","בטטה","כבש","טלה","עגל","סינטה","אנטריקוט","סלמון","בורי"];
-const isWeightProduct=name=>WEIGHT_KEYWORDS.some(k=>name.toLowerCase().includes(k.toLowerCase()));
-
-// ════════════════════════════════════════════════════════════
-// LOCAL SUGGESTIONS (typed completion)
-// ════════════════════════════════════════════════════════════
-const LOCAL_SUGGESTIONS={
-  // ── מוצרי חלב ──
-  "חלב":[{l:"חלב 3%",s:"קלאסי · 1 ליטר",p:6.90},{l:"חלב 1%",s:"דל שומן · 1 ליטר",p:6.50},{l:"חלב 5%",s:"עשיר · 1 ליטר",p:7.20},{l:"חלב דל לקטוז",s:"ללא לקטוז · 1 ליטר",p:8.90},{l:"חלב שקדים",s:"צמחי · 1 ליטר",p:14.90}],
-  "גבינה":[{l:"גבינה לבנה 5%",s:"רכה · 200 גרם",p:7.90},{l:"גבינה לבנה 9%",s:"שמנה · 200 גרם",p:8.50},{l:"גבינה צהובה",s:"פרוסות · 400 גרם",p:24.90},{l:"קוטג 5%",s:"מסוננת · 250 גרם",p:8.90},{l:"גבינה בולגרית",s:"מלוחה · 200 גרם",p:9.90}],
-  "קוטג":[{l:"קוטג 5%",s:"קלאסי · 250 גרם",p:8.90},{l:"קוטג 0%",s:"דיאט · 250 גרם",p:8.90},{l:"קוטג שמנת",s:"עשיר · 250 גרם",p:9.90}],
-  "יוגורט":[{l:"יוגורט 3%",s:"קלאסי · 150 גרם",p:4.90},{l:"יוגורט יווני 10%",s:"סמיך · 170 גרם",p:7.90},{l:"יוגורט ביו",s:"פרוביוטיקה · 150 גרם",p:5.90},{l:"יוגורט 0%",s:"דיאט · 150 גרם",p:4.90}],
-  "שמנת":[{l:"שמנת חמוצה 27%",s:"שמנה · 200 גרם",p:8.90},{l:"שמנת חמוצה 15%",s:"קלה · 200 גרם",p:7.90},{l:"שמנת לבישול",s:"צמחית · 250 מל",p:6.90},{l:"שמנת מתוקה",s:"להקצפה · 250 מל",p:11.90}],
-  "חמאה":[{l:"חמאה 82%",s:"רגילה · 200 גרם",p:14.90},{l:"חמאה מלוחה",s:"מלוחה · 200 גרם",p:15.90},{l:"מרגרינה",s:"צמחית · 250 גרם",p:8.90}],
-  "ביצים":[{l:"ביצים L 12",s:"גדולות · תריסר",p:17.90},{l:"ביצים M 12",s:"בינוניות · תריסר",p:15.90},{l:"ביצים חופשיות 12",s:"free range · תריסר",p:22.90},{l:"ביצים 6",s:"חצי תריסר",p:9.90},{l:"ביצי חוה",s:"אורגניות · 6 יח׳",p:14.90}],
-  "לבן":[{l:"לבן 1.5%",s:"קלאסי · 500 גרם",p:5.90},{l:"לבן 4.5%",s:"שמן · 500 גרם",p:6.50}],
-  // ── לחם ומאפים ──
-  "לחם":[{l:"לחם אחיד",s:"לבן קלאסי · כיכר",p:7.90},{l:"לחם מלא",s:"קמח מלא · כיכר",p:11.90},{l:"לחם שיפון",s:"כהה · כיכר",p:13.90},{l:"לחם ללא גלוטן",s:"גלוטן פרי · כיכר",p:19.90},{l:"לחם שיפון כהה",s:"עם גרעינים · כיכר",p:14.90}],
-  "פיתה":[{l:"פיתות רגילות",s:"6 יח׳",p:6.90},{l:"פיתות מלא",s:"קמח מלא · 6 יח׳",p:8.90},{l:"פיתות מיני",s:"קטנות · 8 יח׳",p:7.90},{l:"לאפות",s:"גדולות · 5 יח׳",p:9.90}],
-  "לחמני":[{l:"לחמניות קיסר",s:"6 יח׳",p:11.90},{l:"לחמניות שיפון",s:"כהות · 4 יח׳",p:10.90},{l:"לחמניות מלא",s:"4 יח׳",p:10.90}],
-  "חלה":[{l:"חלה קלועה",s:"שישי · 700 גרם",p:12.90},{l:"חלה מלא",s:"קמח מלא",p:14.90},{l:"חלה ממולאת",s:"שוקולד",p:18.90}],
-  // ── בשר ועוף ──
-  "עוף":[{l:"חזה עוף טרי",s:"לק״ג · פילה",p:38.90},{l:"שוקיים עוף",s:"לק״ג",p:22.90},{l:"כנפיים עוף",s:"לק״ג",p:18.90},{l:"עוף שלם",s:"לק״ג · טרי",p:29.90},{l:"עוף טחון",s:"לק״ג",p:28.90}],
-  "בשר":[{l:"בשר טחון 80%",s:"בקר · לק״ג",p:44.90},{l:"אנטריקוט",s:"בקר · לק״ג",p:89.90},{l:"סינטה",s:"בקר · לק״ג",p:79.90},{l:"צלעות",s:"בקר · לק״ג",p:59.90},{l:"כתף",s:"בקר לבישול · לק״ג",p:49.90}],
-  "טחון":[{l:"עוף טחון",s:"לק״ג",p:28.90},{l:"בשר טחון 80%",s:"בקר · לק״ג",p:44.90},{l:"הודו טחון",s:"לק״ג",p:32.90},{l:"כבש טחון",s:"לק״ג",p:59.90}],
-  "נקניק":[{l:"נקניקיות עוף",s:"300 גרם",p:16.90},{l:"נקניקיות בקר",s:"300 גרם",p:21.90},{l:"נקניק פרנקפורטר",s:"200 גרם",p:18.90},{l:"נקניקיות מרגז",s:"300 גרם",p:19.90}],
-  "שניצל":[{l:"שניצל עוף קפוא",s:"1 ק״ג",p:38.90},{l:"שניצל עוף טרי",s:"500 גרם",p:32.90},{l:"שניצל הודו",s:"500 גרם",p:35.90}],
-  // ── דגים ──
-  "דג":[{l:"סלמון טרי",s:"לק״ג · פילה",p:89.90},{l:"בורי טרי",s:"לק״ג",p:42.90},{l:"דניס טרי",s:"לק״ג",p:52.90},{l:"קרפיון",s:"לק״ג",p:28.90},{l:"פילה נילוס",s:"קפוא · 500 גרם",p:24.90}],
-  "טונה":[{l:"טונה בשמן",s:"קופסה · 160 גרם",p:8.90},{l:"טונה במים",s:"קופסה · 160 גרם",p:8.90},{l:"טונה קפיץ",s:"קופסה · 185 גרם",p:9.90},{l:"טונה אורה בשמן",s:"3 קופסאות",p:22.90}],
-  "סלמון":[{l:"סלמון טרי",s:"פילה · לק״ג",p:89.90},{l:"סלמון מעושן",s:"100 גרם",p:22.90},{l:"סלמון קפוא",s:"פילה · 500 גרם",p:39.90}],
-  // ── ירקות ──
-  "עגבניות":[{l:"עגבניות שרי",s:"לק״ג",p:12.90},{l:"עגבניות רגילות",s:"לק״ג",p:7.90},{l:"עגבניות תמרי",s:"לק״ג",p:13.90},{l:"עגבניות מיני",s:"250 גרם",p:8.90}],
-  "מלפפון":[{l:"מלפפונים פרסיים",s:"לק״ג · קטנים",p:8.90},{l:"מלפפון רגיל",s:"לק״ג · גדול",p:5.90},{l:"מלפפון תאילנדי",s:"לק״ג",p:7.90}],
-  "פלפל":[{l:"פלפל אדום",s:"לק״ג",p:14.90},{l:"פלפל צהוב",s:"לק״ג",p:13.90},{l:"פלפל ירוק",s:"לק״ג",p:9.90},{l:"פלפל כתום",s:"לק״ג",p:14.90},{l:"פלפלון חריף",s:"50 גרם",p:4.90}],
-  "גזר":[{l:"גזר לק״ג",s:"שלם",p:5.90},{l:"גזר בייבי",s:"שקית 200 גרם",p:7.90},{l:"גזר מגורר",s:"שקית 300 גרם",p:8.90}],
-  "בצל":[{l:"בצל לבן",s:"לק״ג",p:4.90},{l:"בצל אדום",s:"לק״ג",p:6.90},{l:"שאלוט",s:"לק״ג",p:12.90},{l:"בצל ירוק",s:"צרור",p:4.90}],
-  "שום":[{l:"שום טרי",s:"ראש",p:4.90},{l:"שום כתוש",s:"צנצנת 200 גרם",p:9.90},{l:"שום שלם קלוף",s:"שקית 200 גרם",p:9.90}],
-  "תפוחי אדמה":[{l:"תפוחי אדמה",s:"לק״ג",p:5.90},{l:"בטטה",s:"לק״ג",p:8.90},{l:"תפוחי אדמה קטנים",s:"שקית 1 ק״ג",p:8.90}],
-  "ברוקולי":[{l:"ברוקולי טרי",s:"ראש שלם · לק״ג",p:9.90},{l:"ברוקולי קפוא",s:"שקית 600 גרם",p:12.90}],
-  "אבוקדו":[{l:"אבוקדו האס",s:"יחידה · לק״ג",p:8.90},{l:"אבוקדו טרי",s:"2 יח׳",p:14.90}],
-  "חסה":[{l:"חסה רומית",s:"ראש",p:7.90},{l:"חסה גלילית",s:"ראש",p:6.90},{l:"מיקס ירוקים",s:"שקית 200 גרם",p:12.90},{l:"תרד",s:"שקית 200 גרם",p:8.90}],
-  "עגבנייה":[{l:"עגבניות שרי",s:"לק״ג",p:12.90},{l:"עגבניות רגילות",s:"לק״ג",p:7.90}],
-  // ── פירות ──
-  "תפוח":[{l:"תפוחי גרנד סמית",s:"ירוקים · לק״ג",p:8.90},{l:"תפוחי גאלה",s:"אדומים · לק״ג",p:9.90},{l:"תפוחי פינק ליידי",s:"לק״ג",p:11.90}],
-  "בננה":[{l:"בננות",s:"לק״ג",p:7.90},{l:"בננות קטנות",s:"פינגר · לק״ג",p:12.90}],
-  "תפוז":[{l:"תפוזים",s:"לק״ג",p:6.90},{l:"מנדרינות",s:"לק״ג",p:9.90},{l:"אשכוליות",s:"לק״ג",p:7.90},{l:"לימון",s:"לק״ג",p:7.90}],
-  "ענבים":[{l:"ענבים לבנים",s:"לק״ג",p:16.90},{l:"ענבים אדומים",s:"לק״ג",p:16.90},{l:"ענבי קוקטייל",s:"250 גרם",p:11.90}],
-  "תות":[{l:"תות שדה",s:"250 גרם",p:18.90},{l:"תות שדה טרי",s:"500 גרם",p:28.90}],
-  "מנגו":[{l:"מנגו",s:"יחידה · לק״ג",p:11.90},{l:"מנגו קפוא",s:"שקית 500 גרם",p:19.90}],
-  // ── מזון יבש ──
-  "אורז":[{l:"אורז בסמטי",s:"ארוך · 1 ק״ג",p:12.90},{l:"אורז חום",s:"מלא · 1 ק״ג",p:11.90},{l:"אורז לבן",s:"עגול · 1 ק״ג",p:9.90},{l:"אורז יסמין",s:"תאילנדי · 1 ק״ג",p:14.90},{l:"אורז פרה בושל",s:"מבושל מראש",p:13.90}],
-  "פסטה":[{l:"ספגטי",s:"500 גרם",p:7.90},{l:"פנה",s:"500 גרם",p:8.90},{l:"פרפרות",s:"500 גרם",p:8.90},{l:"פטוצ׳יני",s:"500 גרם",p:9.90},{l:"ריגטוני",s:"500 גרם",p:8.90}],
-  "קמח":[{l:"קמח לבן",s:"1 ק״ג",p:7.90},{l:"קמח מלא",s:"1 ק״ג",p:9.90},{l:"קמח כוסמין",s:"1 ק״ג",p:14.90},{l:"קמח תופח",s:"1 ק״ג",p:8.90},{l:"קמח ללא גלוטן",s:"1 ק״ג",p:19.90}],
-  "סוכר":[{l:"סוכר לבן",s:"1 ק״ג",p:6.90},{l:"סוכר חום",s:"1 ק״ג",p:8.90},{l:"סוכר דמרה",s:"גס · 1 ק״ג",p:11.90},{l:"סוכר וניל",s:"8 גרם",p:3.90}],
-  "שמן":[{l:"שמן זית כתית",s:"750 מל",p:34.90},{l:"שמן קנולה",s:"1 ליטר",p:14.90},{l:"שמן חמניות",s:"1 ליטר",p:12.90},{l:"שמן קוקוס",s:"500 מל",p:28.90},{l:"שמן שומשום",s:"370 מל",p:22.90}],
-  "עדשים":[{l:"עדשים כתומות",s:"500 גרם",p:8.90},{l:"עדשים ירוקות",s:"500 גרם",p:8.90},{l:"עדשים שחורות",s:"500 גרם",p:9.90}],
-  "שעועית":[{l:"שעועית לבנה",s:"500 גרם",p:8.90},{l:"שעועית אדומה",s:"500 גרם",p:8.90},{l:"גרגירי חומוס",s:"500 גרם",p:8.90}],
-  "מלח":[{l:"מלח שולחן",s:"1 ק״ג",p:3.90},{l:"מלח גס",s:"1 ק״ג",p:4.90},{l:"מלח ים",s:"500 גרם",p:7.90},{l:"מלח הימלאיה",s:"500 גרם",p:14.90}],
-  "פתיתים":[{l:"פתיתים קלאסי",s:"500 גרם",p:7.90},{l:"פתיתים מלא",s:"500 גרם",p:9.90},{l:"פתיתים שעועית",s:"500 גרם",p:8.90}],
-  "קוסקוס":[{l:"קוסקוס",s:"500 גרם",p:8.90},{l:"קוסקוס גדול",s:"500 גרם",p:9.90}],
-  "קינואה":[{l:"קינואה לבנה",s:"500 גרם",p:22.90},{l:"קינואה טריצ׳רום",s:"3 צבעים · 500 גרם",p:24.90}],
-  // ── שתייה ──
-  "מים":[{l:"מים מינרלים 1.5",s:"בקבוק",p:4.90},{l:"מים מינרלים 6×1.5",s:"מארז",p:22.90},{l:"מים מינרלים 0.5",s:"בקבוק קטן",p:3.90},{l:"מים מוגזים 1.5",s:"בקבוק",p:5.90}],
-  "מיץ":[{l:"מיץ תפוזים טבעי",s:"1 ליטר",p:16.90},{l:"מיץ תפוחים",s:"1 ליטר",p:12.90},{l:"מיץ ענבים",s:"1 ליטר",p:14.90},{l:"מיץ גזר",s:"1 ליטר",p:13.90}],
-  "קולה":[{l:"קוקה קולה 2 ליטר",s:"בקבוק",p:9.90},{l:"קוקה קולה זירו",s:"2 ליטר",p:9.90},{l:"ספרייט 2 ליטר",s:"בקבוק",p:9.90},{l:"פנטה 2 ליטר",s:"בקבוק",p:9.90}],
-  "קפה":[{l:"נסקפה קלאסיק",s:"נמס · 200 גרם",p:38.90},{l:"נסקפה גולד",s:"נמס · 200 גרם",p:49.90},{l:"קפה טורקי",s:"אלוואדי · 200 גרם",p:24.90},{l:"קפסולות נספרסו",s:"10 יח׳",p:29.90},{l:"כוסות קפה 3 ב-1",s:"מארז 20 שקיות",p:22.90}],
-  "תה":[{l:"תה ליפטון צהוב",s:"25 שקיות",p:12.90},{l:"תה עם נענע",s:"25 שקיות",p:12.90},{l:"תה ירוק",s:"25 שקיות",p:14.90},{l:"תה פירות",s:"20 שקיות",p:14.90},{l:"תה קמומיל",s:"20 שקיות",p:14.90}],
-  "בירה":[{l:"בירה גולדסטאר",s:"500 מל",p:8.90},{l:"בירה נסר",s:"330 מל",p:7.90},{l:"בירה הייניקן",s:"500 מל",p:10.90},{l:"בירה מאקאבי",s:"500 מל",p:8.90}],
-  // ── חטיפים ומתוקים ──
-  "ביסקוויט":[{l:"ביסקוויטים פטי ברה",s:"175 גרם",p:11.90},{l:"ביסקוויטים אוריאו",s:"154 גרם",p:13.90},{l:"ביסקוויטים פרינסס",s:"200 גרם",p:10.90},{l:"ביסקוויט מריה",s:"200 גרם",p:7.90},{l:"לוטוס",s:"בסקוף · 250 גרם",p:19.90}],
-  "עוגיות":[{l:"עוגיות שוקולד צ׳יפ",s:"200 גרם",p:11.90},{l:"עוגיות שיבולת שועל",s:"200 גרם",p:12.90},{l:"עוגיות חמאה",s:"200 גרם",p:14.90},{l:"עוגיות שקדים",s:"200 גרם",p:13.90}],
-  "שוקולד":[{l:"שוקולד חלב",s:"100 גרם",p:9.90},{l:"שוקולד מריר 70%",s:"100 גרם",p:11.90},{l:"שוקולד לבן",s:"100 גרם",p:9.90},{l:"קיטקט",s:"4 מקלות · 45 גרם",p:8.90},{l:"קרמבו",s:"10 יח׳",p:14.90}],
-  "ממרח":[{l:"נוטלה",s:"350 גרם",p:19.90},{l:"נוטלה",s:"750 גרם",p:34.90},{l:"ממרח שוקולד לוטוס",s:"400 גרם",p:22.90},{l:"ממרח בוטנים",s:"340 גרם",p:16.90}],
-  "גלידה":[{l:"גלידת שמנת וניל",s:"1 ליטר",p:24.90},{l:"גלידת שוקולד",s:"1 ליטר",p:24.90},{l:"ארטיק שוקו",s:"6 יח׳",p:22.90},{l:"גלידת יוגורט",s:"500 מל",p:18.90},{l:"גלידת מנגו",s:"500 מל",p:19.90}],
-  "חטיף":[{l:"במבה",s:"80 גרם",p:6.90},{l:"ביסלי גריל",s:"70 גרם",p:6.90},{l:"ביסלי פיצה",s:"70 גרם",p:6.90},{l:"קיקי",s:"80 גרם",p:5.90},{l:"טייסטי",s:"75 גרם",p:6.90}],
-  "במבה":[{l:"במבה",s:"80 גרם",p:6.90},{l:"במבה עם בוטנים",s:"100 גרם",p:7.90},{l:"במבה ממולא",s:"ממולא ממרח · 80 גרם",p:7.90}],
-  "קרקר":[{l:"קרקרים מלח",s:"200 גרם",p:8.90},{l:"קרקרים שיפון",s:"200 גרם",p:9.90},{l:"מצות",s:"500 גרם",p:11.90}],
-  "פופקורן":[{l:"פופקורן מלוח",s:"60 גרם",p:7.90},{l:"פופקורן חמאה",s:"60 גרם",p:7.90},{l:"פופקורן למיקרו",s:"3 × 100 גרם",p:14.90}],
-  "גרנולה":[{l:"גרנולה קלאסית",s:"500 גרם",p:18.90},{l:"גרנולה פירות",s:"500 גרם",p:19.90},{l:"גרנולה שוקולד",s:"500 גרם",p:19.90}],
-  "שיבולת שועל":[{l:"שיבולת שועל",s:"500 גרם",p:9.90},{l:"גרנולה ברים",s:"500 גרם",p:19.90}],
-  // ── שימורים ורטבים ──
-  "חומוס":[{l:"חומוס טחון",s:"400 גרם",p:7.90},{l:"חומוס עם טחינה",s:"400 גרם",p:8.90},{l:"גרגירי חומוס",s:"קופסה 400 גרם",p:8.90}],
-  "טחינה":[{l:"טחינה גולמית",s:"500 גרם",p:14.90},{l:"טחינה מוכנה",s:"400 גרם",p:12.90},{l:"טחינה שחורה",s:"250 גרם",p:18.90}],
-  "זיתים":[{l:"זיתים שחורים",s:"צנצנת 350 גרם",p:14.90},{l:"זיתים ירוקים",s:"צנצנת 350 גרם",p:13.90},{l:"זיתים ממולאים",s:"פלפל · 350 גרם",p:16.90}],
-  "רסק":[{l:"רסק עגבניות",s:"צנצנת 560 גרם",p:6.90},{l:"רסק עגבניות",s:"קופסה 400 גרם",p:5.90},{l:"רסק עגבניות × 3",s:"מארז חיסכון",p:15.90}],
-  "רוטב":[{l:"רוטב עגבניות",s:"500 גרם",p:9.90},{l:"רוטב ארביאטה",s:"חריף · 500 גרם",p:11.90},{l:"רוטב פסטו",s:"130 גרם",p:14.90},{l:"רוטב סויה",s:"150 מל",p:12.90}],
-  "קטשופ":[{l:"קטשופ היינץ",s:"570 גרם",p:14.90},{l:"קטשופ ברמן",s:"500 גרם",p:9.90},{l:"קטשופ פיקנטי",s:"חריף · 500 גרם",p:11.90}],
-  "מיונז":[{l:"מיונז הלמן",s:"430 גרם",p:16.90},{l:"מיונז ברמן",s:"500 גרם",p:12.90},{l:"מיונז לייט",s:"430 גרם",p:15.90}],
-  "חרדל":[{l:"חרדל דיז׳ון",s:"200 גרם",p:11.90},{l:"חרדל אמריקאי",s:"260 גרם",p:9.90},{l:"חרדל עם דבש",s:"200 גרם",p:12.90}],
-  "ריבה":[{l:"ריבת תות",s:"340 גרם",p:12.90},{l:"ריבת משמש",s:"340 גרם",p:12.90},{l:"ריבת דובדבנים",s:"340 גרם",p:14.90},{l:"ריבה ללא סוכר",s:"340 גרם",p:16.90}],
-  "דבש":[{l:"דבש פרחים",s:"500 גרם",p:22.90},{l:"דבש יוקליפטוס",s:"500 גרם",p:24.90},{l:"דבש אורגני",s:"250 גרם",p:28.90}],
-  // ── ניקיון וטיפוח ──
-  "שמפו":[{l:"שמפו פנטן קלאסי",s:"400 מל",p:19.90},{l:"שמפו הד אנד שולדרס",s:"400 מל",p:24.90},{l:"שמפו לשיער יבש",s:"400 מל",p:22.90},{l:"שמפו לשיער שמן",s:"400 מל",p:22.90}],
-  "מרכך":[{l:"מרכך שיער פנטן",s:"400 מל",p:22.90},{l:"מרכך שיער",s:"300 מל",p:18.90}],
-  "סבון":[{l:"סבון גוף דאב",s:"400 מל",p:16.90},{l:"סבון ידיים",s:"500 מל",p:9.90},{l:"סבון כלים",s:"500 מל",p:9.90},{l:"סבון גוף מוצק",s:"90 גרם",p:7.90}],
-  "נייר":[{l:"נייר טואלט 32",s:"32 גלילות",p:44.90},{l:"נייר טואלט 16",s:"16 גלילות",p:24.90},{l:"מגבונים לחים",s:"72 יח׳",p:12.90},{l:"ממחטות נייר",s:"10 חבילות",p:14.90}],
-  "אבקת כביסה":[{l:"אריאל 4.5 ק״ג",s:"גדול",p:54.90},{l:"פרסיל 3 ק״ג",s:"בינוני",p:44.90},{l:"אבקת כביסה לנג׳יל",s:"עדין",p:44.90}],
-  "נוזל כלים":[{l:"פיירי לימון",s:"500 מל",p:9.90},{l:"פיירי קלאסי",s:"750 מל",p:12.90},{l:"ספונג׳קס",s:"500 מל",p:8.90}],
-  "נוזל ניקוי":[{l:"ממס שומן",s:"750 מל",p:14.90},{l:"וים",s:"750 מל",p:11.90},{l:"ממס אמבטיה",s:"750 מל",p:13.90}],
-  // ── תינוקות ──
-  "טיטול":[{l:"טיטולים פמפרס 1 (2-5 ק״ג)",s:"27 יח׳",p:44.90},{l:"טיטולים פמפרס 2 (4-8 ק״ג)",s:"37 יח׳",p:49.90},{l:"טיטולים פמפרס 3 (6-10 ק״ג)",s:"40 יח׳",p:54.90},{l:"טיטולים פמפרס 4 (9-14 ק״ג)",s:"33 יח׳",p:54.90},{l:"טיטולים פמפרס 5 (11-16 ק״ג)",s:"30 יח׳",p:54.90}],
-  "טיטולי":[{l:"טיטולים פמפרס 1",s:"2-5 ק״ג · 27 יח׳",p:44.90},{l:"טיטולים פמפרס 2",s:"4-8 ק״ג · 37 יח׳",p:49.90},{l:"טיטולים פמפרס 3",s:"6-10 ק״ג · 40 יח׳",p:54.90},{l:"טיטולים פמפרס 4",s:"9-14 ק״ג · 33 יח׳",p:54.90},{l:"טיטולים פמפרס 5",s:"11-16 ק״ג · 30 יח׳",p:54.90}],
-  "חיתול":[{l:"חיתולים פמפרס 1",s:"2-5 ק״ג · 27 יח׳",p:44.90},{l:"חיתולים פמפרס 2",s:"4-8 ק״ג · 37 יח׳",p:49.90},{l:"חיתולים פמפרס 3",s:"6-10 ק״ג · 40 יח׳",p:54.90},{l:"חיתולים חגלה 4",s:"9-14 ק״ג · 32 יח׳",p:49.90},{l:"חיתולים חגלה 5",s:"11+ ק״ג · 28 יח׳",p:49.90}],
-  "מגבון":[{l:"מגבונים לחים 72",s:"72 יח׳",p:12.90},{l:"מגבונים לחים 144",s:"144 יח׳ · מארז כפול",p:22.90},{l:"מגבונים לחים מינים",s:"20 יח׳",p:5.90},{l:"מגבונים אנטיבקטריאל",s:"72 יח׳",p:14.90}],
-  "פורמולה":[{l:"פורמולה תינוקות 0-6",s:"900 גרם",p:84.90},{l:"פורמולה תינוקות 6-12",s:"900 גרם",p:84.90},{l:"פורמולה מעבר 1-3",s:"900 גרם",p:74.90}],
-  "מזון תינוק":[{l:"מחית ירקות 4+",s:"190 גרם",p:8.90},{l:"מחית פירות 4+",s:"190 גרם",p:8.90},{l:"מחית בשר וירק 8+",s:"190 גרם",p:11.90},{l:"ביסקוויט תינוקות",s:"150 גרם",p:12.90}],
-  // ── בית ──
-  "נייר מגבת":[{l:"נייר מגבת מטבח",s:"3 גלילות",p:18.90},{l:"נייר מגבת מטבח",s:"6 גלילות",p:29.90}],
-  "שקית":[{l:"שקיות אשפה 60 ליטר",s:"20 יח׳",p:14.90},{l:"שקיות אשפה 30 ליטר",s:"30 יח׳",p:12.90},{l:"שקיות הקפאה",s:"30 יח׳",p:9.90},{l:"שקיות זיפלוק",s:"15 יח׳",p:11.90}],
-  "ניילון":[{l:"ניילון נצמד",s:"30 מטר",p:9.90},{l:"ניילון אלומיניום",s:"20 מטר",p:12.90},{l:"נייר אפייה",s:"10 מטר",p:12.90}],
-  "תרסיס":[{l:"תרסיס ניקוי כללי",s:"750 מל",p:12.90},{l:"תרסיס חלונות",s:"500 מל",p:11.90},{l:"תרסיס חדר אמבטיה",s:"750 מל",p:14.90}],
-  "ספוג":[{l:"ספוגיות שטיפה",s:"3 יח׳",p:7.90},{l:"ספוגיות פד",s:"2 יח׳",p:8.90}],
-  "נורה":[{l:"נורת LED 9W",s:"חבילה",p:14.90},{l:"נורת LED 7W",s:"חבילה",p:12.90}],
-  // ── תבלינים ──
-  "תבלין":[{l:"פלפל שחור טחון",s:"50 גרם",p:8.90},{l:"פפריקה מתוקה",s:"50 גרם",p:6.90},{l:"כמון",s:"50 גרם",p:6.90},{l:"קינמון",s:"50 גרם",p:7.90},{l:"כורכום",s:"50 גרם",p:6.90}],
-  "פלפל שחור":[{l:"פלפל שחור טחון",s:"50 גרם",p:8.90},{l:"גרגירי פלפל שחור",s:"50 גרם",p:9.90},{l:"פלפל שחור גרוס",s:"50 גרם",p:8.90}],
-  "פפריקה":[{l:"פפריקה מתוקה",s:"50 גרם",p:6.90},{l:"פפריקה חריפה",s:"50 גרם",p:6.90},{l:"פפריקה מעושנת",s:"50 גרם",p:9.90}],
-  "כורכום":[{l:"כורכום",s:"50 גרם",p:6.90},{l:"כורכום אורגני",s:"50 גרם",p:11.90}],
-  "קינמון":[{l:"קינמון טחון",s:"50 גרם",p:7.90},{l:"מקלות קינמון",s:"30 גרם",p:8.90}],
-  "עשבי תיבול":[{l:"בזיליקום טרי",s:"20 גרם",p:9.90},{l:"כוסברה טרייה",s:"20 גרם",p:6.90},{l:"פטרוזיליה",s:"50 גרם",p:5.90},{l:"נענע טרייה",s:"20 גרם",p:7.90}],
-  // ── קפואים ──
-  "קפוא":[{l:"ירקות מעורבים קפואים",s:"750 גרם",p:14.90},{l:"תירס קפוא",s:"400 גרם",p:8.90},{l:"אפונה קפואה",s:"400 גרם",p:8.90},{l:"שעועית ירוקה קפואה",s:"400 גרם",p:9.90}],
-  "פיצה":[{l:"פיצה מרגריטה קפואה",s:"360 גרם",p:18.90},{l:"פיצה ירקות קפואה",s:"360 גרם",p:19.90},{l:"פיצה פפרוני קפואה",s:"360 גרם",p:22.90}],
-  "שניצל קפוא":[{l:"שניצל עוף קפוא",s:"1 ק״ג",p:38.90},{l:"שניצל הודו קפוא",s:"1 ק״ג",p:42.90},{l:"נאגטס עוף",s:"500 גרם",p:24.90}],
-  "גלידה קפואה":[{l:"גלידת וניל שמנת",s:"1 ליטר",p:24.90},{l:"ארטיק שוקו",s:"6 יח׳",p:22.90},{l:"גלידת פירות",s:"500 מל",p:18.90}],
-  // ── אפייה ──
-  "קמח תופח":[{l:"קמח תופח",s:"1 ק״ג",p:8.90},{l:"אבקת אפייה",s:"20 גרם",p:4.90},{l:"סודה לשתייה",s:"500 גרם",p:5.90}],
-  "שמרים":[{l:"שמרים יבשים",s:"11 גרם",p:5.90},{l:"שמרים טריים",s:"50 גרם",p:4.90}],
-  "וניל":[{l:"תמצית וניל",s:"50 מל",p:12.90},{l:"סוכר וניל",s:"8 גרם",p:3.90},{l:"מקל וניל",s:"2 יח׳",p:14.90}],
-  "קקאו":[{l:"קקאו שחור",s:"200 גרם",p:12.90},{l:"שוקו אבקה",s:"200 גרם",p:11.90},{l:"ממרח קקאו",s:"200 גרם",p:14.90}],
-  "דבש דבורים":[{l:"דבש פרחים",s:"500 גרם",p:22.90},{l:"דבש יוקליפטוס",s:"500 גרם",p:24.90},{l:"דבש הר",s:"500 גרם",p:28.90}],
-  // ── שימורים נוספים ──
-  "שימורים":[{l:"טונה בשמן",s:"קופסה 160 גרם",p:8.90},{l:"עגבניות מרוסקות",s:"400 גרם",p:5.90},{l:"גרגירי תירס",s:"400 גרם",p:7.90},{l:"אפונה ירוקה",s:"400 גרם",p:6.90}],
-  "תירס":[{l:"גרגירי תירס שימורים",s:"400 גרם",p:7.90},{l:"תירס קפוא",s:"400 גרם",p:8.90},{l:"קלחי תירס",s:"2 יח׳",p:9.90}],
-  "אפונה":[{l:"אפונה ירוקה שימורים",s:"400 גרם",p:6.90},{l:"אפונה קפואה",s:"400 גרם",p:8.90}],
-  // ── בריאות וטבעי ──
-  "שמן קוקוס":[{l:"שמן קוקוס",s:"500 מל",p:28.90},{l:"שמן קוקוס אורגני",s:"300 מל",p:32.90}],
-  "אגוזים":[{l:"אגוזי מלך",s:"150 גרם",p:14.90},{l:"אגוזי קשיו",s:"100 גרם",p:16.90},{l:"שקדים",s:"100 גרם",p:14.90},{l:"בוטנים קלויים",s:"200 גרם",p:9.90}],
-  "שקדים":[{l:"שקדים קלויים",s:"100 גרם",p:14.90},{l:"שקדים גולמיים",s:"200 גרם",p:18.90},{l:"שקדים טחונים",s:"200 גרם",p:19.90}],
-  "גרעינים":[{l:"גרעיני חמנייה",s:"200 גרם",p:8.90},{l:"גרעיני דלעת",s:"150 גרם",p:12.90},{l:"גרעיני פשתן",s:"200 גרם",p:9.90}],
-  "פירות יבשים":[{l:"צימוקים",s:"200 גרם",p:8.90},{l:"תמרים מג׳הול",s:"500 גרם",p:22.90},{l:"משמשים מיובשים",s:"200 גרם",p:12.90},{l:"שזיפים מיובשים",s:"200 גרם",p:11.90}],
-  "ויטמין":[{l:"ויטמין C 1000",s:"30 טבליות",p:24.90},{l:"ויטמין D3",s:"60 כמוסות",p:29.90},{l:"מולטי ויטמין",s:"30 טבליות",p:34.90}],
-  // ── לחיות מחמד ──
-  "מזון כלב":[{l:"פדיגרי כלב בוגר",s:"3 ק״ג",p:44.90},{l:"רויאל קנין כלב",s:"2 ק״ג",p:64.90},{l:"פוצ׳ טעמים",s:"6 × 100 גרם",p:19.90}],
-  "מזון חתול":[{l:"פורינה חתול",s:"1.5 ק״ג",p:34.90},{l:"פליקס שקיות",s:"12 × 85 גרם",p:34.90},{l:"וויסקס טעמים",s:"12 × 100 גרם",p:29.90}],
-  // ── בשרים מעובדים ──
-  "קציצות":[{l:"קציצות עוף קפואות",s:"500 גרם",p:22.90},{l:"קציצות בשר קפואות",s:"500 גרם",p:28.90},{l:"קציצות ירקות",s:"300 גרם",p:18.90}],
-  "המבורגר":[{l:"המבורגר בקר",s:"2 × 150 גרם",p:22.90},{l:"המבורגר עוף",s:"2 × 130 גרם",p:18.90},{l:"המבורגר הודו",s:"2 × 130 גרם",p:19.90}],
-  "נקניקייה":[{l:"נקניקיות עוף",s:"300 גרם",p:16.90},{l:"נקניקיות בקר",s:"300 גרם",p:21.90},{l:"נקניקיות מרגז",s:"300 גרם",p:19.90},{l:"פרנקפורטר",s:"200 גרם",p:18.90}],
-  // ── מאפים ──
-  "קרואסון":[{l:"קרואסון חמאה",s:"יח׳",p:8.90},{l:"קרואסון שוקולד",s:"יח׳",p:9.90},{l:"קרואסון גבינה",s:"יח׳",p:9.90}],
-  "עוגה":[{l:"עוגת שוקולד",s:"חתיכה",p:14.90},{l:"עוגת גבינה",s:"חתיכה",p:16.90},{l:"מאפין שוקולד",s:"יח׳",p:8.90}],
-  "בורקס":[{l:"בורקס גבינה",s:"יח׳",p:7.90},{l:"בורקס תפוחי אדמה",s:"יח׳",p:7.90},{l:"בורקס פטריות",s:"יח׳",p:8.90}],
-};
-const getLocalSuggestions=text=>{
-  const l=text.trim().toLowerCase();
-  if(l.length<2)return null;
-  // Priority 1: exact key match
-  for(const[k,v]of Object.entries(LOCAL_SUGGESTIONS))
-    if(l===k)return{key:k,list:v};
-  // Priority 2: query contains key or key contains query (>=2 chars)
-  for(const[k,v]of Object.entries(LOCAL_SUGGESTIONS))
-    if(l.includes(k)||k.includes(l))return{key:k,list:v};
-  // Priority 3: fuzzy — first 4 chars match (handles singulars, typos)
-  if(l.length>=4){
-    for(const[k,v]of Object.entries(LOCAL_SUGGESTIONS))
-      if(k.startsWith(l.slice(0,4))||l.startsWith(k.slice(0,4)))return{key:k,list:v};
-  }
-  return null;
-};
-
-// ════════════════════════════════════════════════════════════
-// CATEGORIES
-// ════════════════════════════════════════════════════════════
-const CATEGORIES={
-  "🥛 מוצרי חלב":["חלב","גבינה","יוגורט","שמנת","חמאה","קוטג","ביצים","לבן"],
-  "🥩 בשר ועוף":["עוף","בשר","כבד","נקניק","שניצל","קציצות","טלה","כבש","עגל","סטייק","אנטריקוט","סינטה"],
-  "🐟 דגים":["דג","סלמון","טונה","בורי"],
-  "🥦 ירקות":["עגבני","מלפפון","בצל","גזר","תפוחי אדמה","פלפל","חסה","ברוקולי","אבוקדו","שום","קישוא","כרוב","בטטה"],
-  "🍎 פירות":["תפוח","בננ","לימון","תפוז","ענבים","מנגו","תות","אגס","שזיף"],
-  "🍞 לחם":["לחם","פיתה","לחמני","חלה","בגט","בורקס"],
-  "🧂 מזון יבש":["אורז","פסטה","קמח","סוכר","מלח","שמן","עדשים","שעועית","קטניות"],
-  "🧃 שתייה":["מיץ","מים","קולה","ספרייט","בירה","יין","קפה","תה","אנרגי"],
-  "🍫 חטיפים":["שוקולד","ממרח","עוגי","גלידה","חטיף","פופקורן","נוטלה","במבה","קרקר"],
-  "🫙 שימורים":["חומוס","טחינה","זיתים","רסק","רוטב","קטשופ","מיונז","חרדל","ריבה","דבש"],
-  "🧴 ניקיון":["שמפו","מרכך","סבון","נייר","אבקת","נוזל כלים","ממס"],
-};
-const getCategoryOf=name=>{
-  const l=name.toLowerCase();
-  for(const[cat,kws]of Object.entries(CATEGORIES))
-    if(kws.some(k=>l.includes(k)))return cat;
-  return"🛒 אחר";
-};
-
-// ════════════════════════════════════════════════════════════
-// CHAIN DATA
-// ════════════════════════════════════════════════════════════
-const CHAINS=[
-  {id:"rami_levy",name:"רמי לוי",factor:.87,branches:[{n:"בית שאן",lat:32.503,lng:35.499},{n:"עפולה",lat:32.607,lng:35.289},{n:"טבריה",lat:32.796,lng:35.531},{n:"כרמיאל",lat:32.914,lng:35.297},{n:"נהריה",lat:33.007,lng:35.098},{n:"קריות",lat:32.832,lng:35.075},{n:"צפת",lat:32.964,lng:35.498},{n:"קריית שמונה",lat:33.207,lng:35.569},{n:"ירושלים",lat:31.771,lng:35.213},{n:"תל אביב",lat:32.081,lng:34.781},{n:"חיפה",lat:32.819,lng:34.999},{n:"נתניה",lat:32.322,lng:34.857},{n:"אשדוד",lat:31.804,lng:34.655},{n:'ראשל"צ',lat:31.971,lng:34.801},{n:"באר שבע",lat:31.252,lng:34.791},{n:"אשקלון",lat:31.669,lng:34.571},{n:"אילת",lat:29.558,lng:34.952},{n:"מודיעין",lat:31.893,lng:35.010}]},
-  {id:"osher_ad",name:"אושר עד",factor:.91,branches:[{n:"בית שאן",lat:32.501,lng:35.497},{n:"נצרת",lat:32.699,lng:35.303},{n:"עכו",lat:32.926,lng:35.077},{n:"זכרון יעקב",lat:32.568,lng:34.953},{n:"ירושלים",lat:31.778,lng:35.224},{n:"מודיעין",lat:31.893,lng:35.010},{n:"בית שמש",lat:31.746,lng:34.988},{n:"בני ברק",lat:32.083,lng:34.838},{n:'פ"ת',lat:32.089,lng:34.888},{n:"חדרה",lat:32.435,lng:34.918}]},
-  {id:"yochananof",name:"יוחננוף",factor:.97,branches:[{n:"ירושלים מרכז",lat:31.780,lng:35.220},{n:"ירושלים גילה",lat:31.720,lng:35.165},{n:"מבשרת ציון",lat:31.801,lng:35.141},{n:"מעלה אדומים",lat:31.776,lng:35.298}]},
-  {id:"yeinot_bitan",name:"יינות ביתן",factor:.98,branches:[{n:"בית שאן",lat:32.500,lng:35.500},{n:"עפולה",lat:32.606,lng:35.291},{n:"טבריה",lat:32.789,lng:35.526},{n:"תל אביב",lat:32.071,lng:34.789},{n:"רמת השרון",lat:32.147,lng:34.836},{n:"הרצליה",lat:32.165,lng:34.843},{n:"נס ציונה",lat:31.930,lng:34.797},{n:"באר שבע",lat:31.252,lng:34.791},{n:"חיפה",lat:32.810,lng:34.990},{n:"כפר סבא",lat:32.178,lng:34.907},{n:"אשדוד",lat:31.800,lng:34.650}]},
-  {id:"victory",name:"ויקטורי",factor:.99,branches:[{n:"בית שאן",lat:32.502,lng:35.498},{n:"עפולה",lat:32.604,lng:35.292},{n:"חיפה",lat:32.815,lng:34.992},{n:"גבעתיים",lat:32.068,lng:34.813},{n:'פ"ת',lat:32.094,lng:34.878},{n:"רחובות",lat:31.893,lng:34.811},{n:"חולון",lat:32.012,lng:34.778}]},
-  {id:"shufersal",name:"שופרסל",factor:1.00,branches:[{n:"בית שאן",lat:32.500,lng:35.500},{n:"עפולה",lat:32.605,lng:35.290},{n:"טבריה",lat:32.793,lng:35.528},{n:"נצרת",lat:32.699,lng:35.303},{n:"קריית שמונה",lat:33.207,lng:35.569},{n:"תל אביב",lat:32.080,lng:34.780},{n:"ירושלים",lat:31.775,lng:35.215},{n:"חיפה",lat:32.814,lng:34.994},{n:"באר שבע",lat:31.248,lng:34.789},{n:'ראשל"צ',lat:31.965,lng:34.803},{n:"נתניה",lat:32.330,lng:34.862},{n:"אשקלון",lat:31.669,lng:34.571},{n:"אילת",lat:29.558,lng:34.952},{n:"רמת גן",lat:32.082,lng:34.813},{n:'פ"ת',lat:32.091,lng:34.875}]},
-  {id:"mega",name:"מגה",factor:1.03,branches:[{n:"תל אביב",lat:32.076,lng:34.791}]},
-  {id:"am_pm",name:"am:pm",factor:1.18,branches:[{n:"תל אביב",lat:32.073,lng:34.782}]},
-];
-
-const distKm=(la1,lo1,la2,lo2)=>{
-  const R=6371,dL=(la2-la1)*Math.PI/180,dG=(lo2-lo1)*Math.PI/180;
-  const a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dG/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-};
-const roadKm=(la1,lo1,la2,lo2)=>distKm(la1,lo1,la2,lo2)*1.35;
-
-const getNearestBranch=chainId=>{
-  if(!state.userLat)return null;
-  const ch=CHAINS.find(c=>c.id===chainId);
-  if(!ch)return null;
-  let best={dist:Infinity,n:""};
-  for(const b of ch.branches){
-    const d=distKm(state.userLat,state.userLng,b.lat,b.lng);
-    if(d<best.dist)best={dist:d,...b};
-  }
-  return best;
-};
-
-// ════════════════════════════════════════════════════════════
-// GUIDE STEPS
-// ════════════════════════════════════════════════════════════
-const GUIDE_STEPS=[
-  {emoji:"🛒",title:"ברוכים הבאים לסלי!",body:"<b>רשימת קניות חכמה שחוסכת כסף.</b><br>השוואת מחירים בין רשתות + מכולת שכונתית + חישוב עלות נסיעה. עובד גם ללא אינטרנט!"},
-  {emoji:"✏️",title:"הוסף מוצרים ב-3 דרכים",body:"1. <b>הקלד</b> שם ← השלמה אוטומטית חכמה<br>2. <b>🎤 לחץ ממושך</b> ← דבר ← שחרר<br>3. <b>📷 סרוק ברקוד</b> ← AI מזהה מוצר ומחיר"},
-  {emoji:"⚖️",title:"מוצרי משקל ויחידות",body:"מלפפון, עוף, בשר, פירות...<br>לחץ <b>⚖️</b> ליד המוצר ← הזן גרמים <b>או</b> מספר יחידות.<br>האפליקציה מחשבת לפי ממוצע שוק ישראלי."},
-  {emoji:"🏪",title:"מכולת שכונתית",body:"<b>⚙️ הגדרות ← הוסף מכולת</b><br>סרוק קבלות ← AI מחלץ מחירים אוטומטית.<br>ההשוואה כוללת את המכולת עם <b>₪0 עלות נסיעה!</b>"},
-  {emoji:"💰",title:"חשב מחיר הסל",body:"<b>לשונית 💰 למטה</b><br>השוואה בין כל הרשתות שבחרת.<br>לחץ 🚗 ← בחר בנזין / חשמלי / ידני לחישוב נסיעה."},
-  {emoji:"📊",title:"היסטוריה וחיסכון",body:"<b>לשונית 📊 למטה</b><br>כל קנייה שמורה עם גרף חיסכון חודשי.<br>ראה כמה חסכת לאורך זמן!"},
-];
-
-// ════════════════════════════════════════════════════════════
-// APPLICATION STATE
-// ════════════════════════════════════════════════════════════
-const state={
-  currentUser:null,
-  items:[],
-  selectedChains:["rami_levy","shufersal","yeinot_bitan"],
-  localStores:{},
-  localStoreListeners:{},
-  unsubscribeItems:null,
-  unsubscribeHistory:null,
-  history:[],
-  activeStoreId:null,
-  receiptItems:[],
-  guideStep:0,
-  voiceState:"idle",
-  voiceRec:null,
-  voiceTimer:null,
-  weightTab:"kg",
-  editingItemId:null,
-  travelOpen:false,
-  travelMode:"gas",
-  scanTarget:"list",
-  scanActive:false,
-  scanStream:null,
-  userLat:null,
-  userLng:null,
-  currentTab:"list",
-  aiTimer:null,
-  lastAIQuery:"",
-  workerOnline:false,
-};
-
-// ════════════════════════════════════════════════════════════
-// UTILITY FUNCTIONS
-// ════════════════════════════════════════════════════════════
-const $=id=>document.getElementById(id);
-const uid=()=>Date.now()+"-"+Math.random().toString(36).slice(2,8);
-
-const showToast=(msg,duration=2600)=>{
-  const t=$("toast");t.textContent=msg;t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"),duration);
-};
-
-const showPage=page=>{
-  ["page-login","page-guide","page-main"].forEach(p=>{
-    const el=$(p);
-    el.classList.toggle("active",p===page);
-    el.style.display=p===page?"flex":"none";
-  });
-};
-
-// ════════════════════════════════════════════════════════════
-// AUTH
-// ════════════════════════════════════════════════════════════
-window.doLogin=async()=>{
-  $("login-err").textContent="";
-  const email=$("login-email").value.trim();
-  const pass=$("login-pass").value;
-  if(!email||pass.length<6){$("login-err").textContent="נא למלא מייל וסיסמה";return;}
-  try{
-    try{await signInWithEmailAndPassword(auth,email,pass);}
-    catch(e){
-      if(["auth/user-not-found","auth/invalid-credential","auth/wrong-password","auth/invalid-email"].includes(e.code)){
-        await createUserWithEmailAndPassword(auth,email,pass);
-      }else throw e;
-    }
-  }catch(e){$("login-err").textContent="שגיאה: "+(e.message||e.code);}
-};
-
-window.doLogout=async()=>{
-  if(state.unsubscribeItems){state.unsubscribeItems();state.unsubscribeItems=null;}
-  if(state.unsubscribeHistory){state.unsubscribeHistory();state.unsubscribeHistory=null;}
-  Object.values(state.localStoreListeners).forEach(u=>u());
-  state.localStoreListeners={};
-  state.items=[];state.localStores={};state.history=[];
-  await signOut(auth);
-  showPage("page-login");
-};
-
-window.showPass=()=>{ $("login-pass").type="text"; };
-window.hidePass=()=>{ $("login-pass").type="password"; };
-
-onAuthStateChanged(auth,user=>{
-  if(user){
-    state.currentUser=user;
-    showPage("page-main");
-    checkWorker();
-    startItemsListener();
-    loadLocalStores();
-    loadHistory();
-    updateHeaderSub();
-    initLocation();
-    if(!localStorage.getItem("sali-guide-seen")){
-      localStorage.setItem("sali-guide-seen","1");
-      setTimeout(openGuide,400);
-    }
-  }else{
-    state.currentUser=null;
-    showPage("page-login");
-  }
-});
-
-// ════════════════════════════════════════════════════════════
-// WORKER CHECK
-// ════════════════════════════════════════════════════════════
-const checkWorker=async()=>{
-  // Silent background check — just updates UI label
-  // triggerAIComplete always fires regardless of this result
-  try{
-    const r=await fetch(WORKER_URL+"?action=autocomplete&q=חלב",{signal:AbortSignal.timeout(6000)});
-    const d=await r.json();
-    state.workerOnline=!!(d&&(d.suggestions!==undefined||d.local!==undefined));
-  }catch{state.workerOnline=false;}
-  const wb=$("status-worker");
-  const wl=$("worker-status-label");
-  if(state.workerOnline){
-    wb.className="status-worker connected";wb.textContent="🔵 AI מחובר";
-    if(wl)wl.textContent="מחובר ✓";
-  }else{
-    wb.className="status-worker offline-mode";wb.textContent="⚪ ממוצע שוק";
-    if(wl)wl.textContent="לא מחובר";
-  }
-};
-
-// ════════════════════════════════════════════════════════════
-// LOCATION
-// ════════════════════════════════════════════════════════════
-const initLocation=()=>{
-  if(!navigator.geolocation)return;
-  navigator.geolocation.getCurrentPosition(pos=>{
-    state.userLat=pos.coords.latitude;
-    state.userLng=pos.coords.longitude;
-    // Sort chains by proximity
-    const scored=CHAINS.map(ch=>{
-      let best=Infinity;
-      for(const b of ch.branches){
-        const d=distKm(state.userLat,state.userLng,b.lat,b.lng);
-        if(d<best)best=d;
+  <!-- רישום Service Worker - יתווסף בקובץ sw.js -->
+  <script>
+    // גילוי מצב אופליין
+    (function() {
+      var banner = document.getElementById('offline-banner');
+      function updateStatus() {
+        if (navigator.onLine) {
+          banner.classList.remove('visible');
+        } else {
+          banner.classList.add('visible');
+        }
       }
-      return{id:ch.id,dist:best};
-    });
-    scored.sort((a,b)=>a.dist-b.dist);
-    state.selectedChains=scored.slice(0,3).map(c=>c.id);
-    renderSettings();
-    showToast("📍 רשתות עודכנו לפי מיקומך");
-  },()=>{},{enableHighAccuracy:true,timeout:10000,maximumAge:300000});
-};
+      window.addEventListener('online', updateStatus);
+      window.addEventListener('offline', updateStatus);
+      updateStatus();
+    })();
 
-// ════════════════════════════════════════════════════════════
-// FIRESTORE – ITEMS
-// ════════════════════════════════════════════════════════════
-const startItemsListener=()=>{
-  if(!state.currentUser)return;
-  if(state.unsubscribeItems)state.unsubscribeItems();
-  const q=query(collection(db,"users",state.currentUser.uid,"items"),orderBy("addedAt","asc"));
-  state.unsubscribeItems=onSnapshot(q,snap=>{
-    state.items=snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderList();
-    updateHeaderSub();
-    const sb=$("status-sync");
-    if(sb){sb.style.display="block";setTimeout(()=>sb.style.display="none",1500);}
-    if(state.currentTab==="basket")renderBasketScreen();
-  });
-};
-
-const saveItem=item=>setDoc(doc(db,"users",state.currentUser.uid,"items",item.id),item);
-const removeItem=id=>deleteDoc(doc(db,"users",state.currentUser.uid,"items",id));
-const patchItem=(id,data)=>updateDoc(doc(db,"users",state.currentUser.uid,"items",id),data);
-
-// ════════════════════════════════════════════════════════════
-// FIRESTORE – HISTORY
-// ════════════════════════════════════════════════════════════
-const loadHistory=()=>{
-  if(!state.currentUser)return;
-  if(state.unsubscribeHistory)state.unsubscribeHistory();
-  const q=query(collection(db,"users",state.currentUser.uid,"history"),orderBy("date","desc"));
-  state.unsubscribeHistory=onSnapshot(q,snap=>{
-    state.history=snap.docs.map(d=>({id:d.id,...d.data()}));
-    if(state.currentTab==="savings")renderSavings();
-  });
-};
-
-const saveHistoryEntry=async entry=>{
-  await setDoc(doc(db,"users",state.currentUser.uid,"history",uid()),entry);
-};
-
-window.clearHistory=async()=>{
-  if(!confirm("למחוק את כל ההיסטוריה?"))return;
-  const snap=await getDocs(collection(db,"users",state.currentUser.uid,"history"));
-  for(const d of snap.docs)await deleteDoc(d.ref);
-  showToast("היסטוריה נמחקה");
-};
-
-// ════════════════════════════════════════════════════════════
-// FIRESTORE – LOCAL STORES
-// ════════════════════════════════════════════════════════════
-const loadLocalStores=()=>{
-  if(!state.currentUser)return;
-  const q=query(collection(db,"users",state.currentUser.uid,"stores"),orderBy("createdAt","asc"));
-  onSnapshot(q,snap=>{
-    snap.docs.forEach(d=>{
-      const id=d.id;
-      if(!state.localStores[id]){
-        state.localStores[id]={id,...d.data(),prices:{}};
-        listenStorePrices(id);
-      }else{
-        Object.assign(state.localStores[id],{id,...d.data()});
-      }
-    });
-    // Remove deleted
-    const ids=snap.docs.map(d=>d.id);
-    for(const id of Object.keys(state.localStores)){
-      if(!ids.includes(id)){delete state.localStores[id];if(state.localStoreListeners[id]){state.localStoreListeners[id]();delete state.localStoreListeners[id];}}
-    }
-    renderLocalStoresList();
-    $("scan-store-choice").style.display=Object.keys(state.localStores).length>0?"block":"none";
-  });
-};
-
-const listenStorePrices=id=>{
-  const q=query(collection(db,"users",state.currentUser.uid,"stores",id,"prices"),orderBy("addedAt","asc"));
-  state.localStoreListeners[id]=onSnapshot(q,snap=>{
-    if(!state.localStores[id])return;
-    state.localStores[id].prices={};
-    snap.docs.forEach(d=>{state.localStores[id].prices[d.id]={id:d.id,...d.data()};});
-    if(state.activeStoreId===id)renderStoreDetailItems();
-    if(state.currentTab==="basket")renderBasketScreen();
-  });
-};
-
-window.createLocalStore=async()=>{
-  const name=$("new-store-name").value.trim();
-  if(!name)return;
-  await setDoc(doc(db,"users",state.currentUser.uid,"stores",uid()),{name,createdAt:Date.now()});
-  $("new-store-name").value="";
-  closeAddStore();
-  showToast("מכולת נוצרה: "+name);
-};
-
-const addStorePriceItem=async(sid,item)=>setDoc(doc(db,"users",state.currentUser.uid,"stores",sid,"prices",item.id),item);
-const deleteStorePriceItem=async(sid,itemId)=>deleteDoc(doc(db,"users",state.currentUser.uid,"stores",sid,"prices",itemId));
-
-// ════════════════════════════════════════════════════════════
-// GUIDE
-// ════════════════════════════════════════════════════════════
-const renderGuide=()=>{
-  const s=GUIDE_STEPS[state.guideStep];
-  $("guide-emoji").textContent=s.emoji;
-  $("guide-title").textContent=s.title;
-  $("guide-body").innerHTML=s.body;
-  $("guide-dots").innerHTML=GUIDE_STEPS.map((_,i)=>`<div class="guide-dot${i===state.guideStep?" on":""}"></div>`).join("");
-  $("guide-back-btn").style.display=state.guideStep>0?"block":"none";
-  $("guide-next-btn").textContent=state.guideStep<GUIDE_STEPS.length-1?"הבא ›":"יאללה!";
-};
-
-window.openGuide=()=>{
-  state.guideStep=0;renderGuide();
-  // If coming from main, show guide page then back
-  if($("page-main").classList.contains("active")){
-    showPage("page-guide");
-    // Override next to return to main
-    window._guideFromMain=true;
-  }else{
-    showPage("page-guide");
-    window._guideFromMain=false;
-  }
-};
-
-window.guideNext=()=>{
-  if(state.guideStep<GUIDE_STEPS.length-1){state.guideStep++;renderGuide();}
-  else{if(state.currentUser)showPage("page-main");else showPage("page-login");}
-};
-window.guideBack=()=>{if(state.guideStep>0){state.guideStep--;renderGuide();}};
-
-// ════════════════════════════════════════════════════════════
-// TABS
-// ════════════════════════════════════════════════════════════
-window.showTab=tab=>{
-  state.currentTab=tab;
-  ["list","basket","savings","settings"].forEach(t=>{
-    $("screen-"+t).classList.toggle("active",t===tab);
-    $("nav-"+t).classList.toggle("active",t===tab);
-  });
-  // Show input bar only on list tab (WhatsApp style)
-  const inputArea=$("input-area");
-  if(inputArea)inputArea.style.display=tab==="list"?"block":"none";
-  if(tab==="basket")renderBasketScreen();
-  if(tab==="savings")renderSavings();
-  if(tab==="settings")renderSettings();
-};
-
-const updateHeaderSub=()=>{
-  if(!state.currentUser)return;
-  const remaining=state.items.filter(i=>!i.checked).length;
-  $("header-sub").textContent=`${remaining} נותרו · ${state.currentUser.email?.split("@")[0]||"משתמש"}`;
-};
-
-// ════════════════════════════════════════════════════════════
-// INPUT & AI AUTOCOMPLETE
-// ════════════════════════════════════════════════════════════
-window.onInputChange=text=>{
-  const localSug=getLocalSuggestions(text);
-  const lsEl=$("local-suggestions");
-  if(localSug&&text.trim()){
-    lsEl.innerHTML=`<div class="sug-box">
-      <div class="sug-header">🎯 איזה ${localSug.key}? <span class="sug-badge">מקומי</span></div>
-      ${localSug.list.map(s=>`<div class="sug-item" onclick="pickLocalSug('${s.l.replace(/'/g,"\\'")}',${s.p})">
-        <div><div class="sug-name">${s.l}</div><div class="sug-hint">${s.s}</div></div>
-        <div class="sug-price">₪${s.p.toFixed(1)}</div>
-      </div>`).join("")}
-    </div>`;
-  }else lsEl.innerHTML="";
-
-  if(text.trim().length>=2)triggerAIComplete(text);
-  else{$("ai-suggestions").innerHTML="";$("status-ai").style.display="none";}
-};
-
-window.pickLocalSug=async(name,price)=>{
-  $("main-input").value="";
-  $("local-suggestions").innerHTML="";
-  $("ai-suggestions").innerHTML="";
-  state.lastAIQuery="";
-  // Local suggestions have known prices
-  if(price&&price>0){
-    const cat=getCategoryOf(name);
-    await saveItem({id:uid(),name,category:cat,price:+price,checked:false,addedAt:Date.now(),priceSource:"estimate",isWeight:isWeightProduct(name),weightKg:null,weightCount:null});
-  }else{
-    await addItemsByName([name]);
-  }
-};
-
-const triggerAIComplete=text=>{
-  // Always fire — no workerOnline gate (flag may not be set on first keystroke)
-  if(text===state.lastAIQuery)return;
-  clearTimeout(state.aiTimer);
-  $("status-ai").style.display="block";
-  state.aiTimer=setTimeout(async()=>{
-    state.lastAIQuery=text;
-    try{
-      const r=await fetch(`${WORKER_URL}?action=autocomplete&q=${encodeURIComponent(text.trim())}`,
-        {signal:AbortSignal.timeout(8000)});
-      const d=await r.json();
-      $("status-ai").style.display="none";
-      // Mark worker online on first success
-      if(!state.workerOnline){
-        state.workerOnline=true;
-        const wb=$("status-worker");
-        if(wb){wb.className="status-worker connected";wb.textContent="🔵 AI מחובר";}
-      }
-      // AI suggestions (Gemini/cache) or local fallback
-      const sugs=d.suggestions||[];
-      const locals=d.local||[];
-      const shown=sugs.length?sugs:locals;
-      if(!shown.length){$("ai-suggestions").innerHTML="";return;}
-      const srcLabel=d.source==="cache"?"💾 cache":d.source==="gemini"?"✨ Gemini":"📦 מקומי";
-      $("ai-suggestions").innerHTML=`<div class="sug-box ai-sug-box">
-        <div class="sug-header">✨ הצעות AI <span class="sug-badge">${srcLabel}</span></div>
-        ${shown.slice(0,5).map(s=>{
-          const nm=(s.name||s.n||"");
-          const sn=nm.replace(/'/g,"\'");
-          const sp=+(s.price||s.p||0);
-          return`<div class="sug-item" onclick="pickAISug('${sn}',${sp})">
-            <div><div class="sug-name">${nm}</div><div class="sug-hint">${s.hint||""}</div></div>
-            <div class="sug-price">${sp>0?"₪"+sp.toFixed(1):""}</div>
-          </div>`;}).join("")}
-      </div>`;
-    }catch{
-      $("status-ai").style.display="none";
-      $("ai-suggestions").innerHTML="";
-    }
-  },600);
-}
-
-window.pickAISug=async(name,price)=>{
-  $("main-input").value="";
-  $("local-suggestions").innerHTML="";
-  $("ai-suggestions").innerHTML="";
-  state.lastAIQuery="";
-  // Use AI-provided price directly (more accurate than local DB)
-  if(price&&price>0){
-    const cat=getCategoryOf(name);
-    await saveItem({id:uid(),name,category:cat,price:+price,checked:false,addedAt:Date.now(),priceSource:"ai",isWeight:isWeightProduct(name),weightKg:null,weightCount:null});
-  }else{
-    await addItemsByName([name]);
-  }
-};
-
-window.addFromInput=async()=>{
-  const v=$("main-input").value.trim();
-  if(!v)return;
-  $("main-input").value="";
-  $("local-suggestions").innerHTML="";
-  $("ai-suggestions").innerHTML="";
-  state.lastAIQuery="";
-  $("adding-hint").style.display="block";
-  $("add-btn").disabled=true;
-  await addItemsByName(v.split(/[,،\n]+/).map(s=>s.trim()).filter(Boolean));
-  $("adding-hint").style.display="none";
-  $("add-btn").disabled=false;
-};
-
-const addItemsByName=async names=>{
-  for(const raw of names){
-    const name=raw.trim();
-    if(!name)continue;
-    await saveItem({
-      id:uid(),name,
-      category:getCategoryOf(name),
-      price:getLocalPrice(name),
-      checked:false,
-      addedAt:Date.now(),
-      priceSource:"estimate",
-      isWeight:isWeightProduct(name),
-      weightKg:null,weightCount:null,
-    });
-  }
-};
-
-// ════════════════════════════════════════════════════════════
-// LIST ACTIONS
-// ════════════════════════════════════════════════════════════
-window.toggleItem=async id=>{
-  const it=state.items.find(i=>i.id===id);
-  if(!it)return;
-  await patchItem(id,{checked:!it.checked});
-};
-
-window.deleteItem=(id,el)=>{
-  el.classList.add("removing");
-  setTimeout(()=>removeItem(id),260);
-};
-
-window.clearList=async()=>{
-  if(!confirm("למחוק את כל הרשימה?"))return;
-  for(const it of state.items)await removeItem(it.id);
-};
-
-// ════════════════════════════════════════════════════════════
-// PRICE MODAL
-// ════════════════════════════════════════════════════════════
-window.openPriceModal=(id,ev)=>{
-  if(ev)ev.stopPropagation();
-  const it=state.items.find(i=>i.id===id);
-  if(!it)return;
-  state.editingItemId=id;
-  $("price-modal-name").textContent=it.name;
-  $("price-modal-val").textContent="₪"+(+it.price).toFixed(2);
-  $("price-modal-src").textContent=
-    it.priceSource==="real"?"מחיר ממשלתי אמיתי":
-    it.priceSource==="manual"?"עודכן ידנית":
-    it.priceSource==="ai"?"מחיר AI ✨":"ממוצע שוק";
-  $("price-modal-input").value=(+it.price).toFixed(2);
-  $("price-modal").classList.add("open");
-  setTimeout(()=>$("price-modal-input").focus(),120);
-};
-window.closePriceModal=()=>{$("price-modal").classList.remove("open");state.editingItemId=null;};
-window.savePriceModal=async()=>{
-  const v=parseFloat($("price-modal-input").value);
-  if(!isNaN(v)&&v>=0&&state.editingItemId){
-    await patchItem(state.editingItemId,{price:+v.toFixed(2),priceSource:"manual"});
-    showToast("מחיר עודכן ✓");closePriceModal();
-  }
-};
-
-// ════════════════════════════════════════════════════════════
-// WEIGHT MODAL
-// ════════════════════════════════════════════════════════════
-window.openWeightModal=(id,ev)=>{
-  if(ev)ev.stopPropagation();
-  const it=state.items.find(i=>i.id===id);
-  if(!it)return;
-  state.editingItemId=id;
-  $("weight-modal-name").textContent=it.name;
-  const avg=getAvgWeight(it.name);
-  $("wm-avg-note").textContent=avg?`ממוצע יחידה: ${avg} גרם`:"";
-  $("wm-grams").value=it.weightKg?(it.weightKg*1000):"";
-  $("wm-kg").value=it.weightKg||"";
-  $("wm-cnt").value=it.weightCount||"";
-  updateWeightCalc();
-  $("weight-modal").classList.add("open");
-};
-window.closeWeightModal=()=>{$("weight-modal").classList.remove("open");state.editingItemId=null;};
-window.setWeightTab=tab=>{
-  state.weightTab=tab;
-  ["kg","cnt"].forEach(t=>{
-    $("wm-tab-"+t).classList.toggle("active",t===tab);
-    $("wm-panel-"+t).classList.toggle("active",t===tab);
-  });
-  updateWeightCalc();
-};
-window.updateWeightCalc=()=>{
-  const it=state.items.find(i=>i.id===state.editingItemId);
-  if(!it){$("wm-result").textContent="";return;}
-  let kg=null;
-  if(state.weightTab==="kg"){
-    const g=parseFloat($("wm-grams").value),k=parseFloat($("wm-kg").value);
-    if(!isNaN(g)&&g>0)kg=g/1000;
-    else if(!isNaN(k)&&k>0)kg=k;
-  }else{
-    const cnt=parseInt($("wm-cnt").value)||0;
-    const avg=getAvgWeight(it.name);
-    if(cnt>0&&avg)kg=cnt*avg/1000;
-    else if(cnt>0)kg=cnt;
-  }
-  if(kg&&kg>0){
-    $("wm-result").textContent=`סה"כ: ₪${((+it.price)*kg).toFixed(2)} (${kg.toFixed(2)} ק"ג × ₪${(+it.price).toFixed(2)}/ק"ג)`;
-  }else $("wm-result").textContent="הזן משקל או כמות";
-};
-// ════════════════════════════════════════════════════════════
-// QTY MODAL
-// ════════════════════════════════════════════════════════════
-window.openQtyModal=(id,ev)=>{
-  if(ev)ev.stopPropagation();
-  const it=state.items.find(i=>i.id===id);
-  if(!it)return;
-  state.editingItemId=id;
-  $("qty-modal-name").textContent=it.name;
-  const current=it.qty||1;
-  $("qty-input").value=current;
-  updateQtyResult();
-  $("qty-modal").classList.add("open");
-  setTimeout(()=>$("qty-input").focus(),100);
-};
-window.closeQtyModal=()=>{$("qty-modal").classList.remove("open");state.editingItemId=null;};
-window.setQtyPreset=n=>{
-  $("qty-input").value=n;
-  // Highlight active preset
-  document.querySelectorAll(".qty-preset-btn").forEach((b,i)=>b.classList.toggle("active",i+1===n));
-  updateQtyResult();
-};
-window.changeQty=delta=>{
-  const inp=$("qty-input");
-  const v=Math.max(1,Math.min(99,(parseInt(inp.value)||1)+delta));
-  inp.value=v;
-  updateQtyResult();
-};
-const updateQtyResult=()=>{
-  const it=state.items.find(i=>i.id===state.editingItemId);
-  if(!it)return;
-  const q=parseInt($("qty-input").value)||1;
-  const total=(+it.price)*q;
-  $("qty-result").textContent=q===1
-    ?`מחיר יחידה: ₪${(+it.price).toFixed(2)}`
-    :`×${q} יח׳ · ₪${(+it.price).toFixed(2)} × ${q} = ₪${total.toFixed(2)}`;
-};
-window.saveQtyModal=async()=>{
-  const q=Math.max(1,parseInt($("qty-input").value)||1);
-  if(state.editingItemId){
-    await patchItem(state.editingItemId,{qty:q});
-    showToast(q===1?"כמות עודכנה: 1 יח׳":`כמות עודכנה: ×${q}`);
-    closeQtyModal();
-  }
-};
-// Update qty result when input changes
-document.addEventListener("DOMContentLoaded",()=>{
-  const qi=$("qty-input");
-  if(qi)qi.addEventListener("input",updateQtyResult);
-});
-
-window.saveWeightModal=async()=>{
-  const it=state.items.find(i=>i.id===state.editingItemId);
-  if(!it||!state.editingItemId)return;
-  let kg=null,cnt=null;
-  if(state.weightTab==="kg"){
-    const g=parseFloat($("wm-grams").value),k=parseFloat($("wm-kg").value);
-    kg=!isNaN(g)&&g>0?g/1000:(!isNaN(k)&&k>0?k:null);
-  }else{
-    cnt=parseInt($("wm-cnt").value)||null;
-    const avg=getAvgWeight(it.name);
-    if(cnt&&avg)kg=cnt*avg/1000;
-    else if(cnt)kg=cnt;
-  }
-  await patchItem(state.editingItemId,{weightKg:kg,weightCount:cnt});
-  showToast("משקל עודכן ✓");closeWeightModal();
-};
-
-// ════════════════════════════════════════════════════════════
-// VOICE
-// ════════════════════════════════════════════════════════════
-const startVoice=()=>{
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){alert("נסה Chrome לזיהוי קול");return;}
-  const r=new SR();
-  r.lang="he-IL";r.continuous=false;r.interimResults=false;r.maxAlternatives=1;
-  r.onresult=async e=>{
-    const text=e.results[0][0].transcript.trim();
-    if(text){
-      $("main-input").value=text;setVoiceState("processing");
-      $("adding-hint").style.display="block";
-      await addItemsByName(text.split(/[,،\n]+/).map(s=>s.trim()).filter(Boolean));
-      $("main-input").value="";$("adding-hint").style.display="none";
-    }
-    setVoiceState("idle");
-  };
-  r.onerror=()=>setVoiceState("idle");
-  r.onend=()=>{if(state.voiceState==="recording")setVoiceState("idle");};
-  state.voiceRec=r;r.start();setVoiceState("recording");
-  if(navigator.vibrate)navigator.vibrate(40);
-};
-const stopVoice=()=>{if(state.voiceRec){try{state.voiceRec.stop();}catch{}state.voiceRec=null;}};
-const setVoiceState=s=>{
-  state.voiceState=s;
-  const b=$("voice-btn");
-  b.className="action-btn btn-voice"+(s==="recording"?" rec":s==="processing"?" proc":"");
-  b.textContent=s==="recording"?"⏹":s==="processing"?"⏳":"🎤";
-  $("voice-hint").style.display=s==="recording"?"block":"none";
-};
-const vBtn=$("voice-btn");
-vBtn.addEventListener("touchstart",e=>{e.preventDefault();state.voiceTimer=setTimeout(startVoice,100);},{passive:false});
-vBtn.addEventListener("touchend",e=>{e.preventDefault();clearTimeout(state.voiceTimer);if(state.voiceState==="recording")stopVoice();},{passive:false});
-vBtn.addEventListener("mousedown",()=>{state.voiceTimer=setTimeout(startVoice,100);});
-vBtn.addEventListener("mouseup",()=>{clearTimeout(state.voiceTimer);if(state.voiceState==="recording")stopVoice();});
-vBtn.addEventListener("mouseleave",()=>{clearTimeout(state.voiceTimer);if(state.voiceState==="recording")stopVoice();});
-
-// ════════════════════════════════════════════════════════════
-// SCAN
-// ════════════════════════════════════════════════════════════
-window.openScanType=()=>$("scan-type-modal").classList.add("open");
-window.closeScanType=()=>$("scan-type-modal").classList.remove("open");
-
-window.startScan=async target=>{
-  state.scanTarget=target;
-  $("scanner-label").textContent=target==="store"?"סרוק למכולת השכונתית":"כוון את הברקוד למסגרת";
-  const scr=$("scanner-screen");scr.style.display="flex";state.scanActive=true;
-  const vid=$("scanner-video");
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}}});
-    state.scanStream=stream;vid.srcObject=stream;
-    try{await vid.play();}catch{vid.setAttribute("autoplay","");vid.setAttribute("muted","");vid.setAttribute("playsinline","");vid.load();await vid.play().catch(()=>{});}
-    if("BarcodeDetector"in window){
-      const det=new window.BarcodeDetector({formats:["ean_13","ean_8","upc_a","code_128","qr_code"]});
-      const scan=async()=>{
-        if(!state.scanActive)return;
-        try{const frames=await det.detect(vid);if(frames.length>0){closeScanner();await lookupBarcode(frames[0].rawValue);return;}}catch{}
-        requestAnimationFrame(scan);
-      };
-      vid.addEventListener("loadedmetadata",()=>requestAnimationFrame(scan),{once:true});
-      if(vid.readyState>=2)requestAnimationFrame(scan);
-    }
-  }catch{
-    alert("לא ניתן לפתוח מצלמה.\nב-iPhone: הגדרות > Safari > מצלמה > אפשר.");
-    closeScanner();
-  }
-};
-
-window.closeScanner=()=>{
-  state.scanActive=false;
-  if(state.scanStream){state.scanStream.getTracks().forEach(t=>t.stop());state.scanStream=null;}
-  $("scanner-video").srcObject=null;
-  $("scanner-screen").style.display="none";
-};
-
-window.lookupManualBarcode=async()=>{
-  const code=$("manual-barcode").value.trim();
-  if(!code)return;
-  closeScanner();await lookupBarcode(code);
-};
-
-const lookupBarcode=async code=>{
-  showToast("מזהה מוצר... 🔍");
-  let name=null,price=null,category=null,priceSource="estimate";
-  try{
-    const r=await fetch(`${WORKER_URL}?action=barcode&barcode=${code}`,
-      {signal:AbortSignal.timeout(10000)});
-    const d=await r.json();
-    if(d.name){name=d.name;price=d.cheapest?.price||null;category=d.category&&d.category!=="🛒 אחר"?d.category:null;if(d.cheapest)priceSource="real";}
-  }catch{}
-  if(!name){
-    try{
-      const r=await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
-      const d=await r.json();
-      if(d.status===1)name=d.product.product_name_he||d.product.product_name||null;
-    }catch{}
-  }
-  name=name||"מוצר "+code;
-  category=category||getCategoryOf(name);
-  price=price||getLocalPrice(name);
-  if(state.scanTarget==="store"){
-    const sid=Object.keys(state.localStores)[0];
-    if(sid){
-      await addStorePriceItem(sid,{id:uid(),name,price,barcode:code,addedAt:Date.now()});
-      showToast("נוסף למכולת: "+name+" ✓");
-      openStoreDetail(sid);
-    }else showToast("צור מכולת קודם ב-⚙️");
-  }else{
-    await saveItem({id:uid(),name,category,price,checked:false,addedAt:Date.now(),priceSource,barcode:code,isWeight:isWeightProduct(name),weightKg:null,weightCount:null});
-    showToast("נוסף: "+name+" ✓");
-  }
-};
-
-// ════════════════════════════════════════════════════════════
-// RECEIPT SCAN
-// ════════════════════════════════════════════════════════════
-window.triggerReceiptScan=()=>{
-  const inp=$("receipt-file");
-  inp.onchange=async e=>{
-    const file=e.target.files[0];if(!file)return;inp.value="";
-    $("receipt-processing").style.display="block";
-    $("receipt-results").style.display="none";
-    state.receiptItems=[];
-    try{
-      const b64=await fileToBase64(file);
-      const r=await fetch(`${WORKER_URL}?action=receipt`,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({imageBase64:b64.split(",")[1],mimeType:file.type||"image/jpeg"})
+    // רישום service worker אם נתמך
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').catch(function(err) {
+          console.warn('SW registration failed:', err);
+        });
       });
-      const d=await r.json();
-      if(!d.items?.length)throw new Error("לא זוהו פריטים");
-      state.receiptItems=d.items.map(i=>({...i,selected:true}));
-      renderReceiptResults();
-      $("receipt-processing").style.display="none";
-      $("receipt-results").style.display="block";
-      showToast(`זוהו ${state.receiptItems.length} פריטים!`);
-    }catch(e){$("receipt-processing").style.display="none";showToast("שגיאה: "+e.message);}
-  };
-  inp.click();
-};
-
-const fileToBase64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f);});
-
-const renderReceiptResults=()=>{
-  const el=$("receipt-results");
-  el.innerHTML=`<div style="font-size:11px;color:#888;margin-bottom:8px;font-weight:600">בחר פריטים לייבוא:</div>`+
-    state.receiptItems.map((it,i)=>`
-      <div class="receipt-item">
-        <div class="receipt-check${it.selected?" on":""}" onclick="toggleReceiptItem(${i})"></div>
-        <div class="receipt-item-name">${it.name}</div>
-        <div class="receipt-item-price">₪${(+it.price).toFixed(1)}</div>
-      </div>`).join("")+
-    `<button class="receipt-import-btn" onclick="importReceiptItems()">ייבא למכולת ✓</button>`;
-};
-
-window.toggleReceiptItem=i=>{if(state.receiptItems[i])state.receiptItems[i].selected=!state.receiptItems[i].selected;renderReceiptResults();};
-window.importReceiptItems=async()=>{
-  const sel=state.receiptItems.filter(i=>i.selected);
-  if(!state.activeStoreId||!sel.length)return;
-  for(const it of sel)await addStorePriceItem(state.activeStoreId,{id:uid(),name:it.name,price:+(+it.price).toFixed(2),addedAt:Date.now()});
-  showToast(`יובאו ${sel.length} פריטים ✓`);
-  $("receipt-results").style.display="none";state.receiptItems=[];
-};
-
-// ════════════════════════════════════════════════════════════
-// STORE DETAIL
-// ════════════════════════════════════════════════════════════
-window.openStoreDetail=id=>{
-  state.activeStoreId=id;
-  const st=state.localStores[id];if(!st)return;
-  $("store-detail-title").textContent="🏪 "+st.name;
-  renderStoreDetailItems();
-  $("store-detail-modal").classList.add("open");
-};
-window.closeStoreDetail=()=>{$("store-detail-modal").classList.remove("open");state.activeStoreId=null;};
-
-const renderStoreDetailItems=()=>{
-  const el=$("store-detail-items");if(!el||!state.activeStoreId)return;
-  const prices=Object.values(state.localStores[state.activeStoreId]?.prices||{});
-  if(!prices.length){el.innerHTML='<div style="text-align:center;color:#aaa;font-size:12px;padding:10px">אין מוצרים. צלם קבלה!</div>';return;}
-  el.innerHTML=prices.map(p=>`
-    <div class="sd-item">
-      <div class="sd-item-name">${p.name}</div>
-      <div class="sd-item-price">₪${(+p.price).toFixed(1)}</div>
-      <button class="sd-item-del" onclick="deleteStorePriceItem('${state.activeStoreId}','${p.id}')">🗑️</button>
-    </div>`).join("");
-};
-
-window.addToStoreManual=async()=>{
-  const name=$("sd-name-input").value.trim();
-  const price=parseFloat($("sd-price-input").value);
-  if(!name||isNaN(price)||!state.activeStoreId)return;
-  await addStorePriceItem(state.activeStoreId,{id:uid(),name,price,addedAt:Date.now()});
-  $("sd-name-input").value="";$("sd-price-input").value="";
-  showToast("נוסף ✓");
-};
-
-window.deleteStorePriceItem=deleteStorePriceItem;
-
-// ════════════════════════════════════════════════════════════
-// MODALS: STORE
-// ════════════════════════════════════════════════════════════
-window.openAddStore=()=>{$("add-store-modal").classList.add("open");setTimeout(()=>$("new-store-name").focus(),120);};
-window.closeAddStore=()=>{$("add-store-modal").classList.remove("open");};
-
-// ════════════════════════════════════════════════════════════
-// SWIPE TO DELETE
-// ════════════════════════════════════════════════════════════
-const attachSwipe=(el,id)=>{
-  let startX=null,offset=0;
-  el.addEventListener("touchstart",e=>{startX=e.touches[0].clientX;},{passive:true});
-  el.addEventListener("touchmove",e=>{
-    if(startX===null)return;
-    const dx=e.touches[0].clientX-startX;
-    if(dx>0){offset=Math.min(dx,90);el.style.transform=`translateX(${offset}px)`;el.style.transition="none";}
-  },{passive:true});
-  el.addEventListener("touchend",()=>{
-    if(offset>65)window.deleteItem(id,el);
-    else{el.style.transform="";el.style.transition="";}
-    offset=0;startX=null;
-  });
-};
-
-// ════════════════════════════════════════════════════════════
-// RENDER: LIST
-// ════════════════════════════════════════════════════════════
-const renderList=()=>{
-  const area=$("list-area");
-  if(!state.items.length){
-    area.innerHTML=`<div class="list-empty"><div class="empty-icon">🛒</div><div class="empty-title">הרשימה ריקה</div><div class="empty-sub">הקלד, דבר, או סרוק ברקוד</div></div>`;
-    return;
-  }
-  // Group by category
-  const groups={};
-  state.items.forEach(it=>{
-    if(!groups[it.category])groups[it.category]=[];
-    groups[it.category].push(it);
-  });
-  Object.values(groups).forEach(arr=>arr.sort((a,b)=>a.checked-b.checked));
-
-  area.innerHTML=Object.entries(groups).map(([cat,arr])=>`
-    <div class="cat-block">
-      <div class="cat-header">${cat}<span class="cat-count">${arr.filter(i=>!i.checked).length}/${arr.length}</span></div>
-      <div class="cat-items">
-        ${arr.map(it=>`
-          <div class="item-wrap">
-            <div class="item-delete-bg">🗑️</div>
-            <div class="item-row${it.checked?" checked":""}" id="ir-${it.id}" onclick="toggleItem('${it.id}')">
-              <div class="item-checkbox${it.checked?" done":""}">${it.checked?'<span class="item-check-icon">✓</span>':""}</div>
-              <div class="item-info">
-                <div class="item-name${it.checked?" done":""}">${it.name||""}</div>
-                ${it.weightKg?`<div class="item-sub">${it.weightKg.toFixed(2)} ק"ג · ₪${(+it.price*it.weightKg).toFixed(1)}</div>`:""}
-                ${it.weightCount&&!it.weightKg?`<div class="item-sub">${it.weightCount} יח׳</div>`:""}
-                ${(it.qty&&it.qty>1&&!it.weightKg)?`<div class="item-sub">×${it.qty} · ₪${((+it.price)*(it.qty)).toFixed(1)} סה"כ</div>`:""}
-              </div>
-              <div class="item-actions">
-                <button class="qty-btn${it.checked?" done":""}" onclick="openQtyModal('${it.id}',event)">${(it.qty&&it.qty>1)?"×"+it.qty:"×1"}</button>
-                ${it.isWeight?`<button class="item-btn${it.checked?" done":""}" onclick="openWeightModal('${it.id}',event)">⚖️</button>`:""}
-                <button class="item-btn${it.checked?" done":""}" onclick="openPriceModal('${it.id}',event)">₪</button>
-              </div>
-            </div>
-          </div>`).join("")}
-      </div>
-    </div>`).join("");
-
-  state.items.forEach(it=>{
-    const row=$("ir-"+it.id);
-    if(row)attachSwipe(row,it.id);
-  });
-};
-
-// ════════════════════════════════════════════════════════════
-// TRAVEL COST
-// ════════════════════════════════════════════════════════════
-const getTravelCost=chainId=>{
-  if(!state.travelOpen||state.userLat===null)return 0;
-  if(chainId.startsWith("ls_"))return 0;
-  const branch=getNearestBranch(chainId);
-  if(!branch)return 0;
-  const km=roadKm(state.userLat,state.userLng,branch.lat,branch.lng);
-  let rate;
-  if(state.travelMode==="ev")rate=.35;
-  else if(state.travelMode==="custom"){
-    rate=parseFloat($("travel-custom-rate")?.value)||1;
-  }else rate=1.00;
-  return Math.round(km*rate*2*10)/10; // round trip
-};
-
-// ════════════════════════════════════════════════════════════
-// RENDER: BASKET
-// ════════════════════════════════════════════════════════════
-const renderBasketScreen=()=>{
-  const el=$("basket-content");if(!el)return;
-  const active=state.items.filter(i=>!i.checked);
-  if(!active.length){el.innerHTML='<div class="basket-empty">🛒 הוסף פריטים לרשימה קודם</div>';return;}
-
-  const baseTotal=active.reduce((s,it)=>{
-    const kg=it.weightKg&&it.isWeight?+it.weightKg:1;
-    const qty=(!it.weightKg&&it.qty&&it.qty>1)?+it.qty:1;
-    return s+(+it.price)*kg*qty;
-  },0);
-
-  // Build chain entries
-  const entries=[];
-  for(const cid of state.selectedChains){
-    if(cid.startsWith("ls_")){
-      const sid=cid.slice(3);const st=state.localStores[sid];if(!st)continue;
-      const prices=Object.values(st.prices||{});
-      let total=0,missing=0;
-      for(const it of active){
-        const kg=it.weightKg&&it.isWeight?+it.weightKg:1;
-        const match=prices.find(p=>p.name.toLowerCase().includes(it.name.substring(0,4).toLowerCase())||it.name.toLowerCase().includes(p.name.substring(0,4).toLowerCase()));
-        if(match)total+=match.price*kg;else missing++;
-      }
-      entries.push({id:cid,name:st.name,total,travel:0,missing,isLocal:true});
-    }else{
-      const ch=CHAINS.find(x=>x.id===cid);if(!ch)continue;
-      const travel=getTravelCost(cid);
-      const prod=Math.round(baseTotal*ch.factor*10)/10;
-      entries.push({id:cid,name:ch.name,total:prod+travel,prod,travel,missing:0,isLocal:false,branch:getNearestBranch(cid)?.n});
     }
-  }
-  entries.sort((a,b)=>a.total-b.total);
 
-  const best=entries[0];
-  const worstFactor=1.18;
-  const bestFactor=Math.min(...state.selectedChains.filter(c=>!c.startsWith("ls_")).map(cid=>CHAINS.find(x=>x.id===cid)?.factor||1));
+    // הסתרת splash screen לאחר טעינה
+    window.addEventListener('app:ready', function() {
+      var splash = document.getElementById('splash-screen');
+      if (splash) {
+        setTimeout(function() {
+          splash.classList.add('hidden');
+          setTimeout(function() { splash.remove(); }, 400);
+        }, 300);
+      }
+    });
 
-  const chainsHTML=entries.map((c,i)=>`
-    <div class="chain-card${i===0?" best":c.isLocal?" local":" alt"}">
-      ${i===0?'<div class="chain-best-label">🏆 הכי זול</div>':""}
-      <div class="chain-name">${c.name}</div>
-      <div class="chain-total">₪${c.total.toFixed(1)}</div>
-      ${i>0?`<div class="chain-diff">+₪${(c.total-best.total).toFixed(1)}</div>`:""}
-      ${c.branch?`<div class="chain-branch">📍 ${c.branch}</div>`:""}
-      ${c.isLocal?'<div class="chain-branch">🚶 הליכה · ₪0</div>':""}
-      ${c.missing>0?`<div class="chain-missing">❓ ${c.missing} לא ידועים</div>`:""}
-    </div>`).join("");
-
-  const travelPerChain=entries.filter(e=>!e.isLocal&&state.travelOpen).map(c=>`
-    <div class="tpc-item">
-      <div class="tpc-name">${c.name}</div>
-      <div class="tpc-val">+₪${(c.travel||0).toFixed(1)}</div>
-    </div>`).join("");
-
-  el.innerHTML=`
-    <button class="travel-toggle-btn${state.travelOpen?" active":""}" id="travel-toggle-btn" onclick="toggleTravel()">
-      <span style="font-size:18px">🚗</span>
-      <span class="travel-toggle-btn-text">${state.travelOpen?"הסר עלות נסיעה":"הוסף עלות נסיעה"}</span>
-      <span class="travel-badge" id="travel-badge-el" style="display:${state.travelOpen&&entries.some(e=>e.travel>0)?"block":"none"}">
-        +₪${entries.reduce((m,e)=>Math.max(m,e.travel||0),0).toFixed(0)}
-      </span>
-    </button>
-    <div style="display:${state.travelOpen?"block":"none"}" id="travel-panel-el">
-      <div class="travel-panel">
-        <div class="travel-modes">
-          <button class="travel-mode${state.travelMode==="gas"?" active":""}" onclick="setTravelMode('gas')">⛽ בנזין<br><span style="font-size:9px">₪1.00/ק"מ</span></button>
-          <button class="travel-mode${state.travelMode==="ev"?" active":""}" onclick="setTravelMode('ev')">⚡ חשמלי<br><span style="font-size:9px">₪0.35/ק"מ</span></button>
-          <button class="travel-mode${state.travelMode==="custom"?" active":""}" onclick="setTravelMode('custom')">✏️ ידני</button>
-        </div>
-        <div class="travel-custom-row" style="display:${state.travelMode==="custom"?"flex":"none"}">
-          <input type="number" id="travel-custom-rate" placeholder="1.00" step="0.1" min="0" oninput="renderBasketScreen()"/>
-          <span style="font-size:12px;color:#888">₪ לק"מ</span>
-        </div>
-        ${travelPerChain?`<div class="travel-per-chain">${travelPerChain}</div>`:""}
-      </div>
-    </div>
-    <div class="chains-grid">${chainsHTML}</div>
-    <div class="basket-transparency">ℹ️ <b>שקיפות:</b> ברקוד = מחיר ממשלתי אמיתי. הקלדה ידנית = ממוצע שוק × מקדם רשת. המחיר עשוי להשתנות.</div>
-    <div style="font-size:11px;color:#aaa;text-align:center;margin-bottom:10px">לחץ ₪ ליד מוצר לעריכת מחיר</div>
-    <button class="save-basket-btn" onclick="saveBasket(${baseTotal.toFixed(2)},'${best?.name||""}',${active.length},${Math.max(0,Math.round((baseTotal*worstFactor-baseTotal*bestFactor)*10)/10)})">
-      💾 שמור קנייה להיסטוריה
-    </button>`;
-};
-
-window.toggleTravel=()=>{
-  state.travelOpen=!state.travelOpen;
-  renderBasketScreen();
-};
-
-window.setTravelMode=m=>{
-  state.travelMode=m;
-  renderBasketScreen();
-};
-
-window.saveBasket=async(base,bestChain,count,saved)=>{
-  await saveHistoryEntry({date:Date.now(),chain:bestChain,total:+base.toFixed(2),items:count,saved:Math.max(0,saved)});
-  showToast("קנייה נשמרה ✓");
-  showTab("savings");
-};
-
-// ════════════════════════════════════════════════════════════
-// RENDER: SAVINGS
-// ════════════════════════════════════════════════════════════
-const renderSavings=()=>{
-  const el=$("savings-wrap");if(!el)return;
-  if(!state.history.length){
-    el.innerHTML='<div class="savings-empty">📊 עוד אין היסטוריה<br><span style="font-size:12px">שמור קנייה לאחר חישוב הסל</span></div>';
-    return;
-  }
-  const totalSaved=state.history.reduce((s,h)=>s+(+h.saved||0),0);
-  const totalSpent=state.history.reduce((s,h)=>s+(+h.total||0),0);
-  const avgSaved=totalSaved/state.history.length;
-
-  // Monthly data
-  const months=[];
-  for(let i=5;i>=0;i--){
-    const d=new Date();d.setMonth(d.getMonth()-i);
-    months.push({label:d.toLocaleDateString("he",{month:"short"}),key:`${d.getFullYear()}-${d.getMonth()+1}`,total:0});
-  }
-  for(const h of state.history){
-    const d=new Date(h.date);const key=`${d.getFullYear()}-${d.getMonth()+1}`;
-    const m=months.find(m=>m.key===key);if(m)m.total+=+h.saved||0;
-  }
-  const maxVal=Math.max(...months.map(m=>m.total),1);
-
-  el.innerHTML=`
-    <div class="savings-hero">
-      <div class="savings-hero-label">סה"כ חסכת</div>
-      <div class="savings-hero-val">₪${totalSaved.toFixed(0)}</div>
-      <div class="savings-hero-sub">ב-${state.history.length} קניות · ממוצע ₪${avgSaved.toFixed(0)} לקנייה</div>
-    </div>
-    <div class="savings-stats">
-      <div class="stat-card"><div class="stat-val green">₪${totalSaved.toFixed(0)}</div><div class="stat-label">💚 סה"כ חסכת</div></div>
-      <div class="stat-card"><div class="stat-val spent">₪${totalSpent.toFixed(0)}</div><div class="stat-label">💳 סה"כ הוצאה</div></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">חיסכון חודשי 📈</div>
-      <div class="bar-chart">
-        ${months.map(m=>`
-          <div class="bar-col">
-            <div class="bar-val">${m.total>0?"₪"+m.total.toFixed(0):""}</div>
-            <div class="bar${m.total===0?" empty":""}" style="height:${Math.round((m.total/maxVal)*80)+4}px"></div>
-            <div class="bar-label">${m.label}</div>
-          </div>`).join("")}
-      </div>
-    </div>
-    <div class="history-card">
-      <div class="history-title">קניות אחרונות</div>
-      ${state.history.slice(0,10).map(h=>`
-        <div class="history-item">
-          <div class="history-date">${new Date(h.date).toLocaleDateString("he",{day:"numeric",month:"numeric"})}</div>
-          <div>
-            <div class="history-chain">${h.chain||"—"}</div>
-            <div class="history-items-count">${h.items} פריטים · <span style="color:var(--ink-3)">₪${(+h.total||0).toFixed(0)}</span></div>
-          </div>
-          <div class="history-saved">+₪${(+h.saved||0).toFixed(0)}</div>
-        </div>`).join("")}
-    </div>`;
-};
-
-// ════════════════════════════════════════════════════════════
-// RENDER: SETTINGS
-// ════════════════════════════════════════════════════════════
-const renderSettings=()=>{
-  // Chain grid
-  const cg=$("chains-grid-settings");
-  if(cg)cg.innerHTML=CHAINS.map(c=>{
-    const active=state.selectedChains.includes(c.id);
-    return`<button class="chain-toggle-btn${active?" active":""}" onclick="toggleChain('${c.id}')">
-      <span class="chain-dot"></span>${c.name}${active?" ✓":""}
-    </button>`;
-  }).join("");
-  renderLocalStoresList();
-};
-
-window.deleteLocalStore=async(sid)=>{
-  if(!confirm("למחוק את המכולת לצמיתות? כל המחירים שנשמרו יימחקו."))return;
-  // Remove from selected chains
-  state.selectedChains=state.selectedChains.filter(c=>c!=="ls_"+sid);
-  // Unsubscribe price listener
-  if(state.localStoreListeners[sid]){state.localStoreListeners[sid]();delete state.localStoreListeners[sid];}
-  // Delete all prices first
-  const pricesSnap=await getDocs(collection(db,"users",state.currentUser.uid,"stores",sid,"prices"));
-  for(const d of pricesSnap.docs)await deleteDoc(d.ref);
-  // Delete the store itself
-  await deleteDoc(doc(db,"users",state.currentUser.uid,"stores",sid));
-  delete state.localStores[sid];
-  showToast("המכולת נמחקה");
-  renderSettings();
-};
-
-const renderLocalStoresList=()=>{
-  const el=$("local-stores-list");if(!el)return;
-  const stores=Object.values(state.localStores);
-  if(!stores.length){
-    el.innerHTML='<div style="text-align:center;color:#aaa;font-size:12px;padding:8px 0">אין מכולות עדיין</div>';
-    return;
-  }
-  el.innerHTML=stores.map(s=>{
-    const sid="ls_"+s.id;const active=state.selectedChains.includes(sid);
-    return`<div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
-      <button class="chain-toggle-btn local-type${active?" active":""}" style="flex:1" onclick="toggleChain('${sid}')">
-        <span class="chain-dot"></span>🏪 ${s.name}${active?" ✓":""}
-      </button>
-      <button onclick="openStoreDetail('${s.id}')" style="padding:8px 12px;border-radius:10px;border:2px solid #ffe0b2;background:#fff8e1;color:#e65100;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">פרטים</button>
-      <button onclick="deleteLocalStore('${s.id}')" style="padding:8px 10px;border-radius:10px;border:2px solid #ffcdd2;background:#fff5f5;color:#e53935;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🗑️</button>
-    </div>`;
-  }).join("");
-};
-
-window.toggleChain=id=>{
-  if(state.selectedChains.includes(id)){
-    state.selectedChains=state.selectedChains.filter(c=>c!==id);
-  }else{
-    if(state.selectedChains.length>=3)state.selectedChains=[...state.selectedChains.slice(1),id];
-    else state.selectedChains.push(id);
-  }
-  renderSettings();
-};
-
-// ════════════════════════════════════════════════════════════
-// CONNECTIVITY
-// ════════════════════════════════════════════════════════════
-window.addEventListener("online",()=>{
-  $("status-offline").style.display="none";
-  showToast("🟢 חזרת לאונליין");
-});
-window.addEventListener("offline",()=>{
-  $("status-offline").style.display="block";
-});
-
-// ════════════════════════════════════════════════════════════
-// SERVICE WORKER
-// ════════════════════════════════════════════════════════════
-if("serviceWorker"in navigator){
-  navigator.serviceWorker.register("/Shoping-list/sw.js").catch(()=>{});
-}
-
-// ════════════════════════════════════════════════════════════
-// LOGIN UI EVENT LISTENERS
-// ════════════════════════════════════════════════════════════
-(()=>{
-  const loginBtn=document.getElementById("login-btn");
-  if(loginBtn)loginBtn.addEventListener("click",()=>window.doLogin());
-
-  const emailInp=document.getElementById("login-email");
-  const passInp=document.getElementById("login-pass");
-  if(emailInp)emailInp.addEventListener("keydown",e=>{if(e.key==="Enter")passInp&&passInp.focus();});
-  if(passInp)passInp.addEventListener("keydown",e=>{if(e.key==="Enter")window.doLogin();});
-
-  const eyeBtn=document.getElementById("eye-btn");
-  if(eyeBtn&&passInp){
-    const show=e=>{e.preventDefault();passInp.type="text";eyeBtn.style.color="var(--blue)";};
-    const hide=e=>{e.preventDefault();passInp.type="password";eyeBtn.style.color="";};
-    eyeBtn.addEventListener("mousedown",show);
-    eyeBtn.addEventListener("mouseup",hide);
-    eyeBtn.addEventListener("mouseleave",hide);
-    eyeBtn.addEventListener("touchstart",show,{passive:false});
-    eyeBtn.addEventListener("touchend",hide,{passive:false});
-    eyeBtn.addEventListener("touchcancel",hide,{passive:false});
-  }
-})();
-
-// Init
-showPage("page-login");
-</script>
+    // fallback - אם תוך 5 שניות ה-app לא שלח את הארוע, מסתירים בכל מקרה
+    setTimeout(function() {
+      var splash = document.getElementById('splash-screen');
+      if (splash && !splash.classList.contains('hidden')) {
+        splash.classList.add('hidden');
+      }
+    }, 5000);
+  </script>
 </body>
 </html>
