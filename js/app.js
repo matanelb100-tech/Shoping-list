@@ -16,6 +16,7 @@
 import { FIREBASE_CONFIG, APP_VERSION, APP_NAME, validateConfig } from './config.js?v=2';
 import { initAuth, showAuthScreen, resetAuthForm } from './auth.js?v=2';
 import { State } from './state.js?v=1';
+import { initMainUI, destroyMainUI, showMain } from './main-ui.js?v=1';
 
 
 // ============================================================================
@@ -108,101 +109,12 @@ window.addEventListener('auth:success', (e) => {
 
 
 // ============================================================================
-// מסך ראשי - placeholder זמני
+// מסך ראשי - משתמש ב-main-ui.js
 // ============================================================================
-// זה יוחלף בהמשך על ידי הקוד האמיתי של רשימת הקניות (ב-main.js / cart.js)
 
 function showMainScreen() {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const screen = document.getElementById('screen-main');
-  if (!screen) return;
-
-  screen.classList.add('active');
-
-  // placeholder זמני - ייהרס ברגע שיהיה לנו המסך האמיתי
-  const header = document.getElementById('main-header');
-  const content = document.getElementById('main-content');
-  const inputBar = document.getElementById('main-input-bar');
-
-  if (header && !header.innerHTML) {
-    header.innerHTML = `
-      <div style="
-        height: 60px;
-        background: var(--color-surface);
-        border-bottom: 1px solid var(--color-border);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 16px;
-        box-shadow: var(--shadow-sm);
-      ">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="
-            width: 36px; height: 36px; border-radius: 10px;
-            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-            display: flex; align-items: center; justify-content: center;
-          ">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="9" cy="21" r="1.5" fill="white"/>
-              <circle cx="18" cy="21" r="1.5" fill="white"/>
-              <path d="M2.5 3h2.5l2.7 12.6a2 2 0 0 0 2 1.6h9.4a2 2 0 0 0 2-1.5L22 7H6"/>
-            </svg>
-          </div>
-          <div style="font-weight: 700; font-size: 16px;">רשימת קניות חכמה</div>
-        </div>
-        <button id="temp-logout-btn" class="btn btn-ghost btn-sm">התנתק</button>
-      </div>
-    `;
-
-    document.getElementById('temp-logout-btn').addEventListener('click', handleLogout);
-  }
-
-  if (content && !content.querySelector('.temp-welcome')) {
-    const userEmail = currentUser?.email || 'משתמש';
-    content.innerHTML = `
-      <div class="temp-welcome" style="
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 32px;
-        text-align: center;
-        gap: 16px;
-      ">
-        <div style="
-          width: 96px; height: 96px;
-          border-radius: 24px;
-          background: linear-gradient(135deg, var(--color-primary-ultra-light), var(--color-primary-light));
-          display: flex; align-items: center; justify-content: center;
-          box-shadow: var(--shadow-md);
-        ">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-dark)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 11l3 3L22 4"/>
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-          </svg>
-        </div>
-        <h2 style="margin: 0;">🎉 Firebase עובד!</h2>
-        <p style="color: var(--color-text-soft); max-width: 320px; line-height: 1.6;">
-          מחובר בהצלחה כ-<strong dir="ltr" style="color: var(--color-primary-dark);">${escapeHtml(userEmail)}</strong>
-        </p>
-        <div style="
-          background: var(--color-primary-ultra-light);
-          padding: 16px 20px;
-          border-radius: var(--radius-lg);
-          font-size: 14px;
-          color: var(--color-text-soft);
-          max-width: 360px;
-        ">
-          <strong style="color: var(--color-primary-dark);">זה מסך זמני.</strong><br/>
-          בקבצים הבאים נבנה את מסך הקניות האמיתי עם רשימה, קטגוריות וחישוב מחירים.
-        </div>
-      </div>
-    `;
-  }
-
-  // לא מוסיפים input bar בינתיים
-  if (inputBar) inputBar.innerHTML = '';
+  showMain();         // מציג את המסך (screen-main.active)
+  initMainUI();       // מאתחל/מעדכן את התוכן
 }
 
 
@@ -215,11 +127,11 @@ async function handleLogout() {
     const { signOut } = await import(
       'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'
     );
+
+    // ניקוי המסך לפני ההתנתקות
+    destroyMainUI();
+
     await signOut(firebaseAuth);
-    // נקה את הגוף של המסך הראשי
-    document.getElementById('main-header').innerHTML = '';
-    document.getElementById('main-content').innerHTML = '';
-    document.getElementById('main-input-bar').innerHTML = '';
     resetAuthForm();
     showToast('התנתקת בהצלחה', 'success');
   } catch (error) {
@@ -227,6 +139,9 @@ async function handleLogout() {
     showToast('שגיאה בהתנתקות', 'error');
   }
 }
+
+// מאזין לבקשת יציאה מ-main-ui
+window.addEventListener('app:logout-request', handleLogout);
 
 
 // ============================================================================
