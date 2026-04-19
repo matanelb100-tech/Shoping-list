@@ -14,14 +14,7 @@
  */
 
 import { FIREBASE_CONFIG, APP_VERSION, APP_NAME, validateConfig } from './config.js';
-import {
-  initAuth,
-  showAuthScreen,
-  resetAuthForm,
-  resendVerificationEmail,
-  reloadUser,
-  isEmailVerified
-} from './auth.js';
+import { initAuth, showAuthScreen, resetAuthForm } from './auth.js';
 
 
 // ============================================================================
@@ -32,7 +25,6 @@ let firebaseApp = null;
 let firebaseAuth = null;
 let firebaseFirestore = null;
 let currentUser = null;
-let verificationBannerDismissed = false;  // האם המשתמש סגר את הבאנר בהפעלה הנוכחית
 
 
 // ============================================================================
@@ -203,126 +195,6 @@ function showMainScreen() {
 
   // לא מוסיפים input bar בינתיים
   if (inputBar) inputBar.innerHTML = '';
-
-  // הצגת/הסתרת באנר אימות מייל
-  updateVerificationBanner();
-}
-
-
-// ============================================================================
-// באנר אימות מייל - מוצג כשהמייל לא מאומת
-// ============================================================================
-
-function updateVerificationBanner() {
-  // הסר באנר קיים
-  const existing = document.getElementById('verification-banner');
-  if (existing) existing.remove();
-
-  // אם המייל מאומת או שהמשתמש סגר את הבאנר בהפעלה הזו - לא מציגים
-  if (!currentUser) return;
-  if (isEmailVerified()) return;
-  if (verificationBannerDismissed) return;
-
-  const banner = document.createElement('div');
-  banner.id = 'verification-banner';
-  banner.setAttribute('role', 'region');
-  banner.setAttribute('aria-label', 'התראה על אימות מייל');
-  banner.innerHTML = `
-    <div class="verify-banner-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-        <polyline points="22,6 12,13 2,6"/>
-      </svg>
-    </div>
-    <div class="verify-banner-text">
-      <strong>המייל שלך עדיין לא אומת</strong>
-      <span>בדוק את תיבת המייל שלך ולחץ על קישור האימות. אחרי האימות, לחץ "אימתתי".</span>
-    </div>
-    <div class="verify-banner-actions">
-      <button type="button" class="verify-banner-btn verify-banner-btn-primary" id="verify-check-btn">
-        ✓ אימתתי
-      </button>
-      <button type="button" class="verify-banner-btn" id="verify-resend-btn">
-        שלח שוב
-      </button>
-    </div>
-    <button type="button" class="verify-banner-close" id="verify-close-btn" aria-label="סגור">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"/>
-        <line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    </button>
-  `;
-
-  // הכנס את הבאנר בתחילת ה-main (מתחת ל-header)
-  const main = document.getElementById('main-content');
-  if (main) {
-    main.insertBefore(banner, main.firstChild);
-  }
-
-  // חיבור event listeners
-  document.getElementById('verify-check-btn').addEventListener('click', handleVerifyCheck);
-  document.getElementById('verify-resend-btn').addEventListener('click', handleVerifyResend);
-  document.getElementById('verify-close-btn').addEventListener('click', handleVerifyDismiss);
-}
-
-async function handleVerifyCheck(e) {
-  const btn = e.currentTarget;
-  btn.disabled = true;
-  btn.textContent = 'בודק...';
-
-  try {
-    const verified = await reloadUser();
-    if (verified) {
-      showToast('המייל אומת בהצלחה! 🎉', 'success');
-      updateVerificationBanner();  // יסיר את הבאנר
-    } else {
-      showToast('המייל עדיין לא אומת. בדוק את תיבת הדואר שלך', 'warning');
-      btn.disabled = false;
-      btn.textContent = '✓ אימתתי';
-    }
-  } catch (error) {
-    console.error('Verify check failed:', error);
-    showToast('שגיאה בבדיקה, נסה שוב', 'error');
-    btn.disabled = false;
-    btn.textContent = '✓ אימתתי';
-  }
-}
-
-async function handleVerifyResend(e) {
-  const btn = e.currentTarget;
-  btn.disabled = true;
-  btn.textContent = 'שולח...';
-
-  try {
-    await resendVerificationEmail();
-    showToast(`מייל אימות נשלח ל-${currentUser.email}`, 'success');
-    btn.textContent = 'נשלח ✓';
-    setTimeout(() => {
-      btn.disabled = false;
-      btn.textContent = 'שלח שוב';
-    }, 30000);  // מניעת ספאם - כפתור חסום ל-30 שניות
-  } catch (error) {
-    console.error('Resend verification failed:', error);
-    if (error.code === 'auth/too-many-requests') {
-      showToast('שלחת יותר מדי בקשות. המתן מספר דקות ונסה שוב', 'warning');
-    } else {
-      showToast('שגיאה בשליחת המייל, נסה שוב מאוחר יותר', 'error');
-    }
-    btn.disabled = false;
-    btn.textContent = 'שלח שוב';
-  }
-}
-
-function handleVerifyDismiss() {
-  verificationBannerDismissed = true;
-  const banner = document.getElementById('verification-banner');
-  if (banner) {
-    banner.style.opacity = '0';
-    banner.style.maxHeight = '0';
-    banner.style.transform = 'translateY(-10px)';
-    setTimeout(() => banner.remove(), 250);
-  }
 }
 
 
@@ -336,8 +208,6 @@ async function handleLogout() {
       'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'
     );
     await signOut(firebaseAuth);
-    // איפוס מצב הבאנר - אם המשתמש הבא יתחבר עם מייל לא מאומת, הבאנר יופיע שוב
-    verificationBannerDismissed = false;
     // נקה את הגוף של המסך הראשי
     document.getElementById('main-header').innerHTML = '';
     document.getElementById('main-content').innerHTML = '';
