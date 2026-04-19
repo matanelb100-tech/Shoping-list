@@ -1,0 +1,531 @@
+/* ============================================================================
+   auth.css - עיצוב מסך ההתחברות / הרשמה החכמה
+   ============================================================================
+
+   מבנה:
+   1. Layout - סידור המסך
+   2. Brand header - לוגו + כותרת
+   3. Form - שדות וכפתורים
+   4. Modes - מצבים שונים (initial / login / signup)
+   5. Footer - קישורים משניים
+   6. Animations - מעברים חלקים בין מצבים
+
+   המסך תומך ב-3 מצבים:
+   - 'initial': רק שדה מייל
+   - 'login': מייל + סיסמה (משתמש קיים)
+   - 'signup': מייל + סיסמה + אימות סיסמה (משתמש חדש)
+   ============================================================================ */
+
+
+/* ============================================================================
+   1. Layout
+   ============================================================================ */
+
+#screen-auth {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+
+.auth-container {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  position: relative;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 20px 40px -12px rgba(44, 62, 80, 0.15),
+    0 4px 12px rgba(44, 62, 80, 0.06);
+  padding: 32px 24px;
+  position: relative;
+  overflow: hidden;
+  animation: authCardIn 0.5s var(--ease-out);
+}
+
+/* פס דקורטיבי עליון */
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary) 0%,
+    var(--color-primary-light) 50%,
+    var(--color-accent) 100%
+  );
+}
+
+@keyframes authCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* ============================================================================
+   2. Brand header - לוגו וכותרות
+   ============================================================================ */
+
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.auth-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 8px 24px rgba(123, 196, 226, 0.4),
+    0 0 0 5px rgba(123, 196, 226, 0.1);
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.auth-logo svg {
+  width: 40px;
+  height: 40px;
+  color: #fff;
+}
+
+/* אפקט נצנוץ עדין על הלוגו */
+.auth-logo::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 16px;
+  height: 16px;
+  background: radial-gradient(circle, rgba(255,255,255,0.6), transparent 70%);
+  border-radius: 50%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.3; transform: scale(0.9); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+.auth-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+  transition: opacity 0.3s var(--ease-out);
+}
+
+.auth-subtitle {
+  font-size: 14px;
+  color: var(--color-text-soft);
+  line-height: 1.5;
+  max-width: 300px;
+  transition: opacity 0.3s var(--ease-out);
+}
+
+.auth-subtitle strong {
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
+/* בזמן מעבר בין מצבים - fade עדין */
+.auth-title.changing,
+.auth-subtitle.changing {
+  opacity: 0;
+}
+
+
+/* ============================================================================
+   3. Form - שדות וכפתורים
+   ============================================================================ */
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* שדות סיסמה - מוסתרים במצב initial, מופיעים עם אנימציה */
+.auth-password-group {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    max-height 0.4s var(--ease-out),
+    opacity 0.3s var(--ease-out),
+    margin 0.3s var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 0;
+}
+
+.auth-form.mode-login .auth-password-group,
+.auth-form.mode-signup .auth-password-group {
+  max-height: 400px;
+  opacity: 1;
+}
+
+/* שדה אימות סיסמה - מוסתר במצב login, מופיע רק ב-signup */
+.auth-password-confirm {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    max-height 0.4s var(--ease-out) 0.1s,
+    opacity 0.3s var(--ease-out) 0.1s;
+}
+
+.auth-form.mode-signup .auth-password-confirm {
+  max-height: 120px;
+  opacity: 1;
+}
+
+/* שדה מייל - תמיד נראה */
+.auth-email-field {
+  position: relative;
+}
+
+/* כפתור "ערוך" ליד שדה המייל (כשמוצגים שדות סיסמה) */
+.auth-edit-email {
+  position: absolute;
+  top: 50%;
+  left: 10px;                   /* RTL: בצד שמאל */
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.auth-form.mode-login .auth-edit-email,
+.auth-form.mode-signup .auth-edit-email {
+  display: flex;
+  animation: fadeIn 0.3s var(--ease-out) 0.2s backwards;
+}
+
+.auth-edit-email:hover {
+  background: var(--color-primary-ultra-light);
+  color: var(--color-primary-dark);
+}
+
+.auth-edit-email svg {
+  width: 16px;
+  height: 16px;
+}
+
+.auth-form.mode-login .auth-email-field .form-input,
+.auth-form.mode-signup .auth-email-field .form-input {
+  padding-left: 48px;
+  background: var(--color-bg-alt);
+  color: var(--color-text-soft);
+}
+
+/* אייקון "טעינה" בזמן בדיקה של המייל */
+.auth-email-checking {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spinnerRotate 0.7s linear infinite;
+  display: none;
+}
+
+.auth-email-field.is-checking .auth-email-checking {
+  display: block;
+}
+
+.auth-form.mode-login .auth-email-field.is-checking .auth-email-checking,
+.auth-form.mode-signup .auth-email-field.is-checking .auth-email-checking {
+  display: none;   /* בזמן עריכה המייל כבר נבדק */
+}
+
+/* כפתור הגשה */
+.auth-submit {
+  margin-top: 4px;
+}
+
+/* משוב שגיאה גלובלי */
+.auth-error {
+  background: rgba(229, 115, 115, 0.08);
+  border: 1px solid rgba(229, 115, 115, 0.2);
+  color: #B54747;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: slideDown 0.25s var(--ease-out);
+}
+
+.auth-error svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.auth-error.hidden {
+  display: none;
+}
+
+
+/* ============================================================================
+   4. מציין עוצמת סיסמה (רק בהרשמה)
+   ============================================================================ */
+
+.auth-password-strength {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s, opacity 0.3s;
+}
+
+.auth-form.mode-signup .auth-password-strength {
+  max-height: 40px;
+  opacity: 1;
+  margin-top: -4px;
+}
+
+.auth-strength-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.auth-strength-segment {
+  flex: 1;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  transition: background-color 0.3s;
+}
+
+.auth-strength-segment.active-weak    { background: var(--color-danger); }
+.auth-strength-segment.active-medium  { background: var(--color-warning); }
+.auth-strength-segment.active-strong  { background: var(--color-success); }
+
+.auth-strength-text {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-right: 4px;
+}
+
+
+/* ============================================================================
+   5. Footer links
+   ============================================================================ */
+
+.auth-footer {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-soft);
+}
+
+.auth-forgot-link {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--color-primary-dark);
+  margin-top: 8px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s;
+}
+
+.auth-forgot-link:hover {
+  background: var(--color-primary-ultra-light);
+}
+
+/* הצגת "שכחתי סיסמה" רק במצב login */
+.auth-forgot-wrapper {
+  display: none;
+  text-align: center;
+  margin-top: -4px;
+}
+
+.auth-form.mode-login .auth-forgot-wrapper {
+  display: block;
+  animation: fadeIn 0.3s var(--ease-out);
+}
+
+
+/* ============================================================================
+   6. Terms & privacy (רק בהרשמה)
+   ============================================================================ */
+
+.auth-terms {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s, opacity 0.3s;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.auth-form.mode-signup .auth-terms {
+  max-height: 60px;
+  opacity: 1;
+  margin-top: 8px;
+}
+
+.auth-terms a {
+  color: var(--color-primary-dark);
+  font-weight: 500;
+}
+
+
+/* ============================================================================
+   7. טיפ בתחתית המסך - "השתמשו במייל אחד"
+   ============================================================================ */
+
+.auth-tip {
+  margin-top: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--color-primary-ultra-light);
+  border-radius: var(--radius-lg);
+  font-size: 13.5px;
+  color: var(--color-primary-dark);
+  line-height: 1.5;
+  max-width: 420px;
+  width: 100%;
+  animation: slideUp 0.5s var(--ease-out) 0.2s backwards;
+}
+
+.auth-tip-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-tip-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.auth-tip-text {
+  flex: 1;
+  padding-top: 6px;
+}
+
+.auth-tip-text strong {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 2px;
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+
+/* ============================================================================
+   8. מסך טעינה של כניסה (כשלוחצים "התחבר")
+   ============================================================================ */
+
+.auth-submit.is-loading {
+  pointer-events: none;
+  color: transparent;
+}
+
+.auth-submit.is-loading::before {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spinnerRotate 0.7s linear infinite;
+}
+
+
+/* ============================================================================
+   9. מצבים מיוחדים - מסכים קטנים / אוריינטציה
+   ============================================================================ */
+
+@media (max-height: 640px) {
+  .auth-container {
+    padding: 16px 20px;
+    justify-content: flex-start;
+  }
+
+  .auth-brand {
+    margin-bottom: 20px;
+  }
+
+  .auth-logo {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 12px;
+  }
+
+  .auth-logo svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .auth-title {
+    font-size: 20px;
+  }
+
+  .auth-card {
+    padding: 24px 20px;
+  }
+}
+
+/* טאבלטים - נוח יותר רוחבית */
+@media (min-width: 600px) {
+  .auth-card {
+    padding: 40px 36px;
+  }
+}
