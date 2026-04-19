@@ -59,6 +59,7 @@ const state = {
   _auth: null,
   _db: null,
   _unsubscribeListener: null,
+  _lastLocalUpdateId: null,    // מזהה של העדכון האחרון שלנו (למניעת echo)
 };
 
 
@@ -148,10 +149,15 @@ async function saveToFirestore() {
 
     const userDocRef = doc(state._db, 'users', state.user.uid, 'data', 'current');
 
+    // סימון שזה עדכון מהמכשיר הנוכחי
+    const deviceUpdateId = Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    state._lastLocalUpdateId = deviceUpdateId;
+
     await setDoc(userDocRef, {
       items: state.items,
       settings: state.settings,
       updatedAt: Date.now(),
+      _updateId: deviceUpdateId,    // מזהה עדכון ייחודי
     });
 
     state.lastSyncedAt = Date.now();
@@ -220,15 +226,24 @@ async function setupRealtimeListener() {
       if (!snap.exists()) return;
 
       const data = snap.data();
-      // מתעדכן רק אם השינוי לא הגיע מהמכשיר הזה
-      // (בדיקה גסה לפי timestamp)
-      if (data.updatedAt && data.updatedAt > (state.lastSyncedAt || 0) + 1000) {
-        state.items = Array.isArray(data.items) ? data.items : state.items;
-        state.settings = { ...state.settings, ...(data.settings || {}) };
-        state.lastSyncedAt = data.updatedAt;
-        saveLocal();
-        notifyListeners('remote-update');
+
+      // התעלם אם זה העדכון האחרון שלנו עצמנו
+      // (מזהה ייחודי שנוצר ב-saveToFirestore)
+      if (data._updateId && data._updateId === state._lastLocalUpdateId) {
+        return;
       }
+
+      // אם הגיע עדכון עם timestamp ישן יותר - התעלם (כנראה echo ישן)
+      if (data.updatedAt && data.updatedAt <= (state.lastSyncedAt || 0)) {
+        return;
+      }
+
+      // עדכון אמיתי ממכשיר אחר
+      state.items = Array.isArray(data.items) ? data.items : state.items;
+      state.settings = { ...state.settings, ...(data.settings || {}) };
+      state.lastSyncedAt = data.updatedAt;
+      saveLocal();
+      notifyListeners('remote-update');
     }, (err) => {
       console.warn('Realtime listener error:', err);
     });
