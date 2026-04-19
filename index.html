@@ -318,6 +318,27 @@
   <script type="module" src="js/app.js?v=2"></script>
 
   <script>
+    // ניקוי Service Workers ישנים (מהגרסה הקודמת של האפליקציה)
+    // כשנוסיף את ה-SW החדש שלנו - נסיר את הסקריפט הזה
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        regs.forEach(function(reg) {
+          reg.unregister().then(function() {
+            console.log('🗑️ Unregistered old service worker');
+          });
+        });
+      });
+    }
+
+    // ניקוי cache ישן
+    if ('caches' in window) {
+      caches.keys().then(function(names) {
+        names.forEach(function(name) {
+          caches.delete(name);
+        });
+      });
+    }
+
     // גילוי מצב אופליין
     (function() {
       var banner = document.getElementById('offline-banner');
