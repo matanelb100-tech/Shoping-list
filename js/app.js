@@ -15,6 +15,7 @@
 
 import { FIREBASE_CONFIG, APP_VERSION, APP_NAME, validateConfig } from './config.js?v=2';
 import { initAuth, showAuthScreen, resetAuthForm } from './auth.js?v=2';
+import { State } from './state.js?v=1';
 
 
 // ============================================================================
@@ -73,16 +74,23 @@ async function initFirebase() {
 // טיפול בשינוי מצב המשתמש
 // ============================================================================
 
-function handleAuthStateChanged(user) {
+async function handleAuthStateChanged(user) {
   currentUser = user;
 
   if (user) {
-    // משתמש מחובר
+    // משתמש מחובר - אתחול ה-State (טעינה מ-Firestore + גיבוי מקומי)
     console.log('👤 משתמש מחובר:', user.email);
+    try {
+      await State.init(firebaseAuth, firebaseFirestore);
+      console.log('📦 State initialized. Items:', State.getItemCount());
+    } catch (err) {
+      console.error('State init failed:', err);
+    }
     showMainScreen();
   } else {
-    // משתמש לא מחובר
+    // משתמש לא מחובר - ניקוי state
     console.log('🚪 לא מחובר');
+    await State.cleanup();
     showAuthScreen();
   }
 }
