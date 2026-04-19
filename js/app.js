@@ -13,8 +13,8 @@
  * ============================================================================
  */
 
-import { FIREBASE_CONFIG, APP_VERSION, APP_NAME, validateConfig } from './config.js';
-import { initAuth, showAuthScreen, resetAuthForm } from './auth.js';
+import { FIREBASE_CONFIG, APP_VERSION, APP_NAME, validateConfig } from './config.js?v=2';
+import { initAuth, showAuthScreen, resetAuthForm } from './auth.js?v=2';
 
 
 // ============================================================================
