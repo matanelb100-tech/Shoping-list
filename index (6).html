@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="description" content="רשימת קניות חכמה - השוואת מחירים בין רשתות השיווק בישראל" />
+  <meta name="theme-color" content="#7BC4E2" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="רשימת קניות" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="format-detection" content="telephone=no" />
+
+  <title>רשימת קניות חכמה</title>
+
+  <!-- PWA (יתווסף בשלב הבא) -->
+  <!-- <link rel="manifest" href="manifest.json" /> -->
+
+  <!-- Preload קריטי -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://www.gstatic.com" />
+  <link rel="preconnect" href="https://runprice.matanelb100.workers.dev" />
+
+  <!-- פונטים: Rubik - מעוצב היטב לעברית -->
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&family=Heebo:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <!-- CSS קריטי inline - רק מה שצריך להצגת מסך הטעינה -->
+  <style>
+    :root {
+      --color-primary: #7BC4E2;
+      --color-primary-dark: #4A9BC7;
+      --color-primary-light: #B8DFED;
+      --color-primary-ultra-light: #E8F4FA;
+      --color-accent: #F2A649;
+      --color-success: #7DB87D;
+      --color-danger: #E57373;
+      --color-warning: #F5C678;
+      --color-premium: #D4AF37;
+      --color-bg: #FAF6EF;
+      --color-bg-alt: #F5EFE4;
+      --color-surface: #FFFFFF;
+      --color-surface-2: #FEFCF7;
+      --color-text: #2C3E50;
+      --color-text-soft: #5A6C7D;
+      --color-text-muted: #8A9AAA;
+      --color-border: #E8DFD0;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+      --shadow-sm: 0 1px 3px rgba(44, 62, 80, 0.08);
+      --shadow-md: 0 4px 12px rgba(44, 62, 80, 0.1);
+      --shadow-lg: 0 8px 24px rgba(44, 62, 80, 0.12);
+      --shadow-primary: 0 4px 14px rgba(123, 196, 226, 0.35);
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --header-height: 60px;
+      --input-bar-height: 72px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      font-family: 'Rubik', 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      color: var(--color-text);
+      background: var(--color-bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    #app-root {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .app-background {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: var(--color-bg);
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .app-background::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 30%, rgba(123, 196, 226, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(242, 166, 73, 0.05) 0%, transparent 50%);
+    }
+
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--color-primary-ultra-light) 0%, var(--color-bg) 100%);
+      transition: opacity 0.4s var(--ease-out), visibility 0.4s;
+    }
+
+    #splash-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .splash-logo {
+      width: 96px;
+      height: 96px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-lg), 0 0 0 6px rgba(123, 196, 226, 0.15);
+      animation: splashPulse 1.8s var(--ease-in-out) infinite;
+    }
+
+    .splash-logo svg {
+      width: 56px;
+      height: 56px;
+      color: #fff;
+    }
+
+    .splash-title {
+      margin-top: 24px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--color-text);
+      letter-spacing: -0.3px;
+    }
+
+    .splash-subtitle {
+      margin-top: 4px;
+      font-size: 14px;
+      color: var(--color-text-muted);
+      font-weight: 400;
+    }
+
+    .splash-spinner {
+      margin-top: 32px;
+      width: 28px;
+      height: 28px;
+      border: 3px solid var(--color-primary-light);
+      border-top-color: var(--color-primary-dark);
+      border-radius: 50%;
+      animation: spinnerRotate 0.8s linear infinite;
+    }
+
+    @keyframes splashPulse {
+      0%, 100% { transform: scale(1); box-shadow: var(--shadow-lg), 0 0 0 6px rgba(123, 196, 226, 0.15); }
+      50% { transform: scale(1.05); box-shadow: var(--shadow-lg), 0 0 0 12px rgba(123, 196, 226, 0.08); }
+    }
+
+    @keyframes spinnerRotate {
+      to { transform: rotate(360deg); }
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      z-index: 1;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    #toast-container {
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 20px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      max-width: 90%;
+    }
+
+    .toast {
+      background: var(--color-text);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: var(--radius-full);
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      animation: toastIn 0.3s var(--ease-out);
+      pointer-events: auto;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .toast.success { background: var(--color-success); }
+    .toast.error { background: var(--color-danger); }
+    .toast.warning { background: var(--color-warning); color: var(--color-text); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    #offline-banner {
+      position: fixed;
+      top: var(--safe-top);
+      left: 0;
+      right: 0;
+      background: var(--color-warning);
+      color: var(--color-text);
+      padding: 6px 12px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 9998;
+      transform: translateY(-100%);
+      transition: transform 0.3s var(--ease-out);
+    }
+
+    #offline-banner.visible {
+      transform: translateY(0);
+    }
+  </style>
+
+  <!-- CSS חיצוני - רק הקבצים שכבר קיימים -->
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+</head>
+
+<body>
+  <!-- רקע -->
+  <div class="app-background" aria-hidden="true"></div>
+
+  <!-- הודעת אופליין -->
+  <div id="offline-banner" role="status" aria-live="polite">
+    <span>אין חיבור לאינטרנט - האפליקציה פועלת במצב אופליין</span>
+  </div>
+
+  <!-- מסך טעינה ראשוני -->
+  <div id="splash-screen" role="status" aria-label="טוען אפליקציה">
+    <div class="splash-logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="21" r="1.5" fill="currentColor" />
+        <circle cx="18" cy="21" r="1.5" fill="currentColor" />
+        <path d="M2.5 3h2.5l2.7 12.6a2 2 0 0 0 2 1.6h9.4a2 2 0 0 0 2-1.5L22 7H6" />
+      </svg>
+    </div>
+    <div class="splash-title">רשימת קניות חכמה</div>
+    <div class="splash-subtitle">השוואת מחירים בזמן אמת</div>
+    <div class="splash-spinner" aria-hidden="true"></div>
+  </div>
+
+  <!-- שורש האפליקציה -->
+  <div id="app-root">
+    <section class="screen" id="screen-auth" aria-label="מסך התחברות"></section>
+    <section class="screen" id="screen-main" aria-label="רשימת קניות">
+      <header id="main-header"></header>
+      <main id="main-content"></main>
+      <footer id="main-input-bar"></footer>
+    </section>
+    <section class="screen" id="screen-history" aria-label="היסטוריית קניות"></section>
+  </div>
+
+  <!-- Modals -->
+  <div id="modal-root" aria-live="polite"></div>
+
+  <!-- Toasts -->
+  <div id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- Scripts - בשלב זה רק app.js (שמייבא את השאר) -->
+  <script type="module" src="js/app.js"></script>
+
+  <script>
+    // גילוי מצב אופליין
+    (function() {
+      var banner = document.getElementById('offline-banner');
+      function updateStatus() {
+        if (navigator.onLine) {
+          banner.classList.remove('visible');
+        } else {
+          banner.classList.add('visible');
+        }
+      }
+      window.addEventListener('online', updateStatus);
+      window.addEventListener('offline', updateStatus);
+      updateStatus();
+    })();
+
+    // הסתרת splash screen לאחר טעינה
+    window.addEventListener('app:ready', function() {
+      var splash = document.getElementById('splash-screen');
+      if (splash) {
+        setTimeout(function() {
+          splash.classList.add('hidden');
+          setTimeout(function() { splash.remove(); }, 400);
+        }, 300);
+      }
+    });
+
+    // fallback
+    setTimeout(function() {
+      var splash = document.getElementById('splash-screen');
+      if (splash && !splash.classList.contains('hidden')) {
+        splash.classList.add('hidden');
+      }
+    }, 8000);
+  </script>
+</body>
+</html>
