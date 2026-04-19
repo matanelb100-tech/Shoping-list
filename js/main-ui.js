@@ -20,6 +20,7 @@ import { State } from './state.js?v=1';
 import { parseUserInput } from './products.js?v=1';
 import { CATEGORIES, MESSAGES } from './config.js?v=2';
 import { Modal } from './modals.js?v=1';
+import { openItemEditor } from './item-editor.js?v=1';
 
 
 // ============================================================================
@@ -421,13 +422,9 @@ function handleItemClick(e) {
     return;
   }
 
-  // לחיצה על כפתור הכמות - הגדלה ב-1
+  // לחיצה על כפתור הכמות - פתיחת עורך מלא
   if (e.target.closest('.item-btn-qty')) {
-    const item = State.getItems().find(i => i.id === itemId);
-    if (item) {
-      const newQty = (item.quantity || 1) + 1;
-      State.updateItem(itemId, { quantity: newQty });
-    }
+    openItemEditor(itemId);
     return;
   }
 
