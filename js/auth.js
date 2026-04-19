@@ -387,6 +387,9 @@ async function attemptLogin(email, password) {
     );
     await signInWithEmailAndPassword(auth, email, password);
 
+    // הצלחה! מסירים את מצב הטעינה לפני המעבר למסך הבא
+    setSubmitLoading(false);
+
     window.dispatchEvent(new CustomEvent('auth:success', {
       detail: { email }
     }));
@@ -428,6 +431,9 @@ async function attemptSignup(email, password) {
       'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'
     );
     await createUserWithEmailAndPassword(auth, email, password);
+
+    // הצלחה! מסירים את מצב הטעינה
+    setSubmitLoading(false);
 
     window.dispatchEvent(new CustomEvent('auth:success', {
       detail: { email, isNewUser: true }
@@ -572,7 +578,7 @@ async function handleForgotPassword() {
   const email = emailInput.value.trim();
 
   if (!isValidEmail(email)) {
-    showError('הכנס כתובת מייל תקינה כדי לקבל קישור לאיפוס');
+    showError('הכנס את כתובת המייל שלך בשדה ולחץ שוב על "שכחתי סיסמה"');
     emailInput.focus();
     return;
   }
@@ -583,17 +589,23 @@ async function handleForgotPassword() {
     );
     await sendPasswordResetEmail(auth, email);
 
-    const msg = `אם קיים חשבון עם המייל ${email} - נשלח אליו קישור לאיפוס סיסמה`;
+    // הודעה ברורה ופשוטה
+    const msg = `נשלח מייל לאיפוס סיסמה. בדוק את תיבת המייל שלך (וגם בספאם)`;
     if (window.showToast) {
       window.showToast(msg, 'success');
     } else {
       showError(msg);
     }
   } catch (error) {
+    console.error('Forgot password error:', error);
     if (error.code === 'auth/invalid-email') {
       showError(MESSAGES.errors.invalidEmail);
+    } else if (error.code === 'auth/too-many-requests') {
+      showError('שלחת יותר מדי בקשות. המתן מספר דקות ונסה שוב');
     } else {
-      const msg = 'אם קיים חשבון עם מייל זה - יישלח אליו קישור לאיפוס';
+      // אם יש שגיאה כללית (למשל הגנת אנונימיזציה של Google),
+      // נניח שזה עבד ונגיד למשתמש
+      const msg = `אם קיים חשבון - נשלח אליו מייל איפוס. בדוק גם בתיקיית הספאם`;
       if (window.showToast) window.showToast(msg, 'success');
     }
   }
