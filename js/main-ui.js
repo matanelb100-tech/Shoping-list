@@ -603,11 +603,29 @@ export function initMainUI() {
   renderInputBar();
   renderContent();
 
-  // האזנה לשינויים ב-state כדי לרנדר מחדש
+  // rendering debounce - מונע רנדור כפול בתוך אותו tick
+  let renderTimer = null;
+  let pendingSyncUpdate = false;
+
+  const scheduleRender = (eventType) => {
+    // אם זה רק עדכון סנכרון - לא צריך לרנדר מחדש, רק חיווי
+    if (eventType === 'syncing' || eventType === 'synced' || eventType === 'sync-error') {
+      updateSyncIndicator();
+      return;
+    }
+
+    // דחיית רנדור במיקרו-tick כדי לאחד עדכונים
+    if (renderTimer) return;
+    renderTimer = setTimeout(() => {
+      renderTimer = null;
+      renderContent();
+      updateSyncIndicator();
+    }, 16);  // frame rate אחד
+  };
+
+  // האזנה לשינויים ב-state
   stateUnsubscribe = State.onChange((newState, eventType) => {
-    // רנדור מחדש של התוכן אחרי שינוי
-    renderContent();
-    updateSyncIndicator();
+    scheduleRender(eventType);
   });
 
   isInitialized = true;
