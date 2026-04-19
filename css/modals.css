@@ -429,6 +429,24 @@
    7. Quantity Modal - עורך כמות
    ============================================================================ */
 
+.item-editor-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-editor-name {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: center;
+  padding: 10px 16px;
+  background: var(--color-primary-ultra-light);
+  border-radius: var(--radius-md);
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
 .quantity-editor {
   display: flex;
   flex-direction: column;
