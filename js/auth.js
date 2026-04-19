@@ -1,37 +1,31 @@
 /**
  * ============================================================================
- * auth.js - מסך התחברות (Login-First Strategy)
+ * auth.js - מסך התחברות (גרסה 2.0)
  * ============================================================================
  *
  * זרימה:
- *   1. המשתמש מזין מייל + סיסמה + "המשך"
+ *   1. המשתמש מזין מייל + סיסמה → "המשך"
  *   2. ננסה signInWithEmailAndPassword
- *   3. אם מצליח → הכניס לאפליקציה
- *   4. אם המשתמש לא קיים → הצע להירשם עם אותם פרטים
- *   5. אם סיסמה שגויה → הצג שגיאה + אפשרות איפוס
+ *   3. אם הצליח → נכנס לאפליקציה
+ *   4. אם user-not-found → הצע להירשם
+ *   5. אם סיסמה שגויה / invalid-credential → הצע להירשם
+ *      (אם המשתמש לוחץ "צור חשבון" ובאמת קיים - Firebase יחזיר
+ *       email-already-in-use ואנחנו נגיד לו שהסיסמה שגויה)
  *
- * יתרונות הגישה:
- *   - עובד עם Email Enumeration Protection של Google
- *   - אבטחה גבוהה יותר (מונע credential stuffing)
- *   - פחות שדות במסך = UX טוב יותר
- *   - פחות קריאות API = מהירות
- *
- * תלויות:
- *   - Firebase Auth
- *   - config.js
+ * תלויות: Firebase Auth, config.js
  * ============================================================================
  */
 
-import { MESSAGES } from './config.js';
+import { MESSAGES } from './config.js?v=2';
 
 
 // ============================================================================
 // משתנים ברמת המודול
 // ============================================================================
 
-let auth = null;              // Firebase Auth instance
+let auth = null;
 let isSubmitting = false;
-let pendingSignup = null;     // {email, password} כשמציגים הצעה להרשמה
+let pendingSignup = null;     // {email, password} כשיש הצעת הרשמה פעילה
 
 
 // ============================================================================
@@ -68,9 +62,8 @@ function calcPasswordStrength(password) {
 function translateFirebaseError(errorCode) {
   const map = {
     'auth/invalid-email': MESSAGES.errors.invalidEmail,
-    'auth/user-not-found': 'USER_NOT_FOUND',   // סימון מיוחד - נטופל בנפרד
     'auth/wrong-password': 'הסיסמה שגויה',
-    'auth/invalid-credential': 'הסיסמה שגויה',   // Firebase מחזיר את זה במקום wrong-password עם enumeration protection
+    'auth/invalid-credential': 'הסיסמה שגויה',
     'auth/invalid-login-credentials': 'הסיסמה שגויה',
     'auth/email-already-in-use': MESSAGES.errors.emailInUse,
     'auth/weak-password': MESSAGES.errors.weakPassword,
@@ -84,7 +77,7 @@ function translateFirebaseError(errorCode) {
 
 
 // ============================================================================
-// רנדור HTML של המסך
+// רנדור HTML של המסך - גרסה נקייה בלי אימות סיסמה
 // ============================================================================
 
 function renderAuthScreen() {
@@ -111,7 +104,7 @@ function renderAuthScreen() {
 
         <form class="auth-form" id="auth-form" novalidate>
 
-          <!-- הודעת שגיאה / הצעת הרשמה -->
+          <!-- הודעת שגיאה -->
           <div class="auth-error hidden" id="auth-error" role="alert">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"/>
@@ -121,7 +114,7 @@ function renderAuthScreen() {
             <span id="auth-error-text"></span>
           </div>
 
-          <!-- הצעת הרשמה (כשהמייל לא קיים) -->
+          <!-- הצעת הרשמה -->
           <div class="auth-signup-prompt hidden" id="auth-signup-prompt">
             <div class="auth-signup-prompt-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -135,7 +128,7 @@ function renderAuthScreen() {
               <strong>נראה שזה חשבון חדש</strong>
               <span>ליצור חשבון עם המייל והסיסמה שהזנת?</span>
             </div>
-            <div class="auth-signup-prompt-strength" id="auth-signup-strength-wrapper">
+            <div class="auth-signup-prompt-strength">
               <div class="auth-strength-bar" aria-hidden="true">
                 <div class="auth-strength-segment" data-segment="1"></div>
                 <div class="auth-strength-segment" data-segment="2"></div>
@@ -170,7 +163,7 @@ function renderAuthScreen() {
                 type="password"
                 id="auth-password"
                 class="form-input"
-                placeholder="הכנס סיסמה"
+                placeholder="הכנס סיסמה (לפחות 6 תווים)"
                 autocomplete="current-password"
                 required
                 minlength="6"
@@ -195,7 +188,7 @@ function renderAuthScreen() {
             <a href="#" class="auth-forgot-link" id="auth-forgot">שכחתי סיסמה</a>
           </div>
 
-          <!-- כפתור ראשי - משנה טקסט לפי מצב -->
+          <!-- כפתור ראשי -->
           <button
             type="submit"
             class="btn btn-primary btn-full btn-lg auth-submit"
@@ -204,7 +197,7 @@ function renderAuthScreen() {
             <span id="auth-submit-text">המשך</span>
           </button>
 
-          <!-- כפתור ביטול הרשמה (רק כשמוצגת הצעת הרשמה) -->
+          <!-- כפתור ביטול (רק כשמוצגת הצעת הרשמה) -->
           <button
             type="button"
             class="btn btn-ghost btn-full auth-cancel-signup hidden"
@@ -213,7 +206,7 @@ function renderAuthScreen() {
             ביטול
           </button>
 
-          <!-- תנאי שימוש (רק בעת הרשמה) -->
+          <!-- תנאי שימוש (רק בהרשמה) -->
           <div class="auth-terms hidden" id="auth-terms">
             ביצירת חשבון אני מסכים/ה
             <a href="#" id="auth-terms-link">לתנאי השימוש</a>
@@ -260,22 +253,17 @@ function attachEventListeners() {
 
   form.addEventListener('submit', handleSubmit);
 
-  // עדכון חוזק סיסמה רק כשיש הצעת הרשמה פתוחה
   passwordInput.addEventListener('input', () => {
     if (pendingSignup) {
       updatePasswordStrength(passwordInput.value);
-    }
-    // אם היתה הצעת הרשמה והמשתמש שינה את הסיסמה - נקה את ההצעה
-    if (pendingSignup && passwordInput.value !== pendingSignup.password) {
-      clearSignupPrompt();
+      if (passwordInput.value !== pendingSignup.password) {
+        clearSignupPrompt();
+      }
     }
   });
 
-  // אם המשתמש משנה את המייל אחרי הצעת הרשמה - נקה
   emailInput.addEventListener('input', () => {
-    if (pendingSignup) {
-      clearSignupPrompt();
-    }
+    if (pendingSignup) clearSignupPrompt();
     hideError();
   });
 
@@ -295,7 +283,7 @@ function attachEventListeners() {
 
 
 // ============================================================================
-// כפתור הצג/הסתר סיסמה - לחיצה ארוכה
+// טוגלר הצגת סיסמה - לחיצה ארוכה
 // ============================================================================
 
 function setupPasswordToggle(button, input) {
@@ -347,7 +335,7 @@ function setupPasswordToggle(button, input) {
 
 
 // ============================================================================
-// הגשת הטופס - לב האפליקציה
+// הגשת הטופס
 // ============================================================================
 
 async function handleSubmit(e) {
@@ -356,13 +344,11 @@ async function handleSubmit(e) {
 
   const emailInput = document.getElementById('auth-email');
   const passwordInput = document.getElementById('auth-password');
-
   const email = emailInput.value.trim();
   const password = passwordInput.value;
 
   hideError();
 
-  // ולידציה בסיסית
   if (!isValidEmail(email)) {
     showError(MESSAGES.errors.invalidEmail);
     emailInput.focus();
@@ -377,13 +363,15 @@ async function handleSubmit(e) {
 
   setSubmitLoading(true);
 
-  // אם יש pendingSignup פעיל - זה אומר שהמשתמש לחץ "צור חשבון"
-  if (pendingSignup && pendingSignup.email === email && pendingSignup.password === password) {
+  // אם יש הצעת הרשמה פעילה - ננסה הרשמה
+  if (pendingSignup &&
+      pendingSignup.email === email &&
+      pendingSignup.password === password) {
     await attemptSignup(email, password);
     return;
   }
 
-  // אחרת - ננסה התחברות רגילה קודם
+  // אחרת - ננסה התחברות
   await attemptLogin(email, password);
 }
 
@@ -399,7 +387,6 @@ async function attemptLogin(email, password) {
     );
     await signInWithEmailAndPassword(auth, email, password);
 
-    // הצלחה - onAuthStateChanged יטפל במעבר למסך הראשי
     window.dispatchEvent(new CustomEvent('auth:success', {
       detail: { email }
     }));
@@ -408,29 +395,19 @@ async function attemptLogin(email, password) {
     console.log('Login attempt result:', error.code);
     setSubmitLoading(false);
 
-    // שים לב: Firebase עם Email Enumeration Protection מחזיר
-    // 'invalid-credential' או 'invalid-login-credentials' לכל שגיאה
-    // שלא חושפת אם המייל קיים או לא. במקרה כזה, לא נדע בוודאות
-    // אם זו סיסמה שגויה או משתמש חדש.
-    //
-    // הגישה שלנו: אם המשתמש רוצה - הוא לוחץ "צור חשבון חדש"
-    // ואנחנו ננסה signUp. אם המייל קיים - Firebase יחזיר email-already-in-use
-    // ונגיד לו "הסיסמה שגויה".
-
-    if (error.code === 'auth/user-not-found') {
-      // המקרה הישן (ללא Enumeration Protection)
-      showSignupPrompt(email, password);
-    } else if (
+    // עם Email Enumeration Protection, Firebase מחזיר 'invalid-credential'
+    // לכל שגיאה שלא חושפת אם המייל קיים או לא.
+    // במקרה כזה, נציג הצעה להרשמה.
+    if (
+      error.code === 'auth/user-not-found' ||
       error.code === 'auth/invalid-credential' ||
       error.code === 'auth/invalid-login-credentials' ||
       error.code === 'auth/wrong-password'
     ) {
-      // עם Enumeration Protection - נציג הצעה להרשמה
-      // זה האפשרות הכי ידידותית: אם המייל קיים הם ילחצו "שכחתי סיסמה",
-      // אם המייל חדש הם ילחצו "צור חשבון"
       showSignupPrompt(email, password);
     } else if (error.code === 'auth/too-many-requests') {
       showError(translateFirebaseError(error.code));
+      shakeCard();
     } else if (error.code === 'auth/network-request-failed') {
       showError(MESSAGES.errors.networkError);
     } else {
@@ -442,7 +419,7 @@ async function attemptLogin(email, password) {
 
 
 // ============================================================================
-// ניסיון הרשמה (רק אחרי שהמשתמש אישר במפורש)
+// ניסיון הרשמה
 // ============================================================================
 
 async function attemptSignup(email, password) {
@@ -461,12 +438,13 @@ async function attemptSignup(email, password) {
     setSubmitLoading(false);
 
     if (error.code === 'auth/email-already-in-use') {
-      // המייל כן קיים - פירושו שהסיסמה הייתה שגויה בהתחברות
+      // המייל כבר קיים - כלומר הסיסמה שהמשתמש הזין הייתה שגויה
       clearSignupPrompt();
-      showError('נראה שיש חשבון עם המייל הזה אבל הסיסמה שגויה. נסה סיסמה אחרת או לחץ "שכחתי סיסמה".');
+      showError('הסיסמה שגויה. נסה סיסמה אחרת או לחץ "שכחתי סיסמה".');
       shakeCard();
-      document.getElementById('auth-password').focus();
-      document.getElementById('auth-password').select();
+      const passwordInput = document.getElementById('auth-password');
+      passwordInput.focus();
+      passwordInput.select();
     } else if (error.code === 'auth/weak-password') {
       showError(MESSAGES.errors.weakPassword);
       document.getElementById('auth-password').focus();
@@ -501,18 +479,18 @@ function showSignupPrompt(email, password) {
   if (forgotWrapper) forgotWrapper.classList.add('hidden');
 
   title.textContent = 'בוא ניצור חשבון';
-  subtitle.textContent = 'הסיסמה שהזנת תשמש לחשבון החדש';
+  subtitle.innerHTML = `נרשם עבור <strong dir="ltr">${escapeHtml(email)}</strong>`;
   submitText.textContent = 'צור חשבון והתחבר';
 
   updatePasswordStrength(password);
 
-  // גלילה רכה אל הכפתור
+  // גלילה חלקה לכפתור - חשוב שהמשתמש יראה אותו
   setTimeout(() => {
     const submitBtn = document.getElementById('auth-submit');
-    if (submitBtn && submitBtn.scrollIntoView) {
+    if (submitBtn) {
       submitBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-  }, 100);
+  }, 150);
 }
 
 
@@ -524,6 +502,8 @@ function clearSignupPrompt() {
   pendingSignup = null;
 
   const form = document.getElementById('auth-form');
+  if (!form) return;
+
   const prompt = document.getElementById('auth-signup-prompt');
   const submitText = document.getElementById('auth-submit-text');
   const cancelBtn = document.getElementById('auth-cancel-signup');
@@ -531,8 +511,6 @@ function clearSignupPrompt() {
   const title = document.getElementById('auth-title');
   const subtitle = document.getElementById('auth-subtitle');
   const forgotWrapper = document.querySelector('.auth-forgot-wrapper');
-
-  if (!form) return;
 
   form.classList.remove('is-signup-mode');
   prompt.classList.add('hidden');
@@ -543,8 +521,6 @@ function clearSignupPrompt() {
   title.textContent = 'ברוכים הבאים';
   subtitle.textContent = 'הכנס את פרטי החשבון שלך';
   submitText.textContent = 'המשך';
-
-  hideError();
 }
 
 
@@ -556,7 +532,6 @@ function updatePasswordStrength(password) {
   const strength = calcPasswordStrength(password);
   const segments = document.querySelectorAll('.auth-strength-segment');
   const text = document.getElementById('auth-strength-text');
-
   if (!segments.length || !text) return;
 
   segments.forEach(seg => {
@@ -569,7 +544,6 @@ function updatePasswordStrength(password) {
   }
 
   let label, activeClass;
-
   if (strength <= 1) {
     label = 'חלשה';
     activeClass = 'active-weak';
@@ -619,12 +593,8 @@ async function handleForgotPassword() {
     if (error.code === 'auth/invalid-email') {
       showError(MESSAGES.errors.invalidEmail);
     } else {
-      // עם enumeration protection Firebase תמיד מחזיר הצלחה,
-      // אבל למקרה שלא - נציג הודעה גנרית
       const msg = 'אם קיים חשבון עם מייל זה - יישלח אליו קישור לאיפוס';
-      if (window.showToast) {
-        window.showToast(msg, 'success');
-      }
+      if (window.showToast) window.showToast(msg, 'success');
     }
   }
 }
@@ -668,22 +638,22 @@ function shakeCard() {
   }
 }
 
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = String(text);
+  return div.innerHTML;
+}
+
 
 // ============================================================================
 // API ציבורי
 // ============================================================================
 
-/**
- * אתחול מסך האימות - נקרא מ-app.js
- */
 export function initAuth(firebaseAuth) {
   auth = firebaseAuth;
   renderAuthScreen();
 }
 
-/**
- * הצגת מסך האימות
- */
 export function showAuthScreen() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const screen = document.getElementById('screen-auth');
@@ -696,9 +666,6 @@ export function showAuthScreen() {
   }
 }
 
-/**
- * התנתקות
- */
 export async function signOut() {
   if (!auth) return;
   const { signOut: fbSignOut } = await import(
@@ -707,9 +674,6 @@ export async function signOut() {
   await fbSignOut(auth);
 }
 
-/**
- * איפוס הטופס
- */
 export function resetAuthForm() {
   clearSignupPrompt();
   const emailInput = document.getElementById('auth-email');
