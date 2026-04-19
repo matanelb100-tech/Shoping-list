@@ -1,0 +1,467 @@
+/* ============================================================================
+   auth.css - עיצוב מסך ההתחברות (Login-First Strategy)
+   ============================================================================
+
+   מבנה:
+   1. Layout - גלילה בטוחה גם במסכים קטנים
+   2. Brand header
+   3. Form fields
+   4. Signup prompt - הצעת הרשמה (מוסתרת כברירת מחדל)
+   5. Password strength meter
+   6. Footer elements
+   7. Responsive
+   ============================================================================ */
+
+
+/* ============================================================================
+   1. Layout - תיקון בעיית גלילה
+   ============================================================================ */
+
+#screen-auth {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* הבטחת גלילה נקייה גם במסכים קטנים */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-container {
+  /* שימוש ב-min-height במקום height מאפשר גלילה כשהתוכן ארוך */
+  min-height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  padding-top: max(24px, var(--safe-top));
+  padding-bottom: max(24px, var(--safe-bottom));
+  position: relative;
+  box-sizing: border-box;
+  /* מרווח לגלילה חלקה */
+  gap: 16px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 20px 40px -12px rgba(44, 62, 80, 0.15),
+    0 4px 12px rgba(44, 62, 80, 0.06);
+  padding: 28px 22px;
+  position: relative;
+  overflow: hidden;
+  animation: authCardIn 0.5s var(--ease-out);
+  flex-shrink: 0;  /* לא יצטמצם בגלילה */
+}
+
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary) 0%,
+    var(--color-primary-light) 50%,
+    var(--color-accent) 100%
+  );
+}
+
+@keyframes authCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* ============================================================================
+   2. Brand header
+   ============================================================================ */
+
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-logo {
+  width: 68px;
+  height: 68px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 8px 24px rgba(123, 196, 226, 0.4),
+    0 0 0 5px rgba(123, 196, 226, 0.1);
+  margin-bottom: 14px;
+  position: relative;
+}
+
+.auth-logo svg {
+  width: 36px;
+  height: 36px;
+  color: #fff;
+}
+
+.auth-logo::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle, rgba(255,255,255,0.6), transparent 70%);
+  border-radius: 50%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.3; transform: scale(0.9); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+.auth-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 4px;
+  letter-spacing: -0.3px;
+}
+
+.auth-subtitle {
+  font-size: 13.5px;
+  color: var(--color-text-soft);
+  line-height: 1.5;
+  max-width: 320px;
+}
+
+.auth-subtitle strong {
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
+
+/* ============================================================================
+   3. Form fields
+   ============================================================================ */
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth-form .form-group {
+  margin-bottom: 0;
+}
+
+
+/* ============================================================================
+   4. Signup prompt - הצעת הרשמה
+   ============================================================================ */
+
+.auth-signup-prompt {
+  background: linear-gradient(135deg, var(--color-primary-ultra-light) 0%, rgba(232, 244, 250, 0.5) 100%);
+  border: 1.5px solid var(--color-primary-light);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  animation: slideDown 0.35s var(--ease-out);
+  position: relative;
+}
+
+.auth-signup-prompt.hidden {
+  display: none;
+}
+
+.auth-signup-prompt-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-signup-prompt-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.auth-signup-prompt-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.auth-signup-prompt-text strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.auth-signup-prompt-text span {
+  font-size: 13px;
+  color: var(--color-text-soft);
+  line-height: 1.4;
+}
+
+/* מד חוזק סיסמה בתוך ההצעה */
+.auth-signup-prompt-strength {
+  width: 100%;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(123, 196, 226, 0.2);
+  order: 3;
+  flex-basis: 100%;
+}
+
+.auth-strength-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.auth-strength-segment {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius-full);
+  transition: background-color 0.3s;
+}
+
+.auth-strength-segment.active-weak    { background: var(--color-danger); }
+.auth-strength-segment.active-medium  { background: var(--color-warning); }
+.auth-strength-segment.active-strong  { background: var(--color-success); }
+
+.auth-strength-text {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+
+/* ============================================================================
+   5. הודעת שגיאה
+   ============================================================================ */
+
+.auth-error {
+  background: rgba(229, 115, 115, 0.08);
+  border: 1px solid rgba(229, 115, 115, 0.2);
+  color: #B54747;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.4;
+  animation: slideDown 0.25s var(--ease-out);
+}
+
+.auth-error svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.auth-error.hidden {
+  display: none;
+}
+
+
+/* ============================================================================
+   6. Footer links & terms
+   ============================================================================ */
+
+.auth-forgot-wrapper {
+  text-align: center;
+  margin-top: -4px;
+}
+
+.auth-forgot-wrapper.hidden {
+  display: none;
+}
+
+.auth-forgot-link {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--color-primary-dark);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s;
+  font-weight: 500;
+}
+
+.auth-forgot-link:hover {
+  background: var(--color-primary-ultra-light);
+}
+
+.auth-cancel-signup.hidden {
+  display: none;
+}
+
+.auth-terms {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: 1.6;
+  margin-top: -4px;
+}
+
+.auth-terms.hidden {
+  display: none;
+}
+
+.auth-terms a {
+  color: var(--color-primary-dark);
+  font-weight: 500;
+}
+
+
+/* ============================================================================
+   7. Submit button - loading state
+   ============================================================================ */
+
+.auth-submit.is-loading {
+  pointer-events: none;
+  color: transparent;
+}
+
+.auth-submit.is-loading::before {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spinnerRotate 0.7s linear infinite;
+}
+
+
+/* ============================================================================
+   8. טיפ תחתון
+   ============================================================================ */
+
+.auth-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--color-primary-ultra-light);
+  border-radius: var(--radius-lg);
+  font-size: 13.5px;
+  color: var(--color-primary-dark);
+  line-height: 1.5;
+  max-width: 420px;
+  width: 100%;
+  flex-shrink: 0;
+  animation: slideUp 0.5s var(--ease-out) 0.2s backwards;
+}
+
+.auth-tip-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-tip-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.auth-tip-text {
+  flex: 1;
+  padding-top: 6px;
+}
+
+.auth-tip-text strong {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 2px;
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+
+/* ============================================================================
+   9. Responsive - מסכים קטנים
+   ============================================================================ */
+
+@media (max-height: 700px) {
+  .auth-container {
+    justify-content: flex-start;
+    padding-top: max(16px, var(--safe-top));
+  }
+
+  .auth-brand {
+    margin-bottom: 18px;
+  }
+
+  .auth-logo {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 10px;
+  }
+
+  .auth-logo svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .auth-title {
+    font-size: 20px;
+  }
+
+  .auth-card {
+    padding: 22px 20px;
+  }
+
+  .auth-tip {
+    padding: 12px 14px;
+    font-size: 12.5px;
+  }
+}
+
+@media (max-height: 580px) {
+  .auth-tip {
+    display: none;  /* הסתרת הטיפ במסכים קטנים מאוד */
+  }
+}
+
+@media (min-width: 600px) {
+  .auth-card {
+    padding: 36px 32px;
+  }
+}

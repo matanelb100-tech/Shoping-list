@@ -1,0 +1,925 @@
+/* ============================================================================
+   base.css - סגנונות בסיסיים ומשותפים לכל האפליקציה
+   ============================================================================
+
+   מבנה הקובץ:
+   1. Reset & Normalize
+   2. Typography
+   3. Buttons
+   4. Form Elements
+   5. Layout Utilities
+   6. Animations
+   7. Scrollbar
+   8. Accessibility helpers
+
+   ⚠️ הערה חשובה: המשתני CSS (--color-primary וכו') מוגדרים ב-index.html
+   כדי שיהיו זמינים מיד, לפני שה-CSS החיצוני נטען.
+
+   ============================================================================ */
+
+
+/* ============================================================================
+   1. Reset & Normalize
+   ============================================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  line-height: 1.5;
+}
+
+img, picture, svg, video {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+a {
+  color: var(--color-primary-dark);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-primary);
+}
+
+ul, ol {
+  list-style: none;
+}
+
+/* הסרת appearance מיוחד של iOS */
+input,
+button,
+textarea,
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-radius: 0;
+}
+
+
+/* ============================================================================
+   2. Typography
+   ============================================================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Rubik', sans-serif;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+  color: var(--color-text);
+}
+
+h1 { font-size: 28px; }
+h2 { font-size: 22px; }
+h3 { font-size: 18px; }
+h4 { font-size: 16px; font-weight: 600; }
+h5 { font-size: 14px; font-weight: 600; }
+h6 { font-size: 13px; font-weight: 600; }
+
+p {
+  font-size: 15px;
+  color: var(--color-text);
+}
+
+.text-soft {
+  color: var(--color-text-soft);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-small {
+  font-size: 13px;
+}
+
+.text-xs {
+  font-size: 11px;
+}
+
+.text-bold {
+  font-weight: 700;
+}
+
+.text-semibold {
+  font-weight: 600;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-danger { color: var(--color-danger); }
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+.text-primary { color: var(--color-primary-dark); }
+.text-premium { color: var(--color-premium); }
+
+/* קיצור טקסט ארוך */
+.text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.text-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+
+/* ============================================================================
+   3. Buttons - כל סוגי הכפתורים במקום אחד
+   ============================================================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: var(--radius-md);
+  transition: transform 0.15s var(--ease-out),
+              background-color 0.15s,
+              box-shadow 0.15s,
+              opacity 0.15s;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  white-space: nowrap;
+  min-height: 44px;              /* נגישות: גודל מינימלי למגע */
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* כפתור ראשי - גוון תכלת עם צל */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: #fff;
+  box-shadow: var(--shadow-primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(123, 196, 226, 0.45);
+}
+
+.btn-primary:active:not(:disabled) {
+  box-shadow: 0 2px 8px rgba(123, 196, 226, 0.3);
+}
+
+/* כפתור משני - שקוף עם מסגרת */
+.btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  border: 1.5px solid var(--color-primary-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-primary-ultra-light);
+  border-color: var(--color-primary);
+}
+
+/* כפתור רפאים - ללא רקע כלל */
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-soft);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-primary-ultra-light);
+  color: var(--color-primary-dark);
+}
+
+/* כפתור סכנה */
+.btn-danger {
+  background: var(--color-danger);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(229, 115, 115, 0.35);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #D65050;
+}
+
+/* כפתור הצלחה */
+.btn-success {
+  background: var(--color-success);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(125, 184, 125, 0.35);
+}
+
+/* כפתור פרימיום - זהב */
+.btn-premium {
+  background: linear-gradient(135deg, #F5D778 0%, #D4AF37 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.4);
+}
+
+/* גדלים */
+.btn-sm {
+  padding: 8px 14px;
+  font-size: 13px;
+  min-height: 36px;
+}
+
+.btn-lg {
+  padding: 16px 28px;
+  font-size: 17px;
+  min-height: 52px;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* כפתור עגול לאייקונים בלבד */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  padding: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-soft);
+  transition: background-color 0.15s, color 0.15s, transform 0.15s;
+  cursor: pointer;
+  border: none;
+  flex-shrink: 0;
+}
+
+.btn-icon:hover:not(:disabled) {
+  background: var(--color-primary-ultra-light);
+  color: var(--color-primary-dark);
+}
+
+.btn-icon:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.btn-icon.btn-icon-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.btn-icon.btn-icon-primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.btn-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.btn-icon-sm {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+}
+
+.btn-icon-sm svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* אפקט ripple עדין בכפתורים (ללא JS) */
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.15);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.btn:active::after {
+  opacity: 1;
+  transition: opacity 0.05s;
+}
+
+
+/* ============================================================================
+   4. Form Elements
+   ============================================================================ */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-soft);
+  margin-right: 4px;
+}
+
+.form-input {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  font-family: inherit;
+  font-size: 16px;       /* 16px מונע zoom אוטומטי ב-iOS */
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+  outline: none;
+  direction: rtl;
+  text-align: right;
+}
+
+.form-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.form-input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  box-shadow: 0 0 0 4px rgba(123, 196, 226, 0.15);
+}
+
+.form-input:disabled {
+  background: var(--color-bg-alt);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-input.has-error {
+  border-color: var(--color-danger);
+  background: rgba(229, 115, 115, 0.04);
+}
+
+.form-input.has-error:focus {
+  box-shadow: 0 0 0 4px rgba(229, 115, 115, 0.15);
+}
+
+/* שדה עם אייקון בתוכו (למשל סיסמה עם עין) */
+.form-input-wrapper {
+  position: relative;
+}
+
+.form-input-wrapper .form-input {
+  padding-left: 48px;       /* RTL: מרווח משמאל לאייקון */
+}
+
+.form-input-wrapper .form-input-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;               /* RTL: האייקון בצד שמאל */
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.form-input-wrapper .form-input-icon:hover {
+  background: var(--color-primary-ultra-light);
+  color: var(--color-primary-dark);
+}
+
+.form-input-wrapper .form-input-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* הודעת שגיאה מתחת לשדה */
+.form-error {
+  font-size: 13px;
+  color: var(--color-danger);
+  margin-top: 2px;
+  margin-right: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: slideDown 0.2s var(--ease-out);
+}
+
+.form-error svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* Checkbox */
+.form-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.form-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.form-checkbox .checkbox-visual {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.form-checkbox input[type="checkbox"]:checked + .checkbox-visual {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.form-checkbox .checkbox-visual::after {
+  content: '';
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg) scale(0);
+  transition: transform 0.15s;
+  margin-top: -2px;
+}
+
+.form-checkbox input[type="checkbox"]:checked + .checkbox-visual::after {
+  transform: rotate(-45deg) scale(1);
+}
+
+
+/* ============================================================================
+   5. Layout Utilities - כלי עזר לסידור פריטים
+   ============================================================================ */
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-1 { flex: 1; }
+.flex-shrink-0 { flex-shrink: 0; }
+
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.items-stretch { align-items: stretch; }
+
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.justify-start { justify-content: flex-start; }
+
+.gap-xs { gap: var(--spacing-xs); }
+.gap-sm { gap: var(--spacing-sm); }
+.gap-md { gap: var(--spacing-md); }
+.gap-lg { gap: var(--spacing-lg); }
+.gap-xl { gap: var(--spacing-xl); }
+
+/* padding */
+.p-xs { padding: var(--spacing-xs); }
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+.p-xl { padding: var(--spacing-xl); }
+
+.px-md { padding-left: var(--spacing-md); padding-right: var(--spacing-md); }
+.py-md { padding-top: var(--spacing-md); padding-bottom: var(--spacing-md); }
+
+/* margin */
+.m-0 { margin: 0; }
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+
+.hidden { display: none !important; }
+.invisible { visibility: hidden; }
+
+.pointer-events-none { pointer-events: none; }
+
+
+/* ============================================================================
+   6. Animations - אנימציות לשימוש חוזר
+   ============================================================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(-20px); }  /* RTL: נכנס מימין */
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-fade-in { animation: fadeIn 0.3s var(--ease-out); }
+.animate-slide-up { animation: slideUp 0.35s var(--ease-out); }
+.animate-slide-down { animation: slideDown 0.25s var(--ease-out); }
+.animate-scale-in { animation: scaleIn 0.25s var(--ease-out); }
+.animate-shake { animation: shake 0.4s; }
+.animate-pulse { animation: pulse 1.5s infinite; }
+
+
+/* ============================================================================
+   7. Scrollbar - פס גלילה עדין
+   ============================================================================ */
+
+/* Chrome/Safari/Edge */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+
+/* ============================================================================
+   8. Accessibility & misc helpers
+   ============================================================================ */
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* פוקוס נראה - חשוב לנגישות */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* בלי outline בלחיצה על כפתורים ב-iOS */
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--spacing-md) 0;
+  width: 100%;
+}
+
+.divider-text {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin: var(--spacing-md) 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.divider-text::before,
+.divider-text::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-ultra-light);
+  color: var(--color-primary-dark);
+  line-height: 1.4;
+}
+
+.badge-premium {
+  background: linear-gradient(135deg, #F5D778 0%, #D4AF37 100%);
+  color: #fff;
+}
+
+.badge-success {
+  background: rgba(125, 184, 125, 0.15);
+  color: #5A9E5A;
+}
+
+.badge-danger {
+  background: rgba(229, 115, 115, 0.15);
+  color: #B54747;
+}
+
+/* Card */
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-md);
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--color-text-muted);
+  gap: var(--spacing-md);
+}
+
+.empty-state-icon {
+  width: 80px;
+  height: 80px;
+  opacity: 0.35;
+}
+
+.empty-state-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text-soft);
+  margin: 0;
+}
+
+.empty-state-text {
+  font-size: 14px;
+  max-width: 260px;
+  line-height: 1.5;
+}
+
+/* מכבד העדפות המשתמש לתנועה מופחתת */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* ============================================================================
+   9. Email verification banner - באנר אימות מייל
+   ============================================================================ */
+
+#verification-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  margin: 12px 16px 0;
+  background: linear-gradient(135deg, #FFF8E1 0%, #FFF4D1 100%);
+  border: 1px solid #F5C678;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2px 8px rgba(245, 198, 120, 0.2);
+  position: relative;
+  overflow: hidden;
+  animation: slideDown 0.35s var(--ease-out);
+  transition: opacity 0.25s, max-height 0.25s, transform 0.25s;
+  max-height: 300px;
+  flex-wrap: wrap;
+}
+
+.verify-banner-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-warning);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.verify-banner-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.verify-banner-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 4px;
+}
+
+.verify-banner-text strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.verify-banner-text span {
+  font-size: 12.5px;
+  color: var(--color-text-soft);
+  line-height: 1.45;
+}
+
+.verify-banner-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-basis: 100%;
+  margin-top: 4px;
+}
+
+.verify-banner-btn {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-soft);
+  padding: 7px 14px;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-height: 34px;
+}
+
+.verify-banner-btn:hover:not(:disabled) {
+  background: var(--color-bg-alt);
+  border-color: var(--color-text-muted);
+}
+
+.verify-banner-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.verify-banner-btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.verify-banner-btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.verify-banner-close {
+  position: absolute;
+  top: 8px;
+  left: 8px;                  /* RTL: בצד שמאל */
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.verify-banner-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--color-text);
+}
+
+/* באנר יציב יותר במסכים רחבים */
+@media (min-width: 600px) {
+  .verify-banner-actions {
+    flex-basis: auto;
+    margin-top: 0;
+    align-self: center;
+  }
+}
