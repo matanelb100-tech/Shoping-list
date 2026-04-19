@@ -447,22 +447,10 @@ async function attemptLogin(email, password) {
 
 async function attemptSignup(email, password) {
   try {
-    const { createUserWithEmailAndPassword, sendEmailVerification } = await import(
+    const { createUserWithEmailAndPassword } = await import(
       'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'
     );
-    const credential = await createUserWithEmailAndPassword(auth, email, password);
-
-    // שליחה אוטומטית של מייל אימות - לא חוסם אם נכשל
-    try {
-      await sendEmailVerification(credential.user, {
-        url: window.location.origin + window.location.pathname,
-        handleCodeInApp: false,
-      });
-      console.log('✉️ מייל אימות נשלח ל-' + email);
-    } catch (verifyError) {
-      // אם השליחה נכשלה (למשל rate limit) - נמשיך בכל זאת
-      console.warn('שליחת מייל אימות נכשלה:', verifyError);
-    }
+    await createUserWithEmailAndPassword(auth, email, password);
 
     window.dispatchEvent(new CustomEvent('auth:success', {
       detail: { email, isNewUser: true }
@@ -729,51 +717,4 @@ export function resetAuthForm() {
   if (emailInput) emailInput.value = '';
   if (passwordInput) passwordInput.value = '';
   hideError();
-}
-
-
-// ============================================================================
-// ניהול אימות מייל (email verification)
-// ============================================================================
-
-/**
- * שליחה מחדש של מייל אימות למשתמש הנוכחי
- * @returns {Promise<boolean>} האם השליחה הצליחה
- */
-export async function resendVerificationEmail() {
-  if (!auth || !auth.currentUser) {
-    throw new Error('אין משתמש מחובר');
-  }
-
-  const { sendEmailVerification } = await import(
-    'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'
-  );
-
-  await sendEmailVerification(auth.currentUser, {
-    url: window.location.origin + window.location.pathname,
-    handleCodeInApp: false,
-  });
-  return true;
-}
-
-/**
- * רענון המשתמש הנוכחי מהשרת (כדי לבדוק אם המייל אומת)
- * @returns {Promise<boolean>} האם המייל מאומת עכשיו
- */
-export async function reloadUser() {
-  if (!auth || !auth.currentUser) return false;
-  try {
-    await auth.currentUser.reload();
-    return auth.currentUser.emailVerified === true;
-  } catch (error) {
-    console.warn('rejoad user failed:', error);
-    return false;
-  }
-}
-
-/**
- * בדיקה מהירה אם המייל של המשתמש הנוכחי מאומת
- */
-export function isEmailVerified() {
-  return !!(auth && auth.currentUser && auth.currentUser.emailVerified);
 }
