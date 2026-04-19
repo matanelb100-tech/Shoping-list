@@ -19,6 +19,7 @@
 import { State } from './state.js?v=1';
 import { parseUserInput } from './products.js?v=1';
 import { CATEGORIES, MESSAGES } from './config.js?v=2';
+import { Modal } from './modals.js?v=1';
 
 
 // ============================================================================
@@ -528,23 +529,38 @@ function deleteItemWithAnimation(card) {
 // פעולות Header
 // ============================================================================
 
-function handleClearAll() {
+async function handleClearAll() {
   const count = State.getItemCount();
   if (count === 0) {
     showToast('הרשימה כבר ריקה', 'warning');
     return;
   }
 
-  if (confirm(`לנקות את כל הרשימה? (${count} מוצרים)`)) {
+  const confirmed = await Modal.confirm({
+    title: 'ניקוי הרשימה',
+    message: `האם לנקות את כל הרשימה? (${count} מוצרים)`,
+    variant: 'danger',
+    confirmText: 'נקה הכל',
+    cancelText: 'ביטול',
+  });
+
+  if (confirmed) {
     State.clearAll();
     showToast('הרשימה נוקתה', 'success');
   }
 }
 
 async function handleLogout() {
-  if (!confirm('להתנתק מהחשבון?')) return;
+  const confirmed = await Modal.confirm({
+    title: 'התנתקות',
+    message: 'להתנתק מהחשבון? הרשימה תישמר.',
+    variant: 'warning',
+    confirmText: 'התנתק',
+    cancelText: 'ביטול',
+  });
 
-  // יציאה - app.js יטפל ב-cleanup
+  if (!confirmed) return;
+
   window.dispatchEvent(new CustomEvent('app:logout-request'));
 }
 
