@@ -554,6 +554,27 @@ export const State = {
     }
   },
 
+  /**
+   * מחיקת פריט מההיסטוריה
+   */
+  async deleteHistoryItem(historyId) {
+    if (!state._db || !state.user || !historyId) return false;
+
+    try {
+      const { doc, deleteDoc } = await import(
+        'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'
+      );
+
+      const docRef = doc(state._db, 'users', state.user.uid, 'history', historyId);
+      await deleteDoc(docRef);
+      notifyListeners('history-deleted');
+      return true;
+    } catch (err) {
+      console.error('Delete history failed:', err);
+      return false;
+    }
+  },
+
 
   // ============================================
   // האזנה לשינויים
