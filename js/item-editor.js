@@ -32,6 +32,37 @@ const UNITS = [
 
 
 // ============================================================================
+// יחידות רלוונטיות לפי קטגוריה
+// לכל קטגוריה מגדירים רק את היחידות שהגיוניות עבורה
+// ============================================================================
+
+const CATEGORY_UNITS = {
+  fruits_veg:  ['units', 'kg', 'g'],           // פירות וירקות - בעיקר לפי משקל
+  dairy:       ['units', 'L', 'ml', 'g'],      // חלב ומוצריו - יחידות וליטרים
+  meat_fish:   ['kg', 'g', 'units'],           // בשר ודגים - לפי משקל
+  bread:       ['units', 'kg'],                // לחם - בעיקר יחידות
+  frozen:      ['units', 'kg', 'g'],           // קפואים - יחידות או משקל
+  pantry:      ['units', 'kg', 'g', 'L', 'ml'],// מזווה - הכל אפשרי
+  snacks:      ['units', 'g'],                 // חטיפים - יחידות בעיקר
+  drinks:      ['units', 'L', 'ml'],           // משקאות - ליטרים
+  breakfast:   ['units', 'g', 'kg'],           // דגני בוקר
+  baby:        ['units', 'g', 'ml'],           // תינוקות
+  cleaning:    ['units', 'L', 'ml', 'kg'],     // ניקיון
+  personal:    ['units', 'ml', 'g'],           // היגיינה
+  paper:       ['units'],                      // נייר - רק יחידות
+  pets:        ['units', 'kg', 'g'],           // חיות
+  other:       ['units', 'kg', 'g', 'L', 'ml'],// שונות - הכל
+};
+
+
+// מחזיר את רשימת היחידות הרלוונטיות לקטגוריה
+function getUnitsForCategory(categoryId) {
+  const allowedIds = CATEGORY_UNITS[categoryId] || CATEGORY_UNITS.other;
+  return UNITS.filter(u => allowedIds.includes(u.id));
+}
+
+
+// ============================================================================
 // עזרי פורמט
 // ============================================================================
 
@@ -56,6 +87,15 @@ function buildEditorContent(item) {
   const container = document.createElement('div');
   container.className = 'item-editor-container';
 
+  // בחירת יחידות רלוונטיות לקטגוריה של המוצר
+  const relevantUnits = getUnitsForCategory(item.category);
+
+  // אם היחידה הנוכחית של המוצר לא ברשימה - הוסף אותה כדי לא לאבד
+  const currentUnitInList = relevantUnits.find(u => u.id === item.unit);
+  const unitsToShow = currentUnitInList
+    ? relevantUnits
+    : [...relevantUnits, UNITS.find(u => u.id === item.unit)].filter(Boolean);
+
   container.innerHTML = `
     <div class="item-editor-name">
       ${escapeHtml(item.name)}
@@ -76,7 +116,7 @@ function buildEditorContent(item) {
       </div>
 
       <div class="quantity-unit-selector" role="tablist" aria-label="בחירת יחידה">
-        ${UNITS.map(unit => `
+        ${unitsToShow.map(unit => `
           <button
             type="button"
             class="quantity-unit-btn ${item.unit === unit.id ? 'is-active' : ''}"
