@@ -23,6 +23,7 @@ import { Modal } from './modals.js?v=1';
 import { openItemEditor } from './item-editor.js?v=1';
 import { initAutocomplete, destroyAutocomplete } from './autocomplete.js?v=1';
 import { openCartCompute } from './cart.js?v=1';
+import { openHistory } from './history.js?v=1';
 
 
 // ============================================================================
@@ -75,6 +76,16 @@ function renderHeader() {
         </svg>
       </button>
 
+      <!-- היסטוריה -->
+      <button class="header-btn" id="hdr-history" title="היסטוריה" aria-label="היסטוריית קניות">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 4v6h6"/>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+          <line x1="12" y1="7" x2="12" y2="12"/>
+          <line x1="12" y1="12" x2="15" y2="15"/>
+        </svg>
+      </button>
+
       <!-- כותרת/לוגו במרכז -->
       <div class="header-title">
         <div class="header-title-logo">
@@ -120,6 +131,10 @@ function renderHeader() {
 
   document.getElementById('hdr-location').addEventListener('click', () => {
     showToast('עדכון מיקום - יגיע בקרוב', 'warning');
+  });
+
+  document.getElementById('hdr-history').addEventListener('click', () => {
+    openHistory();
   });
 
   document.getElementById('hdr-tutorial').addEventListener('click', () => {
