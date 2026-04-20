@@ -323,21 +323,32 @@ async function saveToHistory() {
 
   const cheapest = chainsArr[0];
 
-  const confirmed = await Modal.confirm({
-    title: 'שמור להיסטוריה',
-    message: `לשמור את הסל של ${formatPrice(cheapest.total)} ב${cheapest.name} להיסטוריה? הרשימה הנוכחית תתאפס.`,
-    variant: 'success',
-    confirmText: 'שמור',
-    cancelText: 'ביטול',
-  });
-
-  if (!confirmed) return;
-
   try {
+    // שמירה להיסטוריה - בלי איפוס הרשימה
     await State.saveToHistory(cheapest.total, cheapest.name);
-    State.clearAll();
+
+    // סגירת חלון החישוב
     Modal.closeAll();
+
     if (window.showToast) window.showToast('נשמר בהיסטוריה ✓', 'success');
+
+    // שאלה נפרדת: האם לנקות את הרשימה?
+    // (לאחר דיליי קצר כדי שהטוסט יראה קודם)
+    setTimeout(async () => {
+      const shouldClear = await Modal.confirm({
+        title: 'לנקות את הרשימה?',
+        message: 'הסל נשמר בהצלחה להיסטוריה. האם לנקות את הרשימה הנוכחית או להשאיר אותה לשימוש חוזר?',
+        variant: 'question',
+        confirmText: 'נקה הרשימה',
+        cancelText: 'השאר רשימה',
+      });
+
+      if (shouldClear) {
+        State.clearAll();
+        if (window.showToast) window.showToast('הרשימה נוקתה', 'success');
+      }
+    }, 600);
+
   } catch (err) {
     console.error('Save to history failed:', err);
     if (window.showToast) window.showToast('שמירה להיסטוריה נכשלה', 'error');
