@@ -22,6 +22,7 @@ import { CATEGORIES, MESSAGES } from './config.js?v=2';
 import { Modal } from './modals.js?v=1';
 import { openItemEditor } from './item-editor.js?v=1';
 import { initAutocomplete, destroyAutocomplete } from './autocomplete.js?v=1';
+import { openCartCompute } from './cart.js?v=1';
 
 
 // ============================================================================
@@ -578,7 +579,7 @@ async function handleLogout() {
 }
 
 function handleComputeCart() {
-  showToast('חישוב מחיר הסל - יגיע בקרוב', 'warning');
+  openCartCompute();
 }
 
 
