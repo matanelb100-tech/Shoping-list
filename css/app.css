@@ -778,3 +778,396 @@
     width: 100%;
   }
 }
+
+
+/* ============================================================================
+   11. Cart Compute Screen - חלון חישוב סל
+   ============================================================================ */
+
+.cart-compute-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 0;
+}
+
+/* סיכום עליון */
+.cart-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: linear-gradient(135deg, #E8F4FA 0%, #D1EBF5 100%);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--color-primary);
+}
+
+.cart-summary-left {
+  flex: 1;
+}
+
+.cart-summary-label {
+  font-size: 12px;
+  color: var(--color-primary-dark);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.cart-summary-chain {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.cart-summary-right {
+  text-align: left;
+}
+
+.cart-summary-total {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  line-height: 1;
+  direction: ltr;
+}
+
+.cart-summary-save {
+  font-size: 11px;
+  color: var(--color-success);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* אזהרה למוצרים לא מזוהים */
+.cart-warning {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: rgba(245, 198, 120, 0.15);
+  border: 1px solid rgba(245, 198, 120, 0.4);
+  border-radius: var(--radius-md);
+}
+
+.cart-warning-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  color: #C8912A;
+}
+
+.cart-warning-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.cart-warning-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cart-warning-text strong {
+  font-size: 13px;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.cart-warning-text span {
+  font-size: 12px;
+  color: var(--color-text-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* רשימת הרשתות */
+.cart-chains-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cart-chain {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.cart-chain.is-cheapest {
+  border-color: var(--color-success);
+  background: linear-gradient(135deg, rgba(125, 184, 125, 0.05), var(--color-surface));
+}
+
+.cart-chain.is-expanded {
+  border-color: var(--color-primary);
+}
+
+.cart-chain-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.cart-chain-header:hover {
+  background: var(--color-bg-alt);
+}
+
+.cart-chain-badge {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-alt);
+  color: var(--color-text-soft);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.cart-chain.is-cheapest .cart-chain-badge {
+  background: var(--color-success);
+  color: #fff;
+}
+
+.cart-chain-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cart-chain-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.3;
+}
+
+.cart-chain-best {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-success);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.cart-chain-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.cart-chain-price {
+  flex-shrink: 0;
+  text-align: left;
+}
+
+.cart-chain-total {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  direction: ltr;
+  line-height: 1;
+}
+
+.cart-chain.is-cheapest .cart-chain-total {
+  color: var(--color-success);
+}
+
+.cart-chain-diff {
+  font-size: 11px;
+  color: var(--color-danger);
+  margin-top: 3px;
+  font-weight: 500;
+  direction: ltr;
+}
+
+.cart-chain-arrow {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  transition: transform 0.2s;
+}
+
+.cart-chain.is-expanded .cart-chain-arrow {
+  transform: rotate(180deg);
+  color: var(--color-primary-dark);
+}
+
+.cart-chain-arrow svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* פירוט פריטים */
+.cart-chain-details {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-alt);
+  padding: 8px 0;
+  max-height: 300px;
+  overflow-y: auto;
+  animation: slideDown 0.2s var(--ease-out);
+}
+
+.cart-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cart-item:last-child {
+  border-bottom: none;
+}
+
+.cart-item-name {
+  color: var(--color-text);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cart-item-qty {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  direction: ltr;
+}
+
+.cart-item-total {
+  font-weight: 600;
+  color: var(--color-text);
+  direction: ltr;
+}
+
+/* טעינה */
+.cart-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  gap: 16px;
+}
+
+.cart-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-primary-light);
+  border-top-color: var(--color-primary-dark);
+  border-radius: 50%;
+  animation: spinnerRotate 0.8s linear infinite;
+}
+
+.cart-loading-text {
+  font-size: 14px;
+  color: var(--color-text-soft);
+}
+
+/* שגיאה */
+.cart-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  gap: 12px;
+  text-align: center;
+}
+
+.cart-error-icon {
+  width: 56px;
+  height: 56px;
+  color: var(--color-danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(229, 115, 115, 0.1);
+  border-radius: var(--radius-full);
+}
+
+.cart-error-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.cart-error-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.cart-error-text {
+  font-size: 13px;
+  color: var(--color-text-soft);
+  max-width: 300px;
+  line-height: 1.5;
+}
+
+/* ריק */
+.cart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px;
+  text-align: center;
+  gap: 12px;
+}
+
+.cart-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-alt);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-empty-icon svg {
+  width: 36px;
+  height: 36px;
+}
+
+.cart-empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.cart-empty-text {
+  font-size: 13px;
+  color: var(--color-text-soft);
+  line-height: 1.5;
+  max-width: 300px;
+}
+
+.cart-chain-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
