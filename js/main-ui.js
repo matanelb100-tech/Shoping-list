@@ -21,6 +21,7 @@ import { parseUserInput } from './products.js?v=1';
 import { CATEGORIES, MESSAGES } from './config.js?v=2';
 import { Modal } from './modals.js?v=1';
 import { openItemEditor } from './item-editor.js?v=1';
+import { initAutocomplete, destroyAutocomplete } from './autocomplete.js?v=1';
 
 
 // ============================================================================
@@ -358,6 +359,21 @@ function renderInputBar() {
   document.getElementById('inp-voice').addEventListener('click', () => {
     showToast('הקלטת קול - יגיע בקרוב', 'warning');
   });
+
+  // אתחול autocomplete - הצעות חכמות מה-Worker
+  initAutocomplete(field, (suggestion) => {
+    // כשהמשתמש בוחר הצעה - נוסיף אותה לרשימה
+    const item = State.addItem({
+      name: suggestion.name,
+      category: suggestion.category,
+      unit: suggestion.unit,
+      quantity: 1,
+    });
+
+    if (item) {
+      showToast(`נוסף: ${suggestion.name}`, 'success');
+    }
+  });
 }
 
 
@@ -652,6 +668,8 @@ export function destroyMainUI() {
     stateUnsubscribe();
     stateUnsubscribe = null;
   }
+
+  destroyAutocomplete();
 
   ['main-header', 'main-content', 'main-input-bar'].forEach(id => {
     const el = document.getElementById(id);
