@@ -1,0 +1,64 @@
+name: Sync Prices to Cloudflare KV
+
+# ============================================================================
+# רץ אוטומטית כל יום ב-03:00 לפי שעון UTC (שזה 05:00/06:00 בישראל)
+# מוריד את הנתונים העדכניים מ-Kaggle ומעלה ל-KV של Cloudflare
+# ============================================================================
+
+on:
+  # תזמון - כל יום ב-03:00 UTC
+  schedule:
+    - cron: '0 3 * * *'
+
+  # אפשר גם להריץ ידנית מה-Actions tab
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Download Kaggle & Upload to KV
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # שלב 1: משוך את הקוד
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # שלב 2: הגדרת Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      # שלב 3: התקן ספריות
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install kaggle requests
+
+      # שלב 4: הגדר את Kaggle credentials
+      - name: Setup Kaggle credentials
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+        run: |
+          mkdir -p ~/.kaggle
+          echo '{"username":"'"$KAGGLE_USERNAME"'","key":"'"$KAGGLE_KEY"'"}' > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+
+      # שלב 5: הרץ את הסקריפט לסנכרון
+      - name: Run sync script
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          KV_NAMESPACE_ID: ${{ secrets.KV_NAMESPACE_ID }}
+        run: python scripts/sync_prices.py
+
+      # שלב 6: דיווח סיכום
+      - name: Report summary
+        if: always()
+        run: |
+          if [ -f sync_report.txt ]; then
+            cat sync_report.txt >> $GITHUB_STEP_SUMMARY
+          fi
