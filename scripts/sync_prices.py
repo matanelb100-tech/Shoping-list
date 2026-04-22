@@ -1,24 +1,20 @@
 #!/usr/bin/env python3
 """
 ============================================================================
-sync_prices.py - סנכרון מחירים מ-Kaggle ל-Cloudflare KV
+sync_prices.py v2 - סנכרון מחירים מ-Kaggle ל-Cloudflare KV
 ============================================================================
 
-תהליך:
-  1. מוריד דאטה סט עדכני מ-Kaggle
-  2. מפרק CSV/JSON
-  3. מסנן 5 רשתות גדולות
-  4. דוחס לפורמט קומפקטי
-  5. שולח ל-Cloudflare KV דרך API
+שינויים גרסה 2:
+  - מעבר ל-kagglehub (ספרייה עדכנית במקום kaggle הישנה)
+  - זיהוי רשת לפי שם קובץ (יותר אמין מחיפוש בעמודה)
+  - תמיכה ב-CSV, JSON, וגם XML דחוס (GZ)
+  - סינון חכם: עד 20MB לרשת, עם עדיפות למוצרים פופולריים
 
 Environment Variables Required:
-  - KAGGLE_USERNAME, KAGGLE_KEY   (מוגדר ב-~/.kaggle/kaggle.json)
+  - KAGGLE_USERNAME, KAGGLE_KEY    (גם kagglehub משתמשת בהם)
   - CLOUDFLARE_ACCOUNT_ID
   - CLOUDFLARE_API_TOKEN
-  - KV_NAMESPACE_ID                (של SALI_PRICES)
-
-Usage:
-  python scripts/sync_prices.py
+  - KV_NAMESPACE_ID
 ============================================================================
 """
 
@@ -26,35 +22,53 @@ import os
 import sys
 import json
 import time
-import zipfile
+import gzip
 import tempfile
 import shutil
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
-from kaggle.api.kaggle_api_extended import KaggleApi
 
 
 # ============================================================================
 # קבועים
 # ============================================================================
 
-# רשימת ה-datasets הפוטנציאליים ב-Kaggle - ננסה אותם בסדר
-KAGGLE_DATASETS_TO_TRY = [
-    'erlichsefi/israeli-supermarkets-2024',   # השם האמיתי - מעודכן יומית
-    'erlichsefi/israeli-supermarkets',
-    'erlichsefi/israeli-supermarket-prices',
-]
+DATASET_NAME = 'erlichsefi/israeli-supermarkets-2024'
 
-# רשתות יעד - רק אלה נשמרות ב-KV (חוסך מקום)
+# מזהי רשתות לפי ChainId (ב-ID רשמי) + זיהוי לפי שם קובץ/תיקיה
 TARGET_CHAINS = {
-    '7290027600007': 'shufersal',
-    '7290058140886': 'ramilevi',
-    '7290725900003': 'yeinotbitan',
-    '7290696200003': 'victory',
-    '7290100700006': 'yohananof',
+    'shufersal': {
+        'name': 'שופרסל',
+        'chain_id': '7290027600007',
+        'keywords': ['shufersal', 'שופרסל'],
+    },
+    'ramilevi': {
+        'name': 'רמי לוי',
+        'chain_id': '7290058140886',
+        'keywords': ['ramilevi', 'rami', 'רמי', 'לוי'],
+    },
+    'yeinotbitan': {
+        'name': 'יינות ביתן',
+        'chain_id': '7290725900003',
+        'keywords': ['yeinotbitan', 'bitan', 'ביתן'],
+    },
+    'victory': {
+        'name': 'ויקטורי',
+        'chain_id': '7290696200003',
+        'keywords': ['victory', 'ויקטורי'],
+    },
+    'yohananof': {
+        'name': 'יוחננוף',
+        'chain_id': '7290100700006',
+        'keywords': ['yohananof', 'yohanan', 'יוחנן', 'יוחננוף'],
+    },
 }
+
+# מגבלות גודל
+MAX_BYTES_PER_CHAIN = 20 * 1024 * 1024   # 20MB - טווח ביטחון מ-25MB של Cloudflare KV
+MAX_PRODUCTS_PER_CHAIN = 50000           # תקרה קשיחה
 
 # Cloudflare API
 CF_ACCOUNT_ID = os.environ.get('CLOUDFLARE_ACCOUNT_ID', '').strip()
@@ -79,18 +93,16 @@ class Logger:
         print(line, flush=True)
         self.messages.append(line)
 
-    def info(self, msg):
-        self.log(msg, 'INFO')
-
-    def warn(self, msg):
-        self.log(msg, 'WARN')
-
-    def error(self, msg):
-        self.log(msg, 'ERROR')
+    def info(self, msg): self.log(msg, 'INFO')
+    def warn(self, msg): self.log(msg, 'WARN')
+    def error(self, msg): self.log(msg, 'ERROR')
 
     def save_report(self, path='sync_report.txt'):
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(self.messages))
+        try:
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(self.messages))
+        except Exception as e:
+            print(f'Could not save report: {e}', flush=True)
 
 
 logger = Logger()
@@ -101,177 +113,353 @@ logger = Logger()
 # ============================================================================
 
 def validate_env():
-    """וודא שכל המשתנים קיימים"""
     missing = []
-    if not CF_ACCOUNT_ID:
-        missing.append('CLOUDFLARE_ACCOUNT_ID')
-    if not CF_API_TOKEN:
-        missing.append('CLOUDFLARE_API_TOKEN')
-    if not KV_NAMESPACE_ID:
-        missing.append('KV_NAMESPACE_ID')
+    if not CF_ACCOUNT_ID: missing.append('CLOUDFLARE_ACCOUNT_ID')
+    if not CF_API_TOKEN: missing.append('CLOUDFLARE_API_TOKEN')
+    if not KV_NAMESPACE_ID: missing.append('KV_NAMESPACE_ID')
+    if not os.environ.get('KAGGLE_USERNAME'): missing.append('KAGGLE_USERNAME')
+    if not os.environ.get('KAGGLE_KEY'): missing.append('KAGGLE_KEY')
 
     if missing:
         logger.error(f'חסרים משתני סביבה: {", ".join(missing)}')
         return False
-
-    kaggle_json = Path.home() / '.kaggle' / 'kaggle.json'
-    if not kaggle_json.exists():
-        logger.error('~/.kaggle/kaggle.json לא קיים')
-        return False
-
     return True
 
 
 # ============================================================================
-# הורדה מ-Kaggle
+# הורדה מ-Kaggle באמצעות kagglehub (הספרייה החדשה)
 # ============================================================================
 
-def download_from_kaggle(output_dir):
-    """מנסה להוריד מ-Kaggle. מחזיר את שם ה-dataset שהצליח"""
-
+def download_dataset():
+    logger.info(f'מוריד dataset: {DATASET_NAME}')
     try:
-        api = KaggleApi()
-        api.authenticate()
+        import kagglehub
+        path = kagglehub.dataset_download(DATASET_NAME)
+        logger.info(f'הורדה הצליחה. תיקייה: {path}')
+        return Path(path)
     except Exception as e:
-        logger.error(f'אימות Kaggle נכשל: {e}')
+        logger.error(f'הורדה נכשלה: {type(e).__name__}: {e}')
         return None
 
-    for dataset_name in KAGGLE_DATASETS_TO_TRY:
-        logger.info(f'מנסה להוריד: {dataset_name}')
-        try:
-            api.dataset_download_files(
-                dataset_name,
-                path=output_dir,
-                unzip=True,
-                quiet=False,
-            )
-            logger.info(f'הורדה הצליחה: {dataset_name}')
-            return dataset_name
-        except Exception as e:
-            logger.warn(f'נכשל: {e}')
-            continue
 
-    logger.error('כל ה-datasets נכשלו')
+# ============================================================================
+# סריקת קבצים - מוצא את כל הקבצים הרלוונטיים
+# ============================================================================
+
+def find_all_data_files(directory):
+    """מוצא את כל הקבצים שאנחנו יכולים לקרוא מהם"""
+    directory = Path(directory)
+
+    extensions = ['*.csv', '*.json', '*.jsonl', '*.xml', '*.gz']
+    all_files = []
+
+    for ext in extensions:
+        all_files.extend(directory.rglob(ext))
+
+    logger.info(f'סה"כ נמצאו {len(all_files)} קבצים בתיקייה')
+
+    # דוגמאות לכמה קבצים בשביל לבנות אינטואיציה על המבנה
+    if all_files:
+        logger.info('דוגמאות קבצים (עד 10 ראשונים):')
+        for f in all_files[:10]:
+            size_kb = f.stat().st_size / 1024
+            logger.info(f'  {f.relative_to(directory)} ({size_kb:.0f}KB)')
+
+    return all_files
+
+
+# ============================================================================
+# זיהוי רשת לפי נתיב הקובץ (Gemini suggestion)
+# ============================================================================
+
+def detect_chain_from_path(file_path):
+    """מנסה לזהות לאיזו רשת שייך הקובץ ע"פ השם/נתיב"""
+    path_str = str(file_path).lower()
+
+    for chain_key, chain_info in TARGET_CHAINS.items():
+        # חיפוש לפי ChainId (ברקוד של הרשת - יחודי ואמין מאוד)
+        if chain_info['chain_id'] in path_str:
+            return chain_key
+
+        # חיפוש לפי מילות מפתח בשם הקובץ
+        for keyword in chain_info['keywords']:
+            if keyword.lower() in path_str:
+                return chain_key
+
     return None
 
 
 # ============================================================================
-# פרסור הדאטה
+# פתיחה והתמודדות עם פורמטים שונים
 # ============================================================================
 
-def find_price_files(directory):
-    """מחפש קבצי מחירים בתיקיה (CSV, JSON)"""
-    directory = Path(directory)
-
-    # רשימה של extensions פוטנציאליים
-    csv_files = list(directory.rglob('*.csv'))
-    json_files = list(directory.rglob('*.json'))
-
-    logger.info(f'נמצאו {len(csv_files)} קבצי CSV, {len(json_files)} קבצי JSON')
-
-    return csv_files, json_files
-
-
-def parse_csv_file(csv_path):
-    """פרסור קובץ CSV של מחירים"""
-    import csv as csv_module
-
-    items = []
+def open_file_smart(file_path):
+    """פותח קובץ - אם GZ, מפענח. מחזיר תוכן string"""
     try:
-        with open(csv_path, 'r', encoding='utf-8') as f:
-            reader = csv_module.DictReader(f)
-            for row in reader:
-                items.append(row)
+        if file_path.suffix == '.gz':
+            with gzip.open(file_path, 'rt', encoding='utf-8', errors='replace') as f:
+                return f.read()
+        else:
+            with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+                return f.read()
     except Exception as e:
-        logger.warn(f'פרסור {csv_path.name} נכשל: {e}')
-        return []
-
-    return items
+        logger.warn(f'כשל בקריאת {file_path.name}: {e}')
+        return None
 
 
-def extract_chain_from_row(row):
-    """מנסה לזהות איזו רשת מהשורה - ע"פ שמות שדות אפשריים"""
-    possible_fields = ['ChainId', 'chain_id', 'chainid', 'ChainID', 'chain']
-    for field in possible_fields:
-        if field in row and row[field]:
-            val = str(row[field]).strip()
-            if val in TARGET_CHAINS:
-                return TARGET_CHAINS[val]
+# ============================================================================
+# פרסור נתוני מחירים - גמיש, מתאים לכל פורמט
+# ============================================================================
+
+def parse_csv_content(content):
+    """מפרסר תוכן CSV ומחזיר מילון barcode -> {name, price}"""
+    import csv
+    import io
+
+    products = {}
+    try:
+        reader = csv.DictReader(io.StringIO(content))
+        for row in reader:
+            barcode = extract_field(row, ['ItemCode', 'itemCode', 'barcode', 'Barcode', 'item_code', 'code'])
+            name = extract_field(row, ['ItemName', 'itemName', 'name', 'Name', 'item_name', 'description', 'ItemDesc'])
+            price = extract_price(row)
+
+            if barcode and price and name:
+                products[str(barcode)] = {
+                    'n': name[:60],  # קיצור שם לחיסכון מקום
+                    'p': round(float(price), 2),
+                }
+    except Exception as e:
+        logger.warn(f'פרסור CSV נכשל: {e}')
+
+    return products
+
+
+def parse_xml_content(content):
+    """מפרסר XML של חוק שקיפות המחיר"""
+    try:
+        import xml.etree.ElementTree as ET
+    except ImportError:
+        return {}
+
+    products = {}
+    try:
+        # ה-XML של חוק המחיר לרוב מתחיל ב-<Root> או <Prices>
+        root = ET.fromstring(content)
+
+        # מחפשים תגיות Item בכל עומק
+        items = root.findall('.//Item') or root.findall('.//Product') or root.findall('.//item')
+
+        for item in items:
+            barcode = get_xml_text(item, ['ItemCode', 'itemCode', 'Barcode'])
+            name = get_xml_text(item, ['ItemName', 'itemName', 'ManufacturerItemDescription'])
+            price = get_xml_text(item, ['ItemPrice', 'itemPrice', 'Price'])
+
+            if barcode and price and name:
+                try:
+                    price_num = float(price)
+                    products[str(barcode)] = {
+                        'n': name[:60],
+                        'p': round(price_num, 2),
+                    }
+                except (ValueError, TypeError):
+                    continue
+    except Exception as e:
+        logger.warn(f'פרסור XML נכשל: {e}')
+
+    return products
+
+
+def extract_field(row, possible_keys):
+    """מחלץ שדה ממילון לפי רשימת מפתחות אפשריים"""
+    for key in possible_keys:
+        if key in row and row[key]:
+            return str(row[key]).strip()
+        # ניסיון case-insensitive
+        for k in row.keys():
+            if k and k.lower() == key.lower() and row[k]:
+                return str(row[k]).strip()
     return None
 
 
 def extract_price(row):
-    """מחלץ מחיר מהשורה"""
-    possible_fields = ['ItemPrice', 'price', 'Price', 'item_price']
-    for field in possible_fields:
-        if field in row and row[field]:
+    """מחלץ מחיר - תומך במספר שמות עמודה"""
+    price_keys = ['ItemPrice', 'itemPrice', 'price', 'Price', 'item_price']
+    for key in price_keys:
+        val = extract_field(row, [key])
+        if val:
             try:
-                return float(row[field])
+                price = float(val)
+                if 0 < price < 10000:  # מסננים מחירים לא סבירים
+                    return price
             except (ValueError, TypeError):
                 continue
     return None
 
 
-def extract_barcode(row):
-    """מחלץ ברקוד"""
-    possible_fields = ['ItemCode', 'barcode', 'Barcode', 'item_code']
-    for field in possible_fields:
-        if field in row and row[field]:
-            return str(row[field]).strip()
+def get_xml_text(element, tag_names):
+    """מחזיר טקסט של תת-element ב-XML"""
+    for tag in tag_names:
+        found = element.find(tag)
+        if found is not None and found.text:
+            return found.text.strip()
+        # חיפוש case-insensitive
+        for child in element:
+            if child.tag.lower() == tag.lower() and child.text:
+                return child.text.strip()
     return None
 
 
-def extract_name(row):
-    """מחלץ שם מוצר"""
-    possible_fields = ['ItemName', 'name', 'Name', 'item_name', 'ManufacturerItemDescription']
-    for field in possible_fields:
-        if field in row and row[field]:
-            return str(row[field]).strip()
-    return None
+def parse_file(file_path):
+    """מפרסר קובץ יחיד ומחזיר מילון מוצרים"""
+    content = open_file_smart(file_path)
+    if not content:
+        return {}
+
+    # זיהוי פורמט לפי התוכן/סיומת
+    suffix = file_path.suffix.lower().replace('.gz', '')
+    if suffix == '.gz':
+        # אחרי פתיחת GZ - נבדוק את ה-suffix הפנימי
+        if '.xml' in file_path.name.lower():
+            return parse_xml_content(content)
+        elif '.csv' in file_path.name.lower():
+            return parse_csv_content(content)
+        # ניחוש לפי התוכן
+        if content.strip().startswith('<'):
+            return parse_xml_content(content)
+        return parse_csv_content(content)
+
+    if suffix == '.csv':
+        return parse_csv_content(content)
+    elif suffix == '.xml':
+        return parse_xml_content(content)
+
+    return {}
 
 
-def process_all_data(csv_files):
+# ============================================================================
+# סינון חכם - לעמידה במגבלת 20MB
+# ============================================================================
+
+def filter_products_by_size(products, max_bytes=MAX_BYTES_PER_CHAIN):
     """
-    עיבוד כל הקבצים ובניית מבנה:
-    {
-      chain_id: {
-        barcode: { name, price, last_updated }
-      }
-    }
+    מצמצם מספר מוצרים כדי להישאר מתחת לגודל המקסימלי.
+
+    עדיפות:
+    1. ברקודים סטנדרטיים 13 ספרות (EAN-13) - מוצרים ארוזים
+    2. שמות קצרים יותר (פחות בזבוז מקום)
+    3. מחירים סבירים (1-1000 ש"ח)
     """
-    data = {chain: {} for chain in TARGET_CHAINS.values()}
-    stats = {chain: 0 for chain in TARGET_CHAINS.values()}
-    total_rows = 0
+    if not products:
+        return {}
 
-    for csv_file in csv_files:
-        logger.info(f'מעבד: {csv_file.name}')
-        rows = parse_csv_file(csv_file)
+    # חישוב גודל ראשוני
+    current_size = len(json.dumps(products, ensure_ascii=False).encode('utf-8'))
 
-        for row in rows:
-            total_rows += 1
+    if current_size <= max_bytes:
+        return products  # הכל נכנס
 
-            chain = extract_chain_from_row(row)
-            if not chain:
-                continue  # לא מהרשתות שלנו
+    logger.warn(f'גודל {current_size / 1024 / 1024:.1f}MB > {max_bytes / 1024 / 1024:.0f}MB - מסנן...')
 
-            barcode = extract_barcode(row)
-            price = extract_price(row)
-            name = extract_name(row)
+    # דירוג מוצרים לפי "איכות"
+    def priority_score(item):
+        barcode, data = item
+        score = 0
 
-            if not barcode or not price:
-                continue
+        # ברקוד 13 ספרות = מוצר ארוז = עדיפות גבוהה
+        if barcode.isdigit():
+            if len(barcode) == 13:
+                score += 100
+            elif len(barcode) == 8:  # EAN-8
+                score += 50
+            elif 10 <= len(barcode) <= 14:
+                score += 30
 
-            data[chain][barcode] = {
-                'name': name or '',
-                'price': price,
-            }
-            stats[chain] += 1
+        # שם קצר = פחות מקום
+        name_len = len(data.get('n', ''))
+        if name_len > 0:
+            score += max(0, 60 - name_len)
 
-    logger.info(f'סה"כ {total_rows} שורות נבדקו')
-    for chain, count in stats.items():
-        logger.info(f'  {chain}: {count} מוצרים')
+        # מחיר הגיוני
+        price = data.get('p', 0)
+        if 1 < price < 1000:
+            score += 20
 
-    return data
+        return score
+
+    # מיון מעדיפות גבוהה לנמוכה
+    sorted_items = sorted(products.items(), key=priority_score, reverse=True)
+
+    # לקיחה עד שמגיעים לגודל המטרה
+    filtered = {}
+    size_so_far = 2  # לסוגריים {}
+
+    for barcode, data in sorted_items:
+        entry_size = len(json.dumps({barcode: data}, ensure_ascii=False).encode('utf-8')) + 1
+        if size_so_far + entry_size > max_bytes:
+            break
+        filtered[barcode] = data
+        size_so_far += entry_size
+
+        if len(filtered) >= MAX_PRODUCTS_PER_CHAIN:
+            break
+
+    kept_pct = 100 * len(filtered) / len(products) if products else 0
+    logger.info(f'סונן: {len(filtered)}/{len(products)} ({kept_pct:.0f}%) - {size_so_far / 1024 / 1024:.1f}MB')
+
+    return filtered
+
+
+# ============================================================================
+# עיבוד מלא - סורק קבצים, מקבץ לפי רשת, מסנן
+# ============================================================================
+
+def process_all_files(all_files):
+    """
+    מעבד את כל הקבצים:
+    1. מזהה לאיזו רשת שייך כל קובץ
+    2. אוסף את כל המוצרים לפי רשת
+    3. מסנן כל רשת למגבלת הגודל
+    """
+    by_chain = {chain: {} for chain in TARGET_CHAINS.keys()}
+    files_per_chain = {chain: 0 for chain in TARGET_CHAINS.keys()}
+    unmatched_files = 0
+
+    for file_path in all_files:
+        chain = detect_chain_from_path(file_path)
+
+        if chain is None:
+            unmatched_files += 1
+            continue
+
+        # פרסור הקובץ
+        products = parse_file(file_path)
+
+        if products:
+            # מיזוג למילון של הרשת (אם מחיר מעודכן - דורס)
+            by_chain[chain].update(products)
+            files_per_chain[chain] += 1
+
+    logger.info(f'קבצים לא זוהו לאף רשת: {unmatched_files}')
+
+    # סיכום
+    logger.info('')
+    logger.info('סיכום לפני סינון:')
+    for chain_key, products in by_chain.items():
+        files_count = files_per_chain[chain_key]
+        logger.info(f'  {TARGET_CHAINS[chain_key]["name"]}: {files_count} קבצים, {len(products)} מוצרים')
+
+    # סינון לגודל
+    logger.info('')
+    logger.info('מסנן לגודל המטרה...')
+    filtered = {}
+    for chain_key, products in by_chain.items():
+        if products:
+            filtered[chain_key] = filter_products_by_size(products)
+        else:
+            filtered[chain_key] = {}
+
+    return filtered
 
 
 # ============================================================================
@@ -279,63 +467,64 @@ def process_all_data(csv_files):
 # ============================================================================
 
 def put_kv_value(key, value):
-    """שולח ערך ל-KV של Cloudflare"""
     url = f'{CF_API_BASE}/storage/kv/namespaces/{KV_NAMESPACE_ID}/values/{key}'
     headers = {
         'Authorization': f'Bearer {CF_API_TOKEN}',
         'Content-Type': 'application/json',
     }
 
-    # אם value הוא dict/list - נמיר ל-JSON string
     if isinstance(value, (dict, list)):
         body = json.dumps(value, ensure_ascii=False)
     else:
         body = str(value)
 
+    body_bytes = body.encode('utf-8')
+    size_kb = len(body_bytes) / 1024
+
     try:
-        response = requests.put(url, headers=headers, data=body.encode('utf-8'), timeout=30)
+        response = requests.put(url, headers=headers, data=body_bytes, timeout=60)
         if response.status_code == 200:
+            logger.info(f'  ✓ {key}: {size_kb:.0f}KB')
             return True
         else:
-            logger.warn(f'PUT {key} failed: {response.status_code} - {response.text[:200]}')
+            logger.error(f'  ✗ {key}: {response.status_code} - {response.text[:300]}')
             return False
     except Exception as e:
-        logger.error(f'PUT {key} exception: {e}')
+        logger.error(f'  ✗ {key}: {type(e).__name__}: {e}')
         return False
 
 
 def upload_to_kv(data):
-    """מעלה את הדאטה ל-KV. מפצל לפי רשת למניעת קבצים גדולים מדי (KV limit: 25MB)"""
-
     uploaded = 0
     failed = 0
 
-    # מפתח מטא - מידע כללי
     meta = {
-        'lastSync': datetime.utcnow().isoformat() + 'Z',
+        'lastSync': datetime.now(timezone.utc).isoformat(),
         'chains': {},
+        'source': DATASET_NAME,
     }
 
-    for chain_name, products in data.items():
+    logger.info('')
+    logger.info('מעלה ל-Cloudflare KV...')
+
+    for chain_key, products in data.items():
         if not products:
-            logger.warn(f'דילוג על {chain_name} - אין נתונים')
+            logger.warn(f'דילוג על {chain_key} - אין מוצרים')
             continue
 
-        # מפתח לפי רשת
-        key = f'prices:{chain_name}'
-
-        logger.info(f'מעלה {chain_name}: {len(products)} מוצרים...')
+        key = f'prices:{chain_key}'
 
         if put_kv_value(key, products):
             uploaded += 1
-            meta['chains'][chain_name] = {
+            meta['chains'][chain_key] = {
+                'name': TARGET_CHAINS[chain_key]['name'],
                 'products': len(products),
-                'updated': datetime.utcnow().isoformat() + 'Z',
+                'updated': datetime.now(timezone.utc).isoformat(),
             }
         else:
             failed += 1
 
-    # מעלה את המטא
+    # מטא
     if put_kv_value('meta:sync', meta):
         logger.info('מטא-מידע נשמר')
 
@@ -347,54 +536,55 @@ def upload_to_kv(data):
 # ============================================================================
 
 def main():
-    logger.info('=' * 60)
-    logger.info('מתחיל סנכרון מחירים')
-    logger.info('=' * 60)
+    logger.info('=' * 70)
+    logger.info('מתחיל סנכרון מחירים v2 (kagglehub)')
+    logger.info('=' * 70)
 
-    # אימות
     if not validate_env():
         sys.exit(1)
 
-    # יצירת תיקיה זמנית
-    temp_dir = tempfile.mkdtemp(prefix='prices_')
-    logger.info(f'תיקיה זמנית: {temp_dir}')
-
     try:
         # שלב 1: הורדה
-        dataset_used = download_from_kaggle(temp_dir)
-        if not dataset_used:
-            logger.error('אף dataset לא הצליח. בדוק את השם ב-Kaggle.')
+        dataset_path = download_dataset()
+        if not dataset_path:
+            logger.error('הורדה נכשלה')
             sys.exit(1)
 
-        # שלב 2: חיפוש קבצים
-        csv_files, json_files = find_price_files(temp_dir)
-
-        if not csv_files and not json_files:
+        # שלב 2: סריקה
+        all_files = find_all_data_files(dataset_path)
+        if not all_files:
             logger.error('לא נמצאו קבצי נתונים')
             sys.exit(1)
 
         # שלב 3: עיבוד
-        data = process_all_data(csv_files)
+        data = process_all_files(all_files)
 
         total_products = sum(len(p) for p in data.values())
         if total_products == 0:
-            logger.error('לא נמצאו מוצרים מהרשתות המבוקשות')
+            logger.error('לא נמצאו מוצרים באף רשת - בדוק את הזיהוי')
             sys.exit(1)
 
+        logger.info('')
         logger.info(f'סה"כ {total_products} מוצרים מוכנים לעלות')
 
         # שלב 4: העלאה
         uploaded, failed = upload_to_kv(data)
 
-        logger.info('=' * 60)
+        logger.info('')
+        logger.info('=' * 70)
         logger.info(f'✅ הסתיים: {uploaded} רשתות עלו, {failed} נכשלו')
-        logger.info('=' * 60)
+        logger.info('=' * 70)
 
-        return 0 if failed == 0 else 1
+        return 0 if failed == 0 and uploaded > 0 else 1
+
+    except Exception as e:
+        logger.error(f'שגיאה כללית: {type(e).__name__}: {e}')
+        import traceback
+        for line in traceback.format_exc().splitlines():
+            logger.error(line)
+        return 1
 
     finally:
-        # ניקוי
-        shutil.rmtree(temp_dir, ignore_errors=True)
         logger.save_report()
 
 
