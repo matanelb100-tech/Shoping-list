@@ -42,9 +42,9 @@ from kaggle.api.kaggle_api_extended import KaggleApi
 
 # רשימת ה-datasets הפוטנציאליים ב-Kaggle - ננסה אותם בסדר
 KAGGLE_DATASETS_TO_TRY = [
+    'erlichsefi/israeli-supermarkets-2024',   # השם האמיתי - מעודכן יומית
     'erlichsefi/israeli-supermarkets',
     'erlichsefi/israeli-supermarket-prices',
-    'openisraeli/israeli-supermarkets',
 ]
 
 # רשתות יעד - רק אלה נשמרות ב-KV (חוסך מקום)
