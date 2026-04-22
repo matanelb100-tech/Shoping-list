@@ -467,9 +467,15 @@ def process_all_files(all_files):
 # ============================================================================
 
 def put_kv_value(key, value):
-    url = f'{CF_API_BASE}/storage/kv/namespaces/{KV_NAMESPACE_ID}/values/{key}'
+    # קריאת משתני סביבה בזמן אמת + ניקוי אגרסיבי של כל תו לא תקני
+    account_id = ''.join(c for c in os.environ.get('CLOUDFLARE_ACCOUNT_ID', '') if c.isprintable() and c not in ' \t\n\r')
+    api_token = ''.join(c for c in os.environ.get('CLOUDFLARE_API_TOKEN', '') if c.isprintable() and c not in ' \t\n\r')
+    namespace_id = ''.join(c for c in os.environ.get('KV_NAMESPACE_ID', '') if c.isprintable() and c not in ' \t\n\r')
+
+    url = f'https://api.cloudflare.com/client/v4/accounts/{account_id}/storage/kv/namespaces/{namespace_id}/values/{key}'
+
     headers = {
-        'Authorization': f'Bearer {CF_API_TOKEN}',
+        'Authorization': f'Bearer {api_token}',
         'Content-Type': 'application/json',
     }
 
@@ -497,6 +503,25 @@ def put_kv_value(key, value):
 def upload_to_kv(data):
     uploaded = 0
     failed = 0
+
+    # אבחון - בדיקה שה-env variables נקיים
+    raw_token = os.environ.get('CLOUDFLARE_API_TOKEN', '')
+    raw_account = os.environ.get('CLOUDFLARE_ACCOUNT_ID', '')
+    raw_kv = os.environ.get('KV_NAMESPACE_ID', '')
+
+    logger.info(f'Account ID אורך: {len(raw_account)} (מצופה: 32)')
+    logger.info(f'API Token אורך: {len(raw_token)}')
+    logger.info(f'KV Namespace ID אורך: {len(raw_kv)} (מצופה: 32)')
+
+    # בדיקת תווים לא תקניים
+    def check_chars(name, value):
+        bad_chars = [c for c in value if not c.isprintable() or c in '\n\r\t']
+        if bad_chars:
+            logger.warn(f'{name}: נמצאו {len(bad_chars)} תווים לא תקינים - ינוקו')
+
+    check_chars('Account ID', raw_account)
+    check_chars('API Token', raw_token)
+    check_chars('KV Namespace ID', raw_kv)
 
     meta = {
         'lastSync': datetime.now(timezone.utc).isoformat(),
