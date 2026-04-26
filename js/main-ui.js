@@ -24,7 +24,6 @@ import { openItemEditor } from './item-editor.js?v=1';
 import { initAutocomplete, destroyAutocomplete } from './autocomplete.js?v=1';
 import { openCartCompute } from './cart.js?v=1';
 import { openHistory } from './history.js?v=1';
-import { openProductPriceModal } from './product-price.js?v=1';
 
 
 // ============================================================================
@@ -268,11 +267,6 @@ function renderItemCard(item) {
           ${quantityDisplay ? `<div class="item-meta"><span class="item-quantity-display">${quantityDisplay}</span></div>` : ''}
         </div>
         <div class="item-actions">
-          <button class="item-action-btn item-btn-price" title="מחיר ממוצע" aria-label="מחיר">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <text x="12" y="17" text-anchor="middle" font-size="14" font-weight="bold" stroke-width="1" fill="currentColor">₪</text>
-            </svg>
-          </button>
           <button class="item-action-btn item-btn-qty" title="כמות" aria-label="ערוך כמות">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 5v14M5 12h14"/>
@@ -458,15 +452,6 @@ function handleItemClick(e) {
   // לחיצה על כפתור הכמות - פתיחת עורך מלא
   if (e.target.closest('.item-btn-qty')) {
     openItemEditor(itemId);
-    return;
-  }
-
-// לחיצה על כפתור המחיר → פתיחת modal עם מחיר ב-5 רשתות
-  if (e.target.closest('.item-btn-price')) {
-    const item = State.getItems().find(i => i.id === itemId);
-    if (item && item.name) {
-      openProductPriceModal(item.name);
-    }
     return;
   }
 }
