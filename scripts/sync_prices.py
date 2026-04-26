@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 """
 ============================================================================
-sync_prices.py v2 - סנכרון מחירים מ-Kaggle ל-Cloudflare KV
+sync_prices.py v3 - סנכרון מחירים + בניית inverted index
 ============================================================================
+
+שינויים גרסה 3:
+  - בנייה של inverted index לטוקנים (מילה → מוצרים מכילים)
+  - העלאת האינדקס ל-KV ב-key 'index:tokens'
+  - האינדקס מאפשר ל-Worker לצמצם חיפוש מ-100K השוואות ל-~50
 
 שינויים גרסה 2:
   - מעבר ל-kagglehub (ספרייה עדכנית במקום kaggle הישנה)
@@ -19,6 +24,7 @@ Environment Variables Required:
 """
 
 import os
+import re
 import sys
 import json
 import time
@@ -463,6 +469,114 @@ def process_all_files(all_files):
 
 
 # ============================================================================
+# בניית Inverted Index (לחיפוש מהיר ב-Worker)
+# ============================================================================
+
+# מגבלות ובטיחות
+MAX_INDEX_BYTES = 20 * 1024 * 1024   # 20MB - שולי ביטחון מ-25MB של KV
+INDEX_MIN_TOKEN_LEN = 2               # טוקנים קצרים יותר לא נכנסים לאינדקס
+INDEX_MAX_PRODUCTS_PER_TOKEN = 500    # תקרה - אם יותר, הטוקן כללי מדי
+
+
+def normalize_for_index(text):
+    """
+    נורמליזציה זהה לזו שב-Worker (worker.js → normalize).
+    חיוני לעקביות בין האינדקס לבין החיפוש בזמן אמת.
+    """
+    if not text:
+        return ''
+    s = str(text).lower()
+    # מסיר גרשיים
+    s = re.sub(r'[״"\']', '', s)
+    # רווחים כפולים
+    s = re.sub(r'\s+', ' ', s)
+    # אחידות יחידות מידה
+    s = re.sub(r'\bליטר\b|\bליט\b|\bl\b', 'ל', s)
+    s = re.sub(r"\bגרם\b|\bג'\b|\bgr\b|\bg\b", 'ג', s)
+    s = re.sub(r'\bקילו\b|\bק"ג\b|\bkg\b', 'קג', s)
+    s = re.sub(r'\bמ"ל\b|\bml\b', 'מל', s)
+    s = re.sub(r'אחוז|%', '%', s)
+    return s.strip()
+
+
+def tokenize_for_index(text):
+    """מפצל לטוקנים. תואם ל-tokenize של ה-Worker."""
+    normalized = normalize_for_index(text)
+    raw_tokens = re.split(r'[\s\-_.,()/]+', normalized)
+    return [t for t in raw_tokens if len(t) >= INDEX_MIN_TOKEN_LEN]
+
+
+def build_inverted_index(data):
+    """
+    בונה inverted index:
+        { token: { chain: [product_index, ...] } }
+
+    chain = mzhir 'shufersal' / 'ramilevi' / ...
+    product_index = האינדקס של המוצר במערך כפי שייווצר ב-Worker
+                    (אחרי המרת dict → list עם Object.keys() iteration order)
+
+    הערה חשובה: סדר האיטרציה של dict ב-Python 3.7+ הוא insertion order,
+    וכך גם ב-V8 ב-Cloudflare Workers - שני הצדדים יקבלו אותו סדר.
+
+    מסירים טוקנים יקרים מדי (מופיעים ביותר מ-INDEX_MAX_PRODUCTS_PER_TOKEN
+    מוצרים) - אלה כלליים מדי ולא יעילים בסינון.
+
+    אם הגודל הסופי חורג מ-MAX_INDEX_BYTES, מחזיר None ו-Worker
+    יחזור לחיפוש לינארי.
+    """
+    logger.info('')
+    logger.info('בונה inverted index...')
+
+    index = {}  # token -> { chain -> [indices] }
+
+    for chain_key, products in data.items():
+        if not products:
+            continue
+
+        # סדר האינדקסים תואם לסדר של Object.keys ב-JavaScript
+        for product_index, (barcode, item) in enumerate(products.items()):
+            name = item.get('n', '')
+            if not name:
+                continue
+
+            tokens = set(tokenize_for_index(name))
+            for token in tokens:
+                if token not in index:
+                    index[token] = {}
+                if chain_key not in index[token]:
+                    index[token][chain_key] = []
+                index[token][chain_key].append(product_index)
+
+    # ניקוי טוקנים יקרים מדי (כלליים מדי, לא תורמים לסינון)
+    removed_tokens = 0
+    tokens_to_remove = []
+    for token, chains_map in index.items():
+        total = sum(len(lst) for lst in chains_map.values())
+        if total > INDEX_MAX_PRODUCTS_PER_TOKEN:
+            tokens_to_remove.append(token)
+    for t in tokens_to_remove:
+        del index[t]
+        removed_tokens += 1
+
+    logger.info(f'  טוקנים ייחודיים: {len(index)}')
+    logger.info(f'  טוקנים שהוסרו (יותר מ-{INDEX_MAX_PRODUCTS_PER_TOKEN} מוצרים): {removed_tokens}')
+
+    # בדיקת גודל
+    serialized = json.dumps(index, ensure_ascii=False, separators=(',', ':'))
+    size_bytes = len(serialized.encode('utf-8'))
+    size_mb = size_bytes / (1024 * 1024)
+
+    logger.info(f'  גודל אינדקס: {size_mb:.2f}MB')
+
+    if size_bytes > MAX_INDEX_BYTES:
+        logger.warn(f'  ⚠️ אינדקס חורג מ-{MAX_INDEX_BYTES / (1024*1024):.0f}MB - ידלג על העלאה')
+        logger.warn('  ה-Worker ימשיך לעבוד עם חיפוש לינארי')
+        return None
+
+    return index
+
+
+# ============================================================================
 # שליחה ל-Cloudflare KV
 # ============================================================================
 
@@ -500,7 +614,7 @@ def put_kv_value(key, value):
         return False
 
 
-def upload_to_kv(data):
+def upload_to_kv(data, index=None):
     uploaded = 0
     failed = 0
 
@@ -527,6 +641,7 @@ def upload_to_kv(data):
         'lastSync': datetime.now(timezone.utc).isoformat(),
         'chains': {},
         'source': DATASET_NAME,
+        'has_index': index is not None,
     }
 
     logger.info('')
@@ -548,6 +663,16 @@ def upload_to_kv(data):
             }
         else:
             failed += 1
+
+    # העלאת inverted index (אם נבנה בהצלחה)
+    if index is not None:
+        logger.info('')
+        logger.info('מעלה inverted index...')
+        if put_kv_value('index:tokens', index):
+            logger.info('  ✅ אינדקס הועלה')
+        else:
+            logger.warn('  ⚠️ העלאת אינדקס נכשלה - Worker ימשיך עם חיפוש לינארי')
+            meta['has_index'] = False
 
     # מטא
     if put_kv_value('meta:sync', meta):
@@ -592,8 +717,11 @@ def main():
         logger.info('')
         logger.info(f'סה"כ {total_products} מוצרים מוכנים לעלות')
 
-        # שלב 4: העלאה
-        uploaded, failed = upload_to_kv(data)
+        # שלב 4: בניית inverted index
+        index = build_inverted_index(data)
+
+        # שלב 5: העלאה (מוצרים + אינדקס)
+        uploaded, failed = upload_to_kv(data, index)
 
         logger.info('')
         logger.info('=' * 70)
