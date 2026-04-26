@@ -24,6 +24,7 @@ import { openItemEditor } from './item-editor.js?v=1';
 import { initAutocomplete, destroyAutocomplete } from './autocomplete.js?v=1';
 import { openCartCompute } from './cart.js?v=1';
 import { openHistory } from './history.js?v=1';
+import { openProductPriceModal } from './product-price.js?v=1';
 
 
 // ============================================================================
@@ -460,9 +461,12 @@ function handleItemClick(e) {
     return;
   }
 
-  // לחיצה על כפתור המחיר
+// לחיצה על כפתור המחיר → פתיחת modal עם מחיר ב-5 רשתות
   if (e.target.closest('.item-btn-price')) {
-    showToast('מחירים - יגיע בקרוב', 'warning');
+    const item = State.getItems().find(i => i.id === itemId);
+    if (item && item.name) {
+      openProductPriceModal(item.name);
+    }
     return;
   }
 }
