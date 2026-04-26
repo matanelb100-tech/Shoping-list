@@ -1,25 +1,40 @@
 /**
  * ============================================================================
- * api.js - שכבת התקשורת עם ה-Cloudflare Worker (v2)
+ * api.js - שכבת התקשורת עם ה-Cloudflare Worker (v3 - Hybrid)
  * ============================================================================
  *
- * זה ה-"Adapter" בין ה-Worker לפרונט. ה-Worker מחזיר פורמט שונה
- * ממה שהרכיבים באפליקציה מצפים לו - אז הקובץ הזה עושה את התרגום.
+ * אסטרטגיה היברידית לחסכון בקריאות Worker:
+ *   1. מילון מקומי (popular-products.js) - 90% מהמקרים, מיידי, חינם
+ *   2. Worker (KV) - 10% נשארים, fallback למוצרים נדירים
  *
- * יתרון: שום קובץ אחר (autocomplete, cart, main-ui) לא צריך להשתנות.
+ * זרימה:
+ *   user types "חלב"
+ *      ↓
+ *   searchPopular()  →  7 וריאציות נמצאו
+ *      ↓
+ *   return (לא קוראים ל-Worker בכלל)
  *
- * API ציבורי (יציב, אין לשנות):
- *   API.searchProducts(query)              → [{ id, name, category, unit, chains, ... }]
- *   API.computeCart(items, chains)         → { chains: { shufersal: {...}, ... } }
- *   API.getProductPrice(name)              → { prices: {...}, stats: {...} }
- *   API.getVariants(productName)           → [{ id, name, ... }]   (compat shim)
- *   API.health()                           → { status, kv, counts, ... }
+ *   user types "ראבנקלון" (משהו נדיר)
+ *      ↓
+ *   searchPopular()  →  0 תוצאות
+ *      ↓
+ *   ל-Worker          →  3 תוצאות מ-KV
+ *      ↓
+ *   return
+ *
+ * API ציבורי (יציב):
+ *   API.searchProducts(query)
+ *   API.computeCart(items, chains)
+ *   API.getProductPrice(name)
+ *   API.getVariants(productName)
+ *   API.health()
  *   API.clearCache()
  * ============================================================================
  */
 
 import { WORKERS } from './config.js?v=2';
 import { categorize, detectUnit } from './products.js?v=1';
+import { searchPopular } from './popular-products.js?v=1';
 
 
 // ============================================================================
@@ -27,12 +42,15 @@ import { categorize, detectUnit } from './products.js?v=1';
 // ============================================================================
 
 const WORKER_URL = WORKERS.main;
-const REQUEST_TIMEOUT_MS = 10000;    // 10 שניות
-const CACHE_TTL_MS = 5 * 60 * 1000;  // 5 דקות
+const REQUEST_TIMEOUT_MS = 10000;
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+// סף מינימלי לתוצאות מהמילון לפני שמוותרים על Worker
+const POPULAR_MIN_RESULTS = 3;
 
 
 // ============================================================================
-// Cache פנימי - Map עם TTL
+// Cache פנימי
 // ============================================================================
 
 const cache = new Map();
@@ -54,7 +72,6 @@ function getCached(key) {
 function setCached(key, data) {
   cache.set(key, { data, timestamp: Date.now() });
 
-  // ניקוי cache ישן אם גדל מדי
   if (cache.size > 100) {
     const now = Date.now();
     for (const [k, v] of cache.entries()) {
@@ -71,40 +88,37 @@ function clearAllCache() {
 
 
 // ============================================================================
-// מחלקת שגיאה מותאמת
+// מחלקת שגיאה
 // ============================================================================
 
 class APIError extends Error {
   constructor(code, message, status = null) {
     super(message);
     this.name = 'APIError';
-    this.code = code;        // 'offline' | 'timeout' | 'network' | 'http'
+    this.code = code;
     this.status = status;
   }
 }
 
 
 // ============================================================================
-// ביצוע קריאה ל-Worker (גנרי)
+// קריאה ל-Worker
 // ============================================================================
 
 async function request(path, options = {}) {
   const { method = 'GET', body = null, useCache = true, cacheParams = null } = options;
   const url = WORKER_URL + path;
 
-  // בדיקת cache
   const key = useCache ? cacheKey(path, cacheParams) : null;
   if (key) {
     const cached = getCached(key);
     if (cached) return cached;
   }
 
-  // בדיקת אינטרנט
   if (!navigator.onLine) {
     throw new APIError('offline', 'אין חיבור לאינטרנט');
   }
 
-  // קריאה עם timeout
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
@@ -144,43 +158,49 @@ async function request(path, options = {}) {
 
 
 // ============================================================================
-// Helpers - תרגום תוצאות מ-Worker לפורמט של ה-frontend
+// תרגום פורמטים
 // ============================================================================
 
-/**
- * הופך תוצאת חיפוש בודדת לפורמט שהפרונט מצפה לו.
- * ה-Worker מחזיר: { name, score, chains: [...] }
- * הפרונט מצפה ל:  { id, name, baseName, category, unit, avgPrice, chains }
- */
-function normalizeSearchResult(result, index) {
+function normalizeWorkerResult(result, index) {
   const name = result.name || '';
-  const uniqueChains = Array.from(new Set(result.chains || [])); // הסרת כפילויות
+  const uniqueChains = Array.from(new Set(result.chains || []));
 
   return {
-    id:        `srv-${index}-${Date.now()}`,  // מזהה זמני לפרונט
+    id:        `srv-${index}-${Date.now()}`,
     name:      name,
     baseName:  name,
     variant:   null,
     brand:     null,
     category:  categorize(name),
     unit:      detectUnit(name),
-    avgPrice:  null,           // לא יודעים עד חישוב - הפרונט יודע להתמודד
-    chains:    uniqueChains,   // אילו רשתות מחזיקות את המוצר
+    avgPrice:  null,
+    chains:    uniqueChains,
     score:     result.score,
+    source:    'worker',
   };
 }
 
 
-/**
- * הופך תוצאת "חישוב סל" של ה-Worker לפורמט הישן של הפרונט.
- * ה-Worker מחזיר: { items: [...], summary: {...}, cheapest }
- * הפרונט (cart.js) מצפה ל: { chains: { shufersal: { name, total, items, unknownItems } } }
- */
+function normalizePopularResult(result, index) {
+  return {
+    id:        `pop-${index}`,
+    name:      result.name,
+    baseName:  result.baseName,
+    variant:   null,
+    brand:     result.brand,
+    category:  result.category,
+    unit:      result.unit,
+    avgPrice:  null,
+    chains:    [],
+    source:    'popular',
+  };
+}
+
+
 function normalizeCartResult(workerResult) {
   const { items = [], summary = {}, cheapest = null } = workerResult;
   const chains = {};
 
-  // אתחול כל הרשתות
   for (const [chainId, chainSummary] of Object.entries(summary)) {
     chains[chainId] = {
       name:         chainSummary.name,
@@ -193,7 +213,6 @@ function normalizeCartResult(workerResult) {
     };
   }
 
-  // הזנת פרטי המוצרים לכל רשת
   for (const item of items) {
     const { query, quantity, unit, chains: itemChains = {} } = item;
 
@@ -229,14 +248,25 @@ function normalizeCartResult(workerResult) {
 export const API = {
 
   /**
-   * חיפוש מוצרים להשלמה אוטומטית.
-   * @param {string} query - מה שהמשתמש הקליד
-   * @returns {Promise<Array>} רשימת הצעות עם קטגוריה ויחידה
+   * חיפוש מוצרים - היברידי.
+   * 1. מילון מקומי (חינם, מיידי)
+   * 2. Worker fallback אם פחות מ-3 תוצאות
    */
   async searchProducts(query) {
     const q = (query || '').trim();
-    if (q.length < 2) return [];
+    if (q.length < 1) return [];
 
+    // שלב 1: מילון מקומי
+    const popularResults = searchPopular(q, 10);
+    const fromPopular = popularResults.map(normalizePopularResult);
+
+    // אם יש מספיק - חוזרים מיד (לא קוראים ל-Worker)
+    if (fromPopular.length >= POPULAR_MIN_RESULTS) {
+      return fromPopular;
+    }
+
+    // שלב 2: השלמה מ-Worker
+    let fromWorker = [];
     try {
       const params = new URLSearchParams({ q, limit: '10' });
       const data = await request(`/api/search?${params}`, {
@@ -244,22 +274,27 @@ export const API = {
         useCache: true,
         cacheParams: { q, limit: 10 },
       });
-
       const results = Array.isArray(data.results) ? data.results : [];
-      return results.map(normalizeSearchResult);
-
+      fromWorker = results.map(normalizeWorkerResult);
     } catch (err) {
-      console.warn('searchProducts failed:', err.message);
-      return [];
+      console.warn('Worker search failed, returning popular only:', err.message);
     }
+
+    // מיזוג עם הסרת כפילויות
+    const seen = new Set(fromPopular.map(r => r.name.toLowerCase()));
+    const uniqueWorker = fromWorker.filter(r => {
+      const key = r.name.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    return [...fromPopular, ...uniqueWorker].slice(0, 10);
   },
 
 
   /**
-   * חישוב מחיר סל בכל הרשתות (batch עם fuzzy matching).
-   * @param {Array} items - [{ name, quantity, unit, specificProductId }]
-   * @param {Array} chains - רשימת מזהי רשתות (כרגע לא בשימוש - ה-Worker מחזיר הכל)
-   * @returns {Promise<{chains: Object, cheapest: string|null}>}
+   * חישוב סל (batch).
    */
   async computeCart(items, chains = []) {
     if (!items || items.length === 0) {
@@ -267,7 +302,6 @@ export const API = {
     }
 
     try {
-      // הכנת payload ב-format של ה-Worker החדש
       const payload = {
         items: items.map(item => ({
           name:     item.name,
@@ -279,7 +313,7 @@ export const API = {
       const data = await request('/api/cart/price', {
         method: 'POST',
         body: payload,
-        useCache: false,   // חישוב סל לא ב-cache
+        useCache: false,
       });
 
       return normalizeCartResult(data);
@@ -292,9 +326,7 @@ export const API = {
 
 
   /**
-   * קבלת מחיר מוצר בודד בכל הרשתות (לאייקון ₪).
-   * @param {string} name - שם המוצר
-   * @returns {Promise<Object>} - { prices: {chainId: {found, chain_name, name, price}}, stats }
+   * מחיר מוצר בודד (לאייקון ₪).
    */
   async getProductPrice(name) {
     const q = (name || '').trim();
@@ -323,8 +355,7 @@ export const API = {
 
 
   /**
-   * Compatibility shim - ה-Worker החדש לא מספק variants נפרד.
-   * פשוט מחזיר תוצאות search שזה אותו דבר בפועל.
+   * Compatibility shim
    */
   async getVariants(productName) {
     if (!productName) return [];
@@ -333,7 +364,7 @@ export const API = {
 
 
   /**
-   * בדיקת חיות של ה-Worker
+   * בדיקת חיות
    */
   async health() {
     try {
@@ -357,7 +388,7 @@ export const API = {
 
 
   /**
-   * מידע על ה-cache (לדיבוג)
+   * דיבוג
    */
   getCacheStats() {
     return {
@@ -369,7 +400,7 @@ export const API = {
 
 
 // ============================================================================
-// חשיפה לדיבוג - אפשר מה-console: __api.searchProducts("חלב")
+// חשיפה לדיבוג
 // ============================================================================
 
 if (typeof window !== 'undefined') {
