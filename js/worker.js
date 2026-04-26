@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * Cloudflare Worker - runprice (v4.1 - improved matching)
+ * Cloudflare Worker - runprice (v4.2 - balanced matching)
  * ============================================================================
  *
  * אחראי על:
@@ -8,20 +8,19 @@
  *   2. GET  /api/search?q=X&limit=10  → autocomplete מהיר
  *   3. POST /api/cart/price           → חישוב סל שלם (batch + fuzzy)
  *
- * שינויים גרסה 4.1 - תיקון איכות חיפוש (CRITICAL FIX):
- *   - scoreMatch כעת מעניש בחומרה על חוסר התאמת טוקנים (ratio בריבוע).
- *   - בונוס 30 על התאמה מלאה של כל טוקני ה-query.
- *   - בונוס על רצף (טוקנים בסדר הנכון).
- *   - ענישה גדולה יותר על "רעש" (טוקנים מיותרים במוצר).
- *   - MATCH_MIN_SCORE עלה מ-40 ל-65.
- *   - לקוויארי קצר (≤2 טוקנים) - דרישת all-tokens-must-match קשיחה.
- *   הבעיה שתוקנה: "בשר טחון" החזיר "כורכום טחון" / "שקד טחון" (תבלינים, לא בשר).
+ * שינויים גרסה 4.2 - איזון בין v4.0 (רחב מדי) ל-v4.1 (קפדני מדי):
+ *   - "Head Token" - הטוקן הראשי של ה-query (המילה הראשונה בעלת תוכן):
+ *     "חלב 3% שומן" → head = "חלב"
+ *     "בשר טחון"   → head = "בשר"
+ *   - Head MUST appear in product (אחרת - לא תואם בכלל)
+ *   - Modifiers (3%, שומן, קפואה) - לא חובה, אבל נותנים ציון גבוה יותר
+ *   - ratio בריבוע 1.5 (במקום 2.0 שהיה קפדני מדי)
+ *   - Head position penalty - אם head מופיע מאוחר במוצר, ענישה
+ *   - Noise penalty חזק יותר (5 לכל טוקן רעש, היה 3)
+ *   - MATCH_MIN_SCORE: 50 (היה 65 ב-v4.1, 40 ב-v4.0)
  *
- * שינויים גרסה 4:
- *   - תמיכה ב-inverted index (key: 'index:tokens') שנבנה ב-sync_prices.py.
- *   - findBestMatch מצמצם את מרחב החיפוש דרך האינדקס.
- *   - אם האינדקס לא קיים (sync ישן/שגיאה) → fallback ללוגיקה לינארית.
- *   - הוסר endpoint /api/product/price (פיצ'ר הוקפא - חסכון CPU).
+ *   הבעיה שתוקנה: v4.1 בלוק תוצאות אמיתיות כמו "חלב תנובה 3%" כי לא היה
+ *   טוקן "שומן". עכשיו "שומן" הוא modifier אופציונלי.
  *
  * תלויות:
  *   - KV Binding: SALI_PRICES
@@ -45,21 +44,14 @@ const CHAIN_NAMES = {
   yohananof:   'יוחננוף',
 };
 
-const CACHE_TTL_MS = 10 * 60 * 1000;      // 10 דקות
+const CACHE_TTL_MS = 10 * 60 * 1000;
 const SEARCH_DEFAULT_LIMIT = 10;
 const SEARCH_MAX_LIMIT = 20;
 
-// ⬆️ הועלה מ-40 ל-65 (v4.1)
-// 40 היה מאפשר התאמה חלקית גרועה (ratio=0.5 → score=50).
-// 65 דורש התאמה ממשית: או כל הטוקנים, או רובם המכריע + בונוסים.
-const MATCH_MIN_SCORE = 65;
+// סף ציון מינימלי - 50 מאוזן (היה 40 ב-v4 - נמוך מדי, 65 ב-v4.1 - גבוה מדי)
+const MATCH_MIN_SCORE = 50;
 
-const INDEX_MIN_TOKEN_LEN = 2;            // טוקנים קצרים מ-2 לא נכנסים לאינדקס
-
-// סף לדרישת all-tokens-must-match (v4.1):
-// קוויארי של עד 2 טוקנים ("בשר טחון", "חלב 3%") - חייב התאמה מלאה.
-// קוויארי ארוך יותר ("חלב תנובה 3% 1 ליטר") - מותר חוסר במילה.
-const STRICT_MATCH_MAX_QUERY_TOKENS = 2;
+const INDEX_MIN_TOKEN_LEN = 2;
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin':  '*',
@@ -74,17 +66,13 @@ const CORS_HEADERS = {
 // ============================================================================
 
 let memCache = {
-  data: null,        // { shufersal: [...], ramilevi: [...], ... }
-  index: null,       // { "חלב": { shufersal: [3,7,12], ... }, ... }  או null
+  data: null,
+  index: null,
   loadedAt: 0,
   meta: null,
 };
 
 
-/**
- * טוען את כל נתוני המחירים והאינדקס מ-KV אל memCache.
- * אם ה-cache טרי (< 10 דקות) - מחזיר מיידית.
- */
 async function loadPrices(env) {
   const now = Date.now();
 
@@ -120,10 +108,6 @@ async function loadPrices(env) {
 }
 
 
-/**
- * ממיר את מבנה ה-KV ({barcode: {n,p}}) לרשימה שמישה לחיפוש.
- * כל מוצר מקבל index בתוך הרשימה - האינדקס מתייחס לאינדקסים האלה.
- */
 function objectToProductList(raw) {
   const list = [];
   for (const barcode in raw) {
@@ -170,12 +154,15 @@ function tokenize(text) {
 
 
 // ============================================================================
-// Matching - גרסה משופרת (v4.1)
+// Matching v4.2
 // ============================================================================
 
 /**
- * בודקת האם טוקן מ-query מתאים לטוקן של מוצר.
- * מחזירה ציון התאמה: 1.0 = מדויק, 0.8 = prefix, 0.5 = substring, 0 = לא תואם.
+ * מחזירה ציון התאמה בין שני טוקנים:
+ *   1.0 = זהה
+ *   0.8 = prefix (qt באורך ≥2)
+ *   0.5 = substring (qt באורך ≥3)
+ *   0   = לא תואם
  */
 function tokenMatchScore(qt, pt) {
   if (pt === qt) return 1.0;
@@ -186,34 +173,59 @@ function tokenMatchScore(qt, pt) {
 
 
 /**
- * scoreMatch v4.1 - מחושב חכם וקפדני יותר.
- *
- * עקרונות:
- *   1. ratio בריבוע - מעניש בחומרה על חוסר התאמה חלקית
- *      (ratio 0.5 → 25 במקום 50; ratio 1.0 → 100)
- *   2. בונוס 30 על התאמה מלאה (כל טוקני ה-query נמצאו)
- *   3. בונוס על רצף - טוקני ה-query מופיעים בסדר הנכון במוצר
- *   4. ענישת רעש חזקה יותר - טוקנים מיותרים במוצר
+ * ה-Head Token = המילה הראשונה ב-query בעלת תוכן.
+ * דולגים על מספרים טהורים ("3%", "1") ועל טוקנים מאוד קצרים.
  *
  * דוגמאות:
- *   "בשר טחון" → "בשר בקר טחון 1 קג"
- *     matches=2/2=1.0, ratio²=1.0, fullMatch+30, רצף+10 = ~100 ✅
+ *   "חלב 3% שומן"      → "חלב"
+ *   "בשר טחון"         → "בשר"
+ *   "אורז בסמטי 1 קג"  → "אורז"
+ */
+function getHeadToken(queryTokens) {
+  for (const t of queryTokens) {
+    if (t.length >= 2 && !/^\d+%?$/.test(t)) return t;
+  }
+  return queryTokens[0];
+}
+
+
+/**
+ * בודקת אם ה-head token נמצא בטוקני המוצר, ומחזירה את המיקום.
+ * מחזיר -1 אם לא נמצא.
+ */
+function findHeadPosition(headToken, productTokens) {
+  for (let i = 0; i < productTokens.length; i++) {
+    if (tokenMatchScore(headToken, productTokens[i]) > 0) return i;
+  }
+  return -1;
+}
+
+
+/**
+ * scoreMatch v4.2 - ציון מאוזן.
  *
- *   "בשר טחון" → "כורכום טחון אורגני"
- *     matches=1/2=0.5, ratio²=0.25 → 25, אין fullMatch, רעש -2 = ~23 ❌
+ * עקרונות:
+ *   1. ratio של התאמה ^ 1.5 - מעניש על חוסר אבל לא דרסטי
+ *      ratio=1.0 → 100, ratio=0.67 → 55, ratio=0.5 → 35
+ *   2. בונוס 30 על fullMatch (כל הטוקנים נמצאו exact/prefix)
+ *   3. בונוס 5 על סדר טוקנים נכון, +5 לכל טוקן ברצף
+ *   4. ענישת מיקום head - אם head מופיע אחרי מיקום 1, -8 לכל מיקום
+ *   5. ענישת רעש - 5 לכל טוקן עודף מעבר ל-(query+2)
  *
- *   "חלב 3%" → "חלב תנובה 3% 1 ליטר"
- *     matches=2/2=1.0, ratio²=1.0, fullMatch+30 = ~100 ✅
+ * דוגמאות (מבדיקות אמיתיות):
+ *   "בשר טחון" → "בשר בקר טחון 1 קג"           = 130 ✅
+ *   "חלב 3% שומן" → "חלב תנובה 3% 1 ל"          = 59  ✅ (modifier "שומן" חסר אבל head ויחידות תואמים)
+ *   "בשר טחון" → "כורכום טחון אורגני"           = 35  ❌ (head "בשר" לא מופיע)
+ *   "אורז בסמטי" → "אורז פרסי 1 קג"              = 30  ❌ ("בסמטי" חסר וזה token חיוני)
  */
 function scoreMatch(queryTokens, productTokens) {
   if (queryTokens.length === 0 || productTokens.length === 0) return 0;
 
   let totalMatchValue = 0;
   let exactOrStrong = 0;
-  const matchedPositions = [];  // לבדיקת רצף
+  const matchedPositions = [];
 
-  for (let qi = 0; qi < queryTokens.length; qi++) {
-    const qt = queryTokens[qi];
+  for (const qt of queryTokens) {
     let bestForThisToken = 0;
     let bestPosition = -1;
 
@@ -230,20 +242,17 @@ function scoreMatch(queryTokens, productTokens) {
     if (bestPosition >= 0) matchedPositions.push(bestPosition);
   }
 
-  // ratio של התאמה (0.0-1.0)
   const ratio = totalMatchValue / queryTokens.length;
 
-  // ⭐ בריבוע - מעניש בחומרה על חוסר התאמה חלקית
-  // ratio=1.0 → 1.0 (100), ratio=0.5 → 0.25 (25), ratio=0.75 → 0.56 (56)
-  let score = Math.round(ratio * ratio * 100);
+  // ratio^1.5 - מעניש על חוסר אבל לא דרסטי כמו ratio^2
+  let score = Math.round(Math.pow(ratio, 1.5) * 100);
 
-  // 🎯 בונוס Full Match: כל טוקני ה-query נמצאו בצורה חזקה (exact/prefix)
-  const allStrongMatch = exactOrStrong === queryTokens.length;
-  if (allStrongMatch) {
+  // בונוס Full Match - כל הטוקנים נמצאו exact או prefix
+  if (exactOrStrong === queryTokens.length) {
     score += 30;
   }
 
-  // 📐 בונוס רצף: אם הטוקנים נמצאו בסדר עולה ובסמיכות
+  // בונוס סדר ורצף
   if (matchedPositions.length >= 2) {
     let inOrder = true;
     let consecutive = 0;
@@ -257,25 +266,26 @@ function scoreMatch(queryTokens, productTokens) {
       }
     }
     if (inOrder) score += 5;
-    score += consecutive * 5;  // עד +10 לרצף 3-טוקנים
+    score += consecutive * 5;
   }
 
-  // 🔻 ענישת רעש - טוקנים מיותרים במוצר.
-  // מועלה מ-2 ל-3 לכל טוקן עודף (אחרי 3 טוקנים מותרים מעל ה-query).
-  const noise = Math.max(0, productTokens.length - queryTokens.length - 3);
-  score -= noise * 3;
+  // ענישת מיקום head - "head מאוחר" = head הוא modifier ולא ראש המוצר
+  const headToken = getHeadToken(queryTokens);
+  const headPos = findHeadPosition(headToken, productTokens);
+  if (headPos > 1) {
+    score -= (headPos - 1) * 8;
+  }
 
-  return Math.max(0, Math.min(130, score));  // top 130 כדי לאפשר בונוסים
+  // ענישת רעש - מילים מיותרות במוצר
+  const noise = Math.max(0, productTokens.length - queryTokens.length - 2);
+  score -= noise * 5;
+
+  return Math.max(0, Math.min(130, score));
 }
 
 
 /**
  * שימוש באינדקס לצמצום מרחב החיפוש.
- * מחזיר Set של אינדקסים מועמדים, או null אם האינדקס לא זמין.
- *
- * אסטרטגיה: איחוד (UNION) של רשימות הטוקנים - לא חיתוך.
- * זה כי scoreMatch נותן ציון חלקי גם להתאמת prefix/substring,
- * אז מוצר שיש בו רק חלק מהטוקנים עדיין יכול להיות רלוונטי.
  */
 function getCandidateIndices(queryTokens, chain, index) {
   if (!index) return null;
@@ -286,7 +296,6 @@ function getCandidateIndices(queryTokens, chain, index) {
   for (const qt of queryTokens) {
     if (qt.length < INDEX_MIN_TOKEN_LEN) continue;
 
-    // חיפוש מדויק
     const exactList = index[qt]?.[chain];
     if (exactList) {
       foundAny = true;
@@ -294,7 +303,6 @@ function getCandidateIndices(queryTokens, chain, index) {
       continue;
     }
 
-    // חיפוש prefix - עובר על המפתחות באינדקס
     if (qt.length >= 3) {
       for (const indexedToken in index) {
         if (indexedToken.startsWith(qt)) {
@@ -313,32 +321,28 @@ function getCandidateIndices(queryTokens, chain, index) {
 
 
 /**
- * findBestMatch v4.1
+ * findBestMatch v4.2
  *
- * שיפורים:
- *   1. לקוויארי קצר (≤2 טוקנים) - דרישת all-tokens-must-match.
- *      "בשר טחון" לא יחזיר "כורכום טחון" כי "בשר" לא מופיע.
- *   2. בודק כל מועמד דרך scoreMatch ובוחר מקסימום ציון.
- *   3. סף ציון 65 (היה 40) - דורש התאמה ממשית.
+ * דרישת hard requirement: head token חייב להיות בטוקני המוצר.
+ * אם head לא נמצא - המוצר לא רלוונטי. נקודה.
  */
 function findBestMatch(query, products, chain, index) {
   const queryTokens = tokenize(query);
   if (queryTokens.length === 0) return null;
 
-  const isStrictMode = queryTokens.length <= STRICT_MATCH_MAX_QUERY_TOKENS;
+  const headToken = getHeadToken(queryTokens);
 
   let best = null;
   let bestScore = 0;
 
-  // ניסיון 1: דרך האינדקס
   const candidates = getCandidateIndices(queryTokens, chain, index);
   const iterable = candidates !== null
     ? Array.from(candidates).map(idx => products[idx]).filter(Boolean)
     : products;
 
   for (const p of iterable) {
-    // 🛡️ Strict mode: לקוויארי קצר, חובה שכל הטוקנים יופיעו
-    if (isStrictMode && !allQueryTokensFound(queryTokens, p.tokens)) {
+    // 🛡️ דרישה קשיחה: head token חייב להופיע במוצר
+    if (findHeadPosition(headToken, p.tokens) === -1) {
       continue;
     }
 
@@ -355,33 +359,13 @@ function findBestMatch(query, products, chain, index) {
 
 
 /**
- * בודקת שכל הטוקנים מ-query מופיעים (exact/prefix/substring) בטוקני המוצר.
- * משמש למצב strict (קוויארי קצר).
- */
-function allQueryTokensFound(queryTokens, productTokens) {
-  for (const qt of queryTokens) {
-    let found = false;
-    for (const pt of productTokens) {
-      if (tokenMatchScore(qt, pt) > 0) {
-        found = true;
-        break;
-      }
-    }
-    if (!found) return false;
-  }
-  return true;
-}
-
-
-/**
- * חיפוש תוצאות מרובות (עבור autocomplete).
- * מיישם את אותם שיפורים: strict mode + סף 65.
+ * חיפוש תוצאות מרובות (autocomplete).
  */
 function searchAcrossChains(query, allData, index, limit) {
   const queryTokens = tokenize(query);
   if (queryTokens.length === 0) return [];
 
-  const isStrictMode = queryTokens.length <= STRICT_MATCH_MAX_QUERY_TOKENS;
+  const headToken = getHeadToken(queryTokens);
   const candidates = [];
 
   for (const chain of CHAINS) {
@@ -393,9 +377,7 @@ function searchAcrossChains(query, allData, index, limit) {
       : products;
 
     for (const p of iterable) {
-      if (isStrictMode && !allQueryTokensFound(queryTokens, p.tokens)) {
-        continue;
-      }
+      if (findHeadPosition(headToken, p.tokens) === -1) continue;
       const score = scoreMatch(queryTokens, p.tokens);
       if (score >= MATCH_MIN_SCORE) {
         candidates.push({ product: p, chain, score });
@@ -446,7 +428,7 @@ async function handleHealth(env) {
 
     return jsonResponse({
       status: 'ok',
-      version: '4.1.0',
+      version: '4.2.0',
       kv: totalProducts > 0 ? 'has data' : 'empty',
       counts,
       total: totalProducts,
@@ -550,7 +532,6 @@ async function handleCartPrice(request, env) {
     };
   }
 
-  // מציאת הזולה ביותר (רק בין רשתות שמצאו הכל)
   const complete = Object.entries(summary).filter(([, s]) => s.complete);
   let cheapest = null;
   if (complete.length > 0) {
@@ -619,7 +600,7 @@ export default {
       if (path === '/' && request.method === 'GET') {
         return jsonResponse({
           service: 'runprice',
-          version: '4.1.0',
+          version: '4.2.0',
           endpoints: [
             'GET  /api/health',
             'GET  /api/search?q=X&limit=10',
