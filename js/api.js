@@ -304,9 +304,11 @@ export const API = {
     try {
       const payload = {
         items: items.map(item => ({
-          name:     item.name,
-          quantity: item.quantity || 1,
-          unit:     item.unit || 'units',
+          name:         item.name,
+          quantity:     item.quantity || 1,
+          unit:         item.unit || 'units',
+          searchTerms:  Array.isArray(item.searchTerms)  ? item.searchTerms  : [],
+          excludeTerms: Array.isArray(item.excludeTerms) ? item.excludeTerms : [],
         })),
       };
 
