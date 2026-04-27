@@ -401,6 +401,9 @@ export const State = {
       specificProduct: null,              // המוצר הספציפי שייבחר ב"חשב סל"
       estimatedPrice: null,
       notes: itemData.notes || null,
+      // Curated Catalog matching - מועבר ל-Worker בחישוב סל
+      searchTerms:  Array.isArray(itemData.searchTerms)  ? itemData.searchTerms  : [],
+      excludeTerms: Array.isArray(itemData.excludeTerms) ? itemData.excludeTerms : [],
     };
 
     if (!item.name) {
