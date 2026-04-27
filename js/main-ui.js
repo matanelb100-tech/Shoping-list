@@ -379,6 +379,9 @@ function renderInputBar() {
       category: suggestion.category,
       unit: suggestion.unit,
       quantity: 1,
+      // Curated Catalog - אם קיים (popular-products), נעביר ל-Worker בחישוב סל
+      searchTerms:  suggestion.searchTerms  || [],
+      excludeTerms: suggestion.excludeTerms || [],
     });
 
     if (item) {
