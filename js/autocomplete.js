@@ -186,7 +186,7 @@ function selectSuggestion(index) {
 
   hideDropdown();
 
-  if (onSelectCallback) {
+ if (onSelectCallback) {
     onSelectCallback({
       name: suggestion.name || suggestion.baseName,
       category: suggestion.category || 'other',
@@ -194,6 +194,9 @@ function selectSuggestion(index) {
       brand: suggestion.brand,
       specificProductId: suggestion.id || null,
       avgPrice: suggestion.avgPrice || null,
+      // Curated Catalog - מועברים ל-Worker בחישוב סל
+      searchTerms:  suggestion.searchTerms  || [],
+      excludeTerms: suggestion.excludeTerms || [],
     });
   }
 
