@@ -242,6 +242,73 @@ function normalizeCartResult(workerResult) {
 
 
 // ============================================================================
+// Curated Catalog Lookup - השלמה אוטומטית של searchTerms לפני שליחה ל-Worker
+// ============================================================================
+
+/**
+ * מחפש את ה-base ב-popular-products.js שמתאים לשם הפריט.
+ * משמש כדי להשלים searchTerms/excludeTerms לפריטים שהמשתמש הקליד ידנית
+ * (בלי לבחור מה-autocomplete).
+ *
+ * אסטרטגיה: התאמה מדויקת תחילה, ואז התאמה חלקית (substring).
+ * מחזיר את הראשון שמתאים - searchPopular כבר ממיין לפי דיוק.
+ *
+ * @param {string} name - שם הפריט מהמשתמש
+ * @returns {object|null} { searchTerms, excludeTerms } או null אם לא נמצא
+ */
+function findPopularByName(name) {
+  if (!name) return null;
+  const matches = searchPopular(name, 5);
+  if (matches.length === 0) return null;
+
+  const trimmed = name.trim().toLowerCase();
+
+  // 1. התאמה מדויקת לשם ה-base
+  const exact = matches.find(m => m.baseName.toLowerCase() === trimmed);
+  if (exact) {
+    return {
+      searchTerms:  exact.searchTerms,
+      excludeTerms: exact.excludeTerms,
+    };
+  }
+
+  // 2. אחרת - הראשון בתוצאות (searchPopular כבר ממיין לפי startsWith)
+  return {
+    searchTerms:  matches[0].searchTerms,
+    excludeTerms: matches[0].excludeTerms,
+  };
+}
+
+/**
+ * מכין פריט לשליחה ל-Worker:
+ * אם יש כבר searchTerms בפריט (מ-autocomplete) - משתמש בהם.
+ * אחרת - מנסה להשלים מ-popular-products.js לפי השם.
+ * אם לא מוצא - שולח ריק (ה-Worker יחזיר 'no_search_terms' לפריט הזה בלבד).
+ */
+function enrichItemForWorker(item) {
+  let searchTerms  = Array.isArray(item.searchTerms)  ? item.searchTerms  : [];
+  let excludeTerms = Array.isArray(item.excludeTerms) ? item.excludeTerms : [];
+
+  // אם אין searchTerms - השלם מהמילון
+  if (searchTerms.length === 0) {
+    const found = findPopularByName(item.name);
+    if (found) {
+      searchTerms  = found.searchTerms;
+      excludeTerms = found.excludeTerms;
+    }
+  }
+
+  return {
+    name:         item.name,
+    quantity:     item.quantity || 1,
+    unit:         item.unit || 'units',
+    searchTerms,
+    excludeTerms,
+  };
+}
+
+
+// ============================================================================
 // API ציבורי
 // ============================================================================
 
@@ -295,6 +362,8 @@ export const API = {
 
   /**
    * חישוב סל (batch).
+   * משלים אוטומטית searchTerms חסרים לפריטים שהוקלדו ידנית
+   * (לפי popular-products.js).
    */
   async computeCart(items, chains = []) {
     if (!items || items.length === 0) {
@@ -303,13 +372,7 @@ export const API = {
 
     try {
       const payload = {
-        items: items.map(item => ({
-          name:         item.name,
-          quantity:     item.quantity || 1,
-          unit:         item.unit || 'units',
-          searchTerms:  Array.isArray(item.searchTerms)  ? item.searchTerms  : [],
-          excludeTerms: Array.isArray(item.excludeTerms) ? item.excludeTerms : [],
-        })),
+        items: items.map(enrichItemForWorker),
       };
 
       const data = await request('/api/cart/price', {
