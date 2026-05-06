@@ -286,15 +286,9 @@ async function runComputation() {
     : Object.keys(CHAINS).filter(k => k !== 'neighborhood').slice(0, 5);
 
   try {
-    // הכנת הנתונים לשליחה - רק מה שצריך ל-Worker
-    const payload = uncheckedItems.map(item => ({
-      name: item.name,
-      quantity: item.quantity || 1,
-      unit: item.unit || 'units',
-      specificProductId: item.specificProductId || null,
-    }));
-
-    const results = await API.computeCart(payload, selectedChains);
+    // העברת הפריטים בשלמותם ל-API.
+    // api.js יטפל בהשלמת searchTerms/excludeTerms חסרים מ-popular-products.js.
+    const results = await API.computeCart(uncheckedItems, selectedChains);
 
     currentResults = results;
     expandedChainId = null;
