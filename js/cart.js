@@ -20,6 +20,7 @@ import { State } from './state.js?v=1';
 import { API } from './api.js?v=1';
 import { Modal } from './modals.js?v=1';
 import { CHAINS } from './config.js?v=2';
+import { buildClarificationQueue, describeItem } from './clarification.js?v=1';
 
 
 // ============================================================================
@@ -280,6 +281,30 @@ async function runComputation() {
     return;
   }
 
+  // ============================================================================
+  // תור הבהרה - שלב B צ'אט 1/3 (data layer בלבד, בלי UI עדיין)
+  //
+  // בצ'אט 2/3 כאן ייכנס המודאל שיעצור את החישוב, יציג שאלות למשתמש,
+  // ויחזיר items מועשרים (עם searchTerms של ה-variant הנבחר).
+  //
+  // בינתיים - מדפיסים את התור ל-console וממשיכים לחשב כברירת מחדל.
+  // ה-defaultVariant של כל base כבר מטופל ב-api.js (enrichItemForWorker).
+  // ============================================================================
+  const clarificationQueue = buildClarificationQueue(uncheckedItems);
+  if (clarificationQueue.length > 0) {
+    console.group(`[clarification] ${clarificationQueue.length} פריטים זקוקים להבהרה`);
+    clarificationQueue.forEach(item => {
+      console.log('•', describeItem(item));
+    });
+    console.groupEnd();
+    // ⚠️ בצ'אט 2/3: כאן ייפתח המודאל ויחזיר items מועשרים.
+    // לעת עתה - ממשיכים עם uncheckedItems כפי שהם (defaultVariant יטופל ב-api.js).
+  }
+
+  // itemsToCompute = uncheckedItems כברירת מחדל. בצ'אט 2/3 זה יהיה
+  // התוצאה של המודאל (uncheckedItems מועשרים עם בחירות variant/custom/skip).
+  const itemsToCompute = uncheckedItems;
+
   const settings = State.getSettings();
   const selectedChains = settings.selectedChains && settings.selectedChains.length > 0
     ? settings.selectedChains
@@ -287,8 +312,9 @@ async function runComputation() {
 
   try {
     // העברת הפריטים בשלמותם ל-API.
-    // api.js יטפל בהשלמת searchTerms/excludeTerms חסרים מ-popular-products.js.
-    const results = await API.computeCart(uncheckedItems, selectedChains);
+    // api.js יטפל בהשלמת searchTerms/excludeTerms חסרים (defaultVariant)
+    // ובסינון פריטים skipped (כשהמודאל יהיה זמין).
+    const results = await API.computeCart(itemsToCompute, selectedChains);
 
     currentResults = results;
     expandedChainId = null;
