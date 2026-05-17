@@ -572,3 +572,356 @@ body.modal-open {
     max-width: 720px;
   }
 }
+
+
+/* ============================================================================
+   7. Clarification Modal - מודאל הבהרה (שלב B צ'אט 2/3)
+   ============================================================================
+   UI לבחירת variant של מוצר בעת חישוב סל.
+   נטען בתוך .modal-body של modal רגיל (size-md), עם buttons:[] -
+   הכפתורים שלנו בתוך ה-content (לשליטה מלאה על "דלג" / "הבא").
+   ============================================================================ */
+
+.clarification-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+}
+
+.clarification-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--spacing-md);
+}
+
+/* התקדמות "פריט 1 מתוך 3" */
+.clarification-progress {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+/* שם המוצר ("חלב") - גדול ובולט */
+.clarification-item-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.2;
+}
+
+/* ============================================================================
+   Chips - אופציות לבחירה
+   ============================================================================ */
+
+.clarification-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clarification-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 18px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-text);
+  text-align: right;
+  cursor: pointer;
+  transition:
+    background 0.15s var(--ease-out),
+    border-color 0.15s var(--ease-out),
+    transform 0.1s var(--ease-out),
+    box-shadow 0.15s var(--ease-out);
+}
+
+.clarification-chip:hover {
+  border-color: var(--color-primary-light);
+  background: var(--color-primary-ultra-light);
+}
+
+.clarification-chip:active {
+  transform: scale(0.98);
+}
+
+.clarification-chip:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* אייקון V - מוסתר עד שנבחר */
+.clarification-chip-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  flex-shrink: 0;
+  transition:
+    background 0.2s var(--ease-out),
+    border-color 0.2s var(--ease-out);
+}
+
+.clarification-chip-check svg {
+  width: 14px;
+  height: 14px;
+  color: transparent;
+  transition: color 0.15s var(--ease-out);
+}
+
+.clarification-chip-label {
+  flex: 1;
+}
+
+/* === מצב נבחר === */
+.clarification-chip.is-selected {
+  background: var(--color-primary-ultra-light);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(123, 196, 226, 0.15);
+  font-weight: 600;
+}
+
+.clarification-chip.is-selected .clarification-chip-check {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.clarification-chip.is-selected .clarification-chip-check svg {
+  color: #FFFFFF;
+}
+
+.clarification-chip.is-selected .clarification-chip-label {
+  color: var(--color-primary-dark);
+}
+
+/* ============================================================================
+   Dimensions - מצב רב-ממדי (לעתיד)
+   ============================================================================ */
+
+.clarification-dimension {
+  margin-bottom: var(--spacing-lg);
+}
+
+.clarification-dimension:last-of-type {
+  margin-bottom: 0;
+}
+
+.clarification-dim-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-soft);
+  margin-bottom: 10px;
+}
+
+/* במצב dimensions, ה-chips יותר קטנים ומסודרים בשורות (לא טור) */
+.clarification-dimension .clarification-chips {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.clarification-dimension .clarification-chip {
+  min-height: 44px;
+  padding: 10px 14px;
+  width: auto;
+  min-width: 60px;
+  justify-content: center;
+  font-size: 15px;
+}
+
+/* ב-dimensions, ה-check קטן יותר */
+.clarification-dimension .clarification-chip-check {
+  width: 18px;
+  height: 18px;
+}
+
+.clarification-dimension .clarification-chip-check svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* ============================================================================
+   "כתוב משהו אחר" - escape hatch
+   ============================================================================ */
+
+.clarification-other-divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--spacing-lg) 0 var(--spacing-md);
+  position: relative;
+}
+
+.clarification-other-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-soft);
+  cursor: pointer;
+  transition:
+    color 0.15s var(--ease-out),
+    border-color 0.15s var(--ease-out),
+    background 0.15s var(--ease-out);
+}
+
+.clarification-other-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.clarification-other-btn:hover {
+  color: var(--color-primary-dark);
+  border-color: var(--color-primary-light);
+  background: var(--color-primary-ultra-light);
+}
+
+.clarification-other-btn:active {
+  transform: scale(0.98);
+}
+
+/* ============================================================================
+   מצב "אחר" - שדה טקסט במקום chips
+   ============================================================================ */
+
+.clarification-custom-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clarification-custom-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.clarification-custom-hint {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.clarification-custom-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 16px; /* 16px ב-mobile מונע zoom אוטומטי */
+  color: var(--color-text);
+  transition:
+    border-color 0.15s var(--ease-out),
+    box-shadow 0.15s var(--ease-out);
+}
+
+.clarification-custom-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(123, 196, 226, 0.2);
+}
+
+.clarification-custom-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* כפתור "חזור לאפשרויות" */
+.clarification-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--spacing-md);
+  padding: 8px 0;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-primary-dark);
+  cursor: pointer;
+  align-self: flex-start;
+  transition: color 0.15s var(--ease-out);
+}
+
+.clarification-back-btn svg {
+  width: 16px;
+  height: 16px;
+  /* RTL: ה-chevron מצביע ימינה ויזואלית (חזרה) */
+  transform: scaleX(-1);
+}
+
+.clarification-back-btn:hover {
+  color: var(--color-primary);
+}
+
+/* ============================================================================
+   סרגל כפתורים תחתון - "דלג" / "הבא"
+   ============================================================================ */
+
+.clarification-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--spacing-md);
+}
+
+.clarification-actions .btn-skip {
+  flex: 0 0 auto;
+  min-width: 110px;
+  color: var(--color-text-soft);
+}
+
+.clarification-actions .btn-next {
+  flex: 1;
+  min-height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ============================================================================
+   Responsive - התאמות למסכים קטנים
+   ============================================================================ */
+
+@media (max-width: 380px) {
+  .clarification-item-name {
+    font-size: 20px;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .clarification-chip {
+    min-height: 52px;
+    padding: 12px 14px;
+    font-size: 15px;
+  }
+
+  .clarification-actions .btn-skip {
+    min-width: 90px;
+    font-size: 14px;
+  }
+}
