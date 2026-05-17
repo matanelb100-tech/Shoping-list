@@ -21,6 +21,7 @@ import { API } from './api.js?v=1';
 import { Modal } from './modals.js?v=1';
 import { CHAINS } from './config.js?v=2';
 import { buildClarificationQueue, describeItem } from './clarification.js?v=1';
+import { openClarificationFlow } from './clarification-modal.js?v=1';
 
 
 // ============================================================================
@@ -282,28 +283,40 @@ async function runComputation() {
   }
 
   // ============================================================================
-  // תור הבהרה - שלב B צ'אט 1/3 (data layer בלבד, בלי UI עדיין)
+  // תור הבהרה - שלב B צ'אט 2/3 (UI מלא מחובר)
   //
-  // בצ'אט 2/3 כאן ייכנס המודאל שיעצור את החישוב, יציג שאלות למשתמש,
-  // ויחזיר items מועשרים (עם searchTerms של ה-variant הנבחר).
+  // אם יש פריטים שצריכים הבהרה (חלב: 3%/1%/סויה, לחם: לבן/מלא/...) -
+  // פותחים מודאל, מחכים לבחירות, וממזגים אותן עם uncheckedItems.
   //
-  // בינתיים - מדפיסים את התור ל-console וממשיכים לחשב כברירת מחדל.
-  // ה-defaultVariant של כל base כבר מטופל ב-api.js (enrichItemForWorker).
+  // המשתמש יכול:
+  //   - לבחור variant → הפריט המעושר נכנס למפת choices
+  //   - "אחר" + טקסט חופשי → פריט עם searchTerms מהמילים שכתב
+  //   - "דלג" → הפריט מסומן _skipped, api.js יסנן אותו
+  //   - ESC / X → ביטול חישוב כולו (cancelled: true)
   // ============================================================================
   const clarificationQueue = buildClarificationQueue(uncheckedItems);
+
+  let itemsToCompute = uncheckedItems;
+
   if (clarificationQueue.length > 0) {
     console.group(`[clarification] ${clarificationQueue.length} פריטים זקוקים להבהרה`);
-    clarificationQueue.forEach(item => {
-      console.log('•', describeItem(item));
-    });
+    clarificationQueue.forEach(item => console.log('•', describeItem(item)));
     console.groupEnd();
-    // ⚠️ בצ'אט 2/3: כאן ייפתח המודאל ויחזיר items מועשרים.
-    // לעת עתה - ממשיכים עם uncheckedItems כפי שהם (defaultVariant יטופל ב-api.js).
-  }
 
-  // itemsToCompute = uncheckedItems כברירת מחדל. בצ'אט 2/3 זה יהיה
-  // התוצאה של המודאל (uncheckedItems מועשרים עם בחירות variant/custom/skip).
-  const itemsToCompute = uncheckedItems;
+    const { cancelled, choices } = await openClarificationFlow(clarificationQueue);
+
+    if (cancelled) {
+      // המשתמש סגר את המודאל - ביטול חישוב.
+      // נסגור את חלון החישוב שמעל ונחזור לרשימה.
+      Modal.closeAll();
+      return;
+    }
+
+    // מיזוג: כל פריט שיש לו choice → הגרסה המעושרת. אחרת → הפריט המקורי.
+    itemsToCompute = uncheckedItems.map(item =>
+      choices.get(item.id) || item
+    );
+  }
 
   const settings = State.getSettings();
   const selectedChains = settings.selectedChains && settings.selectedChains.length > 0
