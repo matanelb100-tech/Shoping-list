@@ -35,6 +35,7 @@
 import { WORKERS } from './config.js?v=2';
 import { categorize, detectUnit } from './products.js?v=1';
 import { searchPopular } from './popular-products.js?v=1';
+import { findBaseForItem, isSkipped } from './clarification.js?v=1';
 
 
 // ============================================================================
@@ -242,62 +243,69 @@ function normalizeCartResult(workerResult) {
 
 
 // ============================================================================
-// Curated Catalog Lookup - השלמה אוטומטית של searchTerms לפני שליחה ל-Worker
+// Curated Catalog Lookup - מוצא ה-base בוצע ב-clarification.js (findBaseForItem)
 // ============================================================================
 
 /**
- * מחפש את ה-base ב-popular-products.js שמתאים לשם הפריט.
- * משמש כדי להשלים searchTerms/excludeTerms לפריטים שהמשתמש הקליד ידנית
- * (בלי לבחור מה-autocomplete).
+ * מכין פריט לשליחה ל-Worker.
  *
- * אסטרטגיה: התאמה מדויקת תחילה, ואז התאמה חלקית (substring).
- * מחזיר את הראשון שמתאים - searchPopular כבר ממיין לפי דיוק.
+ * סדר העדיפויות:
+ *   1. אם _skipped → מחזיר null. cart.js יסנן null לפני שליחה לוורקר.
+ *      (פריט שהמשתמש לחץ "דלג" עליו במודאל ההבהרה.)
+ *   2. אם הפריט מועשר ידנית (יש searchTerms על ה-item) → משתמש בהם.
+ *      זה מכסה גם את autocomplete וגם את המודאל (applyVariantChoice / applyCustomChoice).
+ *   3. אחרת - מחפש base ב-popular-products.js לפי השם:
+ *      - אם יש ל-base defaultVariant → משתמש ב-searchTerms של ה-variant ההוא
+ *        (דיוק טוב יותר מאשר ה-base הכללי).
+ *      - אחרת → משתמש ב-searchTerms של ה-base.
+ *   4. אם לא נמצא כלום → שולח ריק. הוורקר יחזיר 'no_search_terms' לפריט הזה.
  *
- * @param {string} name - שם הפריט מהמשתמש
- * @returns {object|null} { searchTerms, excludeTerms } או null אם לא נמצא
- */
-function findPopularByName(name) {
-  if (!name) return null;
-  const matches = searchPopular(name, 5);
-  if (matches.length === 0) return null;
-
-  const trimmed = name.trim().toLowerCase();
-
-  // 1. התאמה מדויקת לשם ה-base
-  const exact = matches.find(m => m.baseName.toLowerCase() === trimmed);
-  if (exact) {
-    return {
-      searchTerms:  exact.searchTerms,
-      excludeTerms: exact.excludeTerms,
-    };
-  }
-
-  // 2. אחרת - הראשון בתוצאות (searchPopular כבר ממיין לפי startsWith)
-  return {
-    searchTerms:  matches[0].searchTerms,
-    excludeTerms: matches[0].excludeTerms,
-  };
-}
-
-/**
- * מכין פריט לשליחה ל-Worker:
- * אם יש כבר searchTerms בפריט (מ-autocomplete) - משתמש בהם.
- * אחרת - מנסה להשלים מ-popular-products.js לפי השם.
- * אם לא מוצא - שולח ריק (ה-Worker יחזיר 'no_search_terms' לפריט הזה בלבד).
+ * @param {object} item
+ * @returns {object|null} payload לוורקר, או null אם הפריט skipped
  */
 function enrichItemForWorker(item) {
+  // (1) פריט שדוּלָּג במודאל - לא נשלח כלל
+  if (isSkipped(item)) {
+    return null;
+  }
+
   let searchTerms  = Array.isArray(item.searchTerms)  ? item.searchTerms  : [];
   let excludeTerms = Array.isArray(item.excludeTerms) ? item.excludeTerms : [];
 
-  // אם אין searchTerms - השלם מהמילון
-  if (searchTerms.length === 0) {
-    const found = findPopularByName(item.name);
-    if (found) {
-      searchTerms  = found.searchTerms;
-      excludeTerms = found.excludeTerms;
+  // (2) כבר יש searchTerms - הפריט מועשר (autocomplete / מודאל)
+  if (searchTerms.length > 0) {
+    return {
+      name:         item.name,
+      quantity:     item.quantity || 1,
+      unit:         item.unit || 'units',
+      searchTerms,
+      excludeTerms,
+    };
+  }
+
+  // (3) חיפוש ה-base ב-catalog
+  const base = findBaseForItem(item.name);
+  if (base) {
+    // אם יש defaultVariant - נשלם איתו (דיוק טוב יותר מ-base כללי)
+    const defaultVariantId = base.defaultVariant;
+    const variants = Array.isArray(base.variants) ? base.variants : [];
+    const defaultVariant = defaultVariantId
+      ? variants.find(v => v.id === defaultVariantId)
+      : null;
+
+    if (defaultVariant && Array.isArray(defaultVariant.searchTerms)) {
+      searchTerms  = defaultVariant.searchTerms;
+      excludeTerms = Array.isArray(defaultVariant.excludeTerms)
+        ? defaultVariant.excludeTerms
+        : [];
+    } else {
+      // אין defaultVariant - מתבססים על ה-base
+      searchTerms  = Array.isArray(base.searchTerms)  ? base.searchTerms  : [];
+      excludeTerms = Array.isArray(base.excludeTerms) ? base.excludeTerms : [];
     }
   }
 
+  // (4) לא נמצא כלום - searchTerms יישאר ריק. הוורקר יחזיר 'no_search_terms'.
   return {
     name:         item.name,
     quantity:     item.quantity || 1,
@@ -371,8 +379,17 @@ export const API = {
     }
 
     try {
+      // הכנת הפריטים. enrichItemForWorker מחזיר null עבור פריטים שדוּלָּגוּ
+      // במודאל ההבהרה (_skipped) - נסנן אותם החוצה.
+      const enriched = items.map(enrichItemForWorker).filter(Boolean);
+
+      if (enriched.length === 0) {
+        // כל הפריטים דוּלָּגוּ - אין מה לחשב
+        return { chains: {}, cheapest: null };
+      }
+
       const payload = {
-        items: items.map(enrichItemForWorker),
+        items: enriched,
       };
 
       const data = await request('/api/cart/price', {
