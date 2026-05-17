@@ -46,6 +46,10 @@ import {
   applyCustomChoice,
   applySkipChoice,
 } from './clarification.js?v=1';
+import {
+  getClarification,
+  saveClarification,
+} from './clarification-memory.js?v=1';
 
 
 // ============================================================================
@@ -431,6 +435,12 @@ function handleNext() {
     } else if (flow.selectedVariantId) {
       // variants רגיל
       enriched = applyVariantChoice(item, flow.selectedVariantId);
+
+      // שמירת הבחירה בזיכרון Firestore (fire-and-forget, לא חוסם UI).
+      // שומרים רק עבור variants - לא עבור custom או skip.
+      if (base && base.id) {
+        saveClarification(base.id, flow.selectedVariantId);
+      }
     } else {
       // לא נבחר כלום? לא אמור לקרות (יש ברירת מחדל), אבל ליתר ביטחון
       enriched = item;
@@ -476,6 +486,12 @@ function advanceOrFinish() {
 
 /**
  * אתחול ה-state בעת מעבר לפריט חדש (ברירות מחדל לפי הקטלוג).
+ *
+ * סדר עדיפויות לבחירת ה-chip המסומן מראש:
+ *   1. זיכרון Firestore — אם המשתמש בחר בעבר variant ל-base הזה,
+ *      ובלבד שה-variant עדיין קיים בקטלוג הנוכחי (validation).
+ *   2. defaultVariant של ה-base בקטלוג.
+ *   3. variant הראשון.
  */
 function setupForCurrentItem() {
   if (!flow) return;
@@ -485,7 +501,17 @@ function setupForCurrentItem() {
 
   const base = findBaseForItem(item.name);
 
-  flow.selectedVariantId = pickDefaultVariantId(base);
+  // ניסיון לקרוא מהזיכרון. validation: ה-variant חייב עוד להיות בקטלוג
+  // (אם הסרנו אותו בעדכון מאוחר יותר - נופלים ל-default).
+  let chosenVariantId = null;
+  if (base && base.id && Array.isArray(base.variants) && base.variants.length > 0) {
+    const remembered = getClarification(base.id);
+    if (remembered && base.variants.some(v => v.id === remembered)) {
+      chosenVariantId = remembered;
+    }
+  }
+
+  flow.selectedVariantId = chosenVariantId || pickDefaultVariantId(base);
   flow.selectedDims = pickDefaultDimensions(base);
   flow.customMode = false;
   flow.customText = '';
