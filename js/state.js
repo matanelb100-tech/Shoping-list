@@ -25,6 +25,10 @@
  */
 
 import { STORAGE_KEYS, CATEGORIES, CHAINS } from './config.js?v=2';
+import {
+  initClarificationMemory,
+  cleanupClarificationMemory,
+} from './clarification-memory.js?v=1';
 
 
 // ============================================================================
@@ -306,6 +310,13 @@ export const State = {
       isPremium: false,  // יתעדכן בהמשך כשיוטמע פרימיום
     };
 
+    // אתחול זיכרון הבחירות (Firestore) — fire-and-forget,
+    // לא חוסם את שאר ה-init. הזיכרון ייטען ברקע ויהיה זמין
+    // ל-clarification-modal עד שהמשתמש יגיע ל"חשב סל".
+    initClarificationMemory(firebaseDb, user.uid).catch(err => {
+      console.warn('Clarification memory init failed (will use catalog defaults):', err);
+    });
+
     // טעינה ראשונית:
     // 1. ננסה לטעון מהענן
     // 2. אם לא הצלחנו או אין חיבור - נטען גיבוי מקומי
@@ -401,9 +412,6 @@ export const State = {
       specificProduct: null,              // המוצר הספציפי שייבחר ב"חשב סל"
       estimatedPrice: null,
       notes: itemData.notes || null,
-      // Curated Catalog matching - מועבר ל-Worker בחישוב סל
-      searchTerms:  Array.isArray(itemData.searchTerms)  ? itemData.searchTerms  : [],
-      excludeTerms: Array.isArray(itemData.excludeTerms) ? itemData.excludeTerms : [],
     };
 
     if (!item.name) {
@@ -607,6 +615,9 @@ export const State = {
       clearTimeout(saveDebounceTimer);
       saveDebounceTimer = null;
     }
+
+    // ניקוי זיכרון הבחירות (cache בזיכרון + מנתק מ-db/uid)
+    cleanupClarificationMemory();
 
     // שמירה אחרונה לפני יציאה אם יש שינויים ממתינים
     if (state.hasPendingChanges) {
