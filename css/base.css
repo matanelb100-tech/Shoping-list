@@ -1,20 +1,25 @@
 /* ============================================================================
-   base.css - סגנונות בסיסיים ומשותפים לכל האפליקציה
+   base.css — סגנונות בסיסיים ומשותפים לכל האפליקציה
    ============================================================================
 
    מבנה הקובץ:
-   1. Reset & Normalize
-   2. Typography
-   3. Buttons
-   4. Form Elements
-   5. Layout Utilities
-   6. Animations
-   7. Scrollbar
-   8. Accessibility helpers
+     1.  Reset & Normalize
+     2.  Typography
+     3.  Buttons
+     4.  Form Elements
+     5.  Layout Utilities
+     6.  Animations
+     7.  Scrollbar
+     8.  Accessibility & misc helpers
+     9.  Autocomplete Dropdown
+     10. App Background (emoji pattern)
+     11. Screen System (.screen)
+     12. Splash Screen
+     13. Offline Banner
+     14. Toasts
 
-   ⚠️ הערה חשובה: המשתני CSS (--color-primary וכו') מוגדרים ב-index.html
-   כדי שיהיו זמינים מיד, לפני שה-CSS החיצוני נטען.
-
+   ⚠️ ה-CSS variables (--color-primary וכו') מוגדרים ב-index.html inline,
+   כדי שיהיו זמינים מיד לפני שה-CSS החיצוני נטען (חיוני ל-splash screen).
    ============================================================================ */
 
 
@@ -28,6 +33,8 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 
 html {
@@ -37,10 +44,19 @@ html {
   scroll-behavior: smooth;
 }
 
-body {
-  min-height: 100vh;
-  min-height: 100dvh;
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  font-family: 'Rubik', 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 16px;
   line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 img, picture, svg, video {
@@ -87,6 +103,15 @@ select {
   border-radius: 0;
 }
 
+/* שורש האפליקציה */
+#app-root {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 
 /* ============================================================================
    2. Typography
@@ -112,45 +137,21 @@ p {
   color: var(--color-text);
 }
 
-.text-soft {
-  color: var(--color-text-soft);
-}
+.text-soft    { color: var(--color-text-soft); }
+.text-muted   { color: var(--color-text-muted); }
+.text-small   { font-size: 13px; }
+.text-xs      { font-size: 11px; }
+.text-bold    { font-weight: 700; }
+.text-semibold{ font-weight: 600; }
+.text-center  { text-align: center; }
+.text-right   { text-align: right; }
 
-.text-muted {
-  color: var(--color-text-muted);
-}
-
-.text-small {
-  font-size: 13px;
-}
-
-.text-xs {
-  font-size: 11px;
-}
-
-.text-bold {
-  font-weight: 700;
-}
-
-.text-semibold {
-  font-weight: 600;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-right {
-  text-align: right;
-}
-
-.text-danger { color: var(--color-danger); }
+.text-danger  { color: var(--color-danger); }
 .text-success { color: var(--color-success); }
 .text-warning { color: var(--color-warning); }
 .text-primary { color: var(--color-primary-dark); }
 .text-premium { color: var(--color-premium); }
 
-/* קיצור טקסט ארוך */
 .text-truncate {
   white-space: nowrap;
   overflow: hidden;
@@ -166,7 +167,7 @@ p {
 
 
 /* ============================================================================
-   3. Buttons - כל סוגי הכפתורים במקום אחד
+   3. Buttons
    ============================================================================ */
 
 .btn {
@@ -188,7 +189,7 @@ p {
   user-select: none;
   -webkit-user-select: none;
   white-space: nowrap;
-  min-height: 44px;              /* נגישות: גודל מינימלי למגע */
+  min-height: 44px;        /* נגישות: גודל מינימלי למגע */
   position: relative;
   overflow: hidden;
 }
@@ -204,7 +205,7 @@ p {
   transform: none;
 }
 
-/* כפתור ראשי - גוון תכלת עם צל */
+/* כפתור ראשי */
 .btn-primary {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: #fff;
@@ -219,7 +220,7 @@ p {
   box-shadow: 0 2px 8px rgba(123, 196, 226, 0.3);
 }
 
-/* כפתור משני - שקוף עם מסגרת */
+/* כפתור משני */
 .btn-secondary {
   background: var(--color-surface);
   color: var(--color-primary-dark);
@@ -232,7 +233,7 @@ p {
   border-color: var(--color-primary);
 }
 
-/* כפתור רפאים - ללא רקע כלל */
+/* כפתור רפאים */
 .btn-ghost {
   background: transparent;
   color: var(--color-text-soft);
@@ -285,7 +286,7 @@ p {
   width: 100%;
 }
 
-/* כפתור עגול לאייקונים בלבד */
+/* כפתור עגול לאייקונים */
 .btn-icon {
   display: inline-flex;
   align-items: center;
@@ -337,7 +338,7 @@ p {
   height: 18px;
 }
 
-/* אפקט ripple עדין בכפתורים (ללא JS) */
+/* אפקט ripple עדין */
 .btn::after {
   content: '';
   position: absolute;
@@ -376,97 +377,125 @@ p {
 .form-input {
   display: block;
   width: 100%;
-  padding: 14px 16px;
+  padding: 13px 16px;
   font-family: inherit;
-  font-size: 16px;       /* 16px מונע zoom אוטומטי ב-iOS */
+  font-size: 15px;
   color: var(--color-text);
   background: var(--color-surface);
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md);
   transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
-  outline: none;
-  direction: rtl;
-  text-align: right;
+  min-height: 48px;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .form-input::placeholder {
   color: var(--color-text-muted);
+  opacity: 1;
+}
+
+.form-input:hover:not(:disabled):not(:focus) {
+  border-color: var(--color-primary-light);
 }
 
 .form-input:focus {
+  outline: none;
   border-color: var(--color-primary);
-  background: var(--color-surface);
+  background: #fff;
   box-shadow: 0 0 0 4px rgba(123, 196, 226, 0.15);
 }
 
 .form-input:disabled {
   background: var(--color-bg-alt);
-  opacity: 0.6;
+  color: var(--color-text-muted);
   cursor: not-allowed;
 }
 
-.form-input.has-error {
+.form-input.is-error {
   border-color: var(--color-danger);
-  background: rgba(229, 115, 115, 0.04);
 }
 
-.form-input.has-error:focus {
+.form-input.is-error:focus {
   box-shadow: 0 0 0 4px rgba(229, 115, 115, 0.15);
 }
 
-/* שדה עם אייקון בתוכו (למשל סיסמה עם עין) */
-.form-input-wrapper {
+/* שדה עם אייקון */
+.form-field-wrap {
   position: relative;
 }
 
-.form-input-wrapper .form-input {
-  padding-left: 48px;       /* RTL: מרווח משמאל לאייקון */
+.form-field-wrap .form-input {
+  padding-right: 44px;     /* RTL: שמירת מקום לאייקון מימין */
 }
 
-.form-input-wrapper .form-input-icon {
+.form-field-wrap .form-input-icon {
   position: absolute;
+  right: 14px;             /* RTL */
   top: 50%;
-  left: 12px;               /* RTL: האייקון בצד שמאל */
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+/* כפתור eye בתוך שדה סיסמא */
+.form-field-wrap .form-input-toggle {
+  position: absolute;
+  left: 8px;               /* RTL: בצד שמאל */
+  top: 50%;
   transform: translateY(-50%);
   width: 36px;
   height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-muted);
   background: transparent;
   border: none;
+  color: var(--color-text-muted);
   cursor: pointer;
-  border-radius: var(--radius-full);
-  transition: background-color 0.15s, color 0.15s;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background-color 0.15s;
 }
 
-.form-input-wrapper .form-input-icon:hover {
-  background: var(--color-primary-ultra-light);
+.form-field-wrap .form-input-toggle:hover {
   color: var(--color-primary-dark);
+  background: var(--color-primary-ultra-light);
 }
 
-.form-input-wrapper .form-input-icon svg {
+.form-field-wrap .form-input-toggle svg {
   width: 20px;
   height: 20px;
 }
 
-/* הודעת שגיאה מתחת לשדה */
+.form-field-wrap:has(.form-input-toggle) .form-input {
+  padding-left: 48px;      /* שמירת מקום לכפתור eye */
+}
+
+/* הודעת שגיאה לשדה */
 .form-error {
-  font-size: 13px;
-  color: var(--color-danger);
-  margin-top: 2px;
-  margin-right: 4px;
   display: flex;
   align-items: center;
   gap: 4px;
-  animation: slideDown 0.2s var(--ease-out);
+  font-size: 12.5px;
+  color: var(--color-danger);
+  margin-top: 4px;
+  animation: shake 0.4s;
 }
 
 .form-error svg {
   width: 14px;
   height: 14px;
   flex-shrink: 0;
+}
+
+/* הודעת עזרה לשדה */
+.form-hint {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  margin-right: 4px;
 }
 
 /* Checkbox */
@@ -485,21 +514,25 @@ p {
 }
 
 .form-checkbox .checkbox-visual {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 20px;
   height: 20px;
   border: 2px solid var(--color-border);
   border-radius: 6px;
   background: var(--color-surface);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
+  transition: border-color 0.15s, background-color 0.15s;
   flex-shrink: 0;
 }
 
 .form-checkbox input[type="checkbox"]:checked + .checkbox-visual {
   background: var(--color-primary);
   border-color: var(--color-primary);
+}
+
+.form-checkbox input[type="checkbox"]:focus-visible + .checkbox-visual {
+  box-shadow: 0 0 0 3px rgba(123, 196, 226, 0.3);
 }
 
 .form-checkbox .checkbox-visual::after {
@@ -519,24 +552,24 @@ p {
 
 
 /* ============================================================================
-   5. Layout Utilities - כלי עזר לסידור פריטים
+   5. Layout Utilities
    ============================================================================ */
 
-.flex { display: flex; }
-.flex-col { flex-direction: column; }
-.flex-wrap { flex-wrap: wrap; }
-.flex-1 { flex: 1; }
+.flex          { display: flex; }
+.flex-col      { flex-direction: column; }
+.flex-wrap     { flex-wrap: wrap; }
+.flex-1        { flex: 1; }
 .flex-shrink-0 { flex-shrink: 0; }
 
-.items-center { align-items: center; }
-.items-start { align-items: flex-start; }
-.items-end { align-items: flex-end; }
+.items-center  { align-items: center; }
+.items-start   { align-items: flex-start; }
+.items-end     { align-items: flex-end; }
 .items-stretch { align-items: stretch; }
 
-.justify-center { justify-content: center; }
+.justify-center  { justify-content: center; }
 .justify-between { justify-content: space-between; }
-.justify-end { justify-content: flex-end; }
-.justify-start { justify-content: flex-start; }
+.justify-end     { justify-content: flex-end; }
+.justify-start   { justify-content: flex-start; }
 
 .gap-xs { gap: var(--spacing-xs); }
 .gap-sm { gap: var(--spacing-sm); }
@@ -544,7 +577,6 @@ p {
 .gap-lg { gap: var(--spacing-lg); }
 .gap-xl { gap: var(--spacing-xl); }
 
-/* padding */
 .p-xs { padding: var(--spacing-xs); }
 .p-sm { padding: var(--spacing-sm); }
 .p-md { padding: var(--spacing-md); }
@@ -554,8 +586,7 @@ p {
 .px-md { padding-left: var(--spacing-md); padding-right: var(--spacing-md); }
 .py-md { padding-top: var(--spacing-md); padding-bottom: var(--spacing-md); }
 
-/* margin */
-.m-0 { margin: 0; }
+.m-0   { margin: 0; }
 .mt-sm { margin-top: var(--spacing-sm); }
 .mt-md { margin-top: var(--spacing-md); }
 .mt-lg { margin-top: var(--spacing-lg); }
@@ -566,70 +597,69 @@ p {
 .w-full { width: 100%; }
 .h-full { height: 100%; }
 
-.hidden { display: none !important; }
+.hidden    { display: none !important; }
 .invisible { visibility: hidden; }
 
 .pointer-events-none { pointer-events: none; }
 
 
 /* ============================================================================
-   6. Animations - אנימציות לשימוש חוזר
+   6. Animations
    ============================================================================ */
 
 @keyframes fadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
 @keyframes fadeOut {
   from { opacity: 1; }
-  to { opacity: 0; }
+  to   { opacity: 0; }
 }
 
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideInRight {
-  from { opacity: 0; transform: translateX(-20px); }  /* RTL: נכנס מימין */
-  to { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translateX(-20px); }   /* RTL: נכנס מימין */
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes scaleIn {
   from { opacity: 0; transform: scale(0.92); }
-  to { opacity: 1; transform: scale(1); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-6px); }
-  75% { transform: translateX(6px); }
+  25%      { transform: translateX(-6px); }
+  75%      { transform: translateX(6px); }
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  50%      { opacity: 0.6; }
 }
 
-.animate-fade-in { animation: fadeIn 0.3s var(--ease-out); }
-.animate-slide-up { animation: slideUp 0.35s var(--ease-out); }
-.animate-slide-down { animation: slideDown 0.25s var(--ease-out); }
-.animate-scale-in { animation: scaleIn 0.25s var(--ease-out); }
-.animate-shake { animation: shake 0.4s; }
-.animate-pulse { animation: pulse 1.5s infinite; }
+.animate-fade-in   { animation: fadeIn 0.3s var(--ease-out); }
+.animate-slide-up  { animation: slideUp 0.35s var(--ease-out); }
+.animate-slide-down{ animation: slideDown 0.25s var(--ease-out); }
+.animate-scale-in  { animation: scaleIn 0.25s var(--ease-out); }
+.animate-shake     { animation: shake 0.4s; }
+.animate-pulse     { animation: pulse 1.5s infinite; }
 
 
 /* ============================================================================
-   7. Scrollbar - פס גלילה עדין
+   7. Scrollbar
    ============================================================================ */
 
-/* Chrome/Safari/Edge */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -671,14 +701,12 @@ p {
   border: 0 !important;
 }
 
-/* פוקוס נראה - חשוב לנגישות */
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
 
-/* בלי outline בלחיצה על כפתורים ב-iOS */
 button:focus:not(:focus-visible) {
   outline: none;
 }
@@ -776,7 +804,7 @@ button:focus:not(:focus-visible) {
   line-height: 1.5;
 }
 
-/* מכבד העדפות המשתמש לתנועה מופחתת */
+/* כיבוד העדפת תנועה מופחתת */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -790,7 +818,7 @@ button:focus:not(:focus-visible) {
 
 
 /* ============================================================================
-   9. Autocomplete Dropdown - תפריט הצעות השלמה
+   9. Autocomplete Dropdown
    ============================================================================ */
 
 .autocomplete-dropdown {
@@ -877,4 +905,220 @@ button:focus:not(:focus-visible) {
   padding: 4px 8px;
   background: rgba(242, 166, 73, 0.1);
   border-radius: var(--radius-sm);
+}
+
+
+/* ============================================================================
+   10. App Background — emoji מוצרים בתפזורת על רקע בז'-תכלת
+   ============================================================================
+   העיקרון: SVG inline ב-data URI = אין בקשת רשת, נטען מיידי.
+   ה-emoji בעמום מאוד (opacity 0.07) כדי שלא יפריעו לקריאה אבל ייתנו טקסטורה.
+   הצבע מתחת: בז' חם (--color-bg) עם 2 ענני גוון תכלת/כתום עדינים.
+   ============================================================================ */
+
+.app-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: var(--color-bg);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* שכבה 1: ענני גוון עדינים (תכלת + כתום) */
+.app-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(123, 196, 226, 0.10) 0%, transparent 45%),
+    radial-gradient(circle at 82% 75%, rgba(242, 166, 73, 0.06) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(184, 223, 237, 0.04) 0%, transparent 60%);
+}
+
+/* שכבה 2: emoji מוצרים בתפזורת (SVG embedded) */
+.app-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='360' viewBox='0 0 360 360'><text x='30'  y='50'  font-size='28'>🥕</text><text x='130' y='40'  font-size='28'>🍎</text><text x='230' y='60'  font-size='28'>🥖</text><text x='310' y='35'  font-size='28'>🥛</text><text x='80'  y='130' font-size='28'>🧀</text><text x='180' y='120' font-size='28'>🍞</text><text x='275' y='140' font-size='28'>🥚</text><text x='25'  y='210' font-size='28'>🍅</text><text x='115' y='200' font-size='28'>🥒</text><text x='215' y='220' font-size='28'>🍌</text><text x='305' y='205' font-size='28'>🧈</text><text x='60'  y='290' font-size='28'>🐟</text><text x='160' y='300' font-size='28'>🥩</text><text x='250' y='285' font-size='28'>🍇</text><text x='330' y='300' font-size='28'>🍫</text></svg>");
+  background-repeat: repeat;
+  background-size: 360px 360px;
+}
+
+
+/* ============================================================================
+   11. Screen System — מסכים מלאים שמתחלפים זה את זה
+   ============================================================================ */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  z-index: 1;
+}
+
+.screen.active {
+  display: flex;
+  animation: fadeIn 0.25s var(--ease-out);
+}
+
+
+/* ============================================================================
+   12. Splash Screen — מסך טעינה ראשוני
+   ============================================================================ */
+
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-primary-ultra-light) 0%, var(--color-bg) 100%);
+  transition: opacity 0.4s var(--ease-out), visibility 0.4s;
+}
+
+#splash-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.splash-logo {
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg), 0 0 0 6px rgba(123, 196, 226, 0.15);
+  animation: splashPulse 1.8s var(--ease-in-out) infinite;
+}
+
+.splash-logo svg {
+  width: 56px;
+  height: 56px;
+  color: #fff;
+}
+
+.splash-title {
+  margin-top: 24px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.3px;
+}
+
+.splash-subtitle {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.splash-spinner {
+  margin-top: 32px;
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--color-primary-light);
+  border-top-color: var(--color-primary-dark);
+  border-radius: 50%;
+  animation: spinnerRotate 0.8s linear infinite;
+}
+
+@keyframes splashPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: var(--shadow-lg), 0 0 0 6px rgba(123, 196, 226, 0.15);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-lg), 0 0 0 12px rgba(123, 196, 226, 0.08);
+  }
+}
+
+@keyframes spinnerRotate {
+  to { transform: rotate(360deg); }
+}
+
+
+/* ============================================================================
+   13. Offline Banner
+   ============================================================================ */
+
+#offline-banner {
+  position: fixed;
+  top: var(--safe-top);
+  left: 0;
+  right: 0;
+  background: var(--color-warning);
+  color: var(--color-text);
+  padding: 6px 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 9998;
+  transform: translateY(-100%);
+  transition: transform 0.3s var(--ease-out);
+}
+
+#offline-banner.visible {
+  transform: translateY(0);
+}
+
+
+/* ============================================================================
+   14. Toasts — הודעות זמניות בראש המסך
+   ============================================================================ */
+
+#toast-container {
+  position: fixed;
+  top: calc(var(--safe-top) + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  max-width: 90%;
+}
+
+.toast {
+  background: var(--color-text);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.3s var(--ease-out);
+  pointer-events: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.toast.success { background: var(--color-success); }
+.toast.error   { background: var(--color-danger); }
+.toast.warning { background: var(--color-warning); color: var(--color-text); }
+
+.toast.hiding {
+  animation: toastOut 0.25s var(--ease-out) forwards;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-20px); }
 }
