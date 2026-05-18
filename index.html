@@ -113,6 +113,32 @@
       font-size: 56px;
       box-shadow: var(--shadow-lg);
     }
+
+    /* תיבת שגיאה גלובלית — מוצגת רק אם משהו שובר את הטעינה */
+    #boot-error {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      padding: 24px;
+      background: #FAF7F2;
+      color: #2C3E50;
+      font-family: 'Rubik', sans-serif;
+      direction: rtl;
+      overflow: auto;
+    }
+    #boot-error.show { display: block; }
+    #boot-error h1 { color: #E57373; margin: 0 0 12px; font-size: 18px; }
+    #boot-error pre {
+      background: #fff;
+      border: 1px solid #E5DFD5;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      white-space: pre-wrap;
+      direction: ltr;
+      text-align: left;
+    }
   </style>
 
   <!-- ============================================================
@@ -123,11 +149,11 @@
        4. modals.css   — מודלים
        5. app.css      — המסך הראשי
        ============================================================ -->
-  <link rel="stylesheet" href="css/base.css?v=4" />
-  <link rel="stylesheet" href="css/auth.css?v=4" />
-  <link rel="stylesheet" href="css/guide.css?v=4" />
-  <link rel="stylesheet" href="css/modals.css?v=4" />
-  <link rel="stylesheet" href="css/app.css?v=4" />
+  <link rel="stylesheet" href="css/base.css?v=5" />
+  <link rel="stylesheet" href="css/auth.css?v=5" />
+  <link rel="stylesheet" href="css/guide.css?v=5" />
+  <link rel="stylesheet" href="css/modals.css?v=5" />
+  <link rel="stylesheet" href="css/app.css?v=5" />
 </head>
 
 <body>
@@ -140,6 +166,15 @@
     <div class="splash-title">RunPrice</div>
     <div class="splash-subtitle">רשימת קניות חכמה</div>
     <div class="splash-spinner"></div>
+  </div>
+
+  <!-- ============================================================
+       Boot Error — מוצג רק אם הטעינה נכשלה (עוזר לדיבוג)
+       ============================================================ -->
+  <div id="boot-error">
+    <h1>⚠️ שגיאה בטעינת האפליקציה</h1>
+    <p>זוהתה שגיאה בעת אתחול. הפרטים למטה (העתק ושלח אם נדרשת עזרה):</p>
+    <pre id="boot-error-msg"></pre>
   </div>
 
   <!-- ============================================================
@@ -304,44 +339,51 @@
   <div id="modals-root"></div>
 
   <!-- ============================================================
-       Firebase — חייב להיטען לפני ה-config וה-auth
+       Global error handlers — לתפוס שגיאות טעינה ולהציג אותן
+       (אחרת המשתמש רואה רק splash תקוע)
        ============================================================ -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth }       from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore }  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    // נחשוף ל-window כדי שמודולים אחרים יוכלו לגשת
-    window.firebaseModules = { initializeApp, getAuth, getFirestore };
+  <script>
+    window.__bootErrors = [];
+    function showBootError(msg) {
+      window.__bootErrors.push(msg);
+      var el = document.getElementById('boot-error-msg');
+      var box = document.getElementById('boot-error');
+      if (el && box) {
+        el.textContent = window.__bootErrors.join('\n\n');
+        box.classList.add('show');
+      }
+    }
+    window.addEventListener('error', function (e) {
+      // לא מציג שגיאות רגילות של רינדור — רק שגיאות סקריפט
+      if (e.filename && (e.filename.indexOf('.js') !== -1)) {
+        showBootError('Script error: ' + e.message + '\nFile: ' + e.filename + ':' + e.lineno);
+      }
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      showBootError('Promise rejection: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+    });
   </script>
 
   <!-- ============================================================
-       JS האפליקציה — סדר טעינה קריטי!
-       defer = הקבצים מורצים אחרי שה-HTML נטען, בסדר שהוגדר
+       guide.js — סקריפט קלאסי (חושף window.Guide)
+       חייב להיטען לפני app.js
        ============================================================ -->
-  <script src="js/config.js?v=4"            defer></script>
-  <script src="js/state.js?v=4"             defer></script>
-  <script src="js/api.js?v=4"               defer></script>
-  <script src="js/products.js?v=4"          defer></script>
-  <script src="js/popular-products.js?v=4"  defer></script>
-  <script src="js/auth.js?v=4"              defer></script>
-  <script src="js/guide.js?v=4"             defer></script>
-  <script src="js/autocomplete.js?v=4"      defer></script>
-  <script src="js/cart.js?v=4"              defer></script>
-  <script src="js/clarification.js?v=4"     defer></script>
-  <script src="js/clarification-memory.js?v=4" defer></script>
-  <script src="js/item-editor.js?v=4"       defer></script>
-  <script src="js/modals.js?v=4"            defer></script>
-  <script src="js/history.js?v=4"           defer></script>
-  <script src="js/main-ui.js?v=4"           defer></script>
-  <script src="js/app.js?v=4"               defer></script>
+  <script src="js/guide.js?v=5" defer></script>
 
-  <!-- Service Worker — לאופליין -->
+  <!-- ============================================================
+       app.js — נקודת הכניסה. ES Module.
+       מייבא אוטומטית את כל היתר (config, state, auth, main-ui, ...)
+       ============================================================ -->
+  <script type="module" src="js/app.js?v=5"></script>
+
+  <!-- ============================================================
+       Service Worker — לאופליין
+       ============================================================ -->
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
+      window.addEventListener('load', function () {
         navigator.serviceWorker.register('sw.js')
-          .catch(err => console.warn('SW registration failed:', err));
+          .catch(function (err) { console.warn('SW registration failed:', err); });
       });
     }
   </script>
