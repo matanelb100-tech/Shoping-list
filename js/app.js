@@ -1,35 +1,64 @@
 /**
  * ============================================================================
- * app.js - האתחול הראשי של האפליקציה (v3 — שילוב Guide)
+ * app.js — נקודת הכניסה והרוטינג הראשי
  * ============================================================================
  *
- * זה הקובץ הראשון שרץ. תפקידו:
- *   1. לאתחל Firebase + לחשוף ל-window (לשימוש מודולים שאינם ES modules)
- *   2. לטעון את המודולים הנדרשים
- *   3. לנתב בין מסכים (auth → guide → main → history)
- *   4. להאזין לארועי מערכת (online/offline, auth changes, guide:completed)
+ * זה הקובץ היחיד שאחראי על "איזה מסך מציגים עכשיו".
  *
- * שינויים בגרסה זו:
- *   - חשיפת window.firebaseAuth / window.firebaseDb (תלות של guide.js)
- *   - שילוב Guide.shouldShow() ב-handleAuthStateChanged
- *   - האזנה לאירוע 'guide:completed' להמשך למסך הראשי
+ * זרימה:
+ *   1. אתחל Firebase
+ *   2. אתחל auth (מצייר את מסך ה-login)
+ *   3. הסתר splash
+ *   4. עקוב אחרי שינויי auth:
+ *      - מחובר → showScreen('main')
+ *      - לא מחובר → showScreen('auth')
+ *
+ * אין כאן שום ידע על Guide, על main-ui, על history.
+ * כל אלה יחזרו בצ'אטים הבאים כשהשלד יוכח כיציב.
  * ============================================================================
  */
 
-import { FIREBASE_CONFIG, APP_VERSION, APP_NAME, validateConfig } from './config.js?v=2';
-import { initAuth, showAuthScreen, resetAuthForm } from './auth.js?v=2';
-import { State } from './state.js?v=1';
-import { initMainUI, destroyMainUI, showMain } from './main-ui.js?v=1';
+import { FIREBASE_CONFIG, APP_VERSION, APP_NAME, validateConfig } from './config.js?v=5';
+import { initAuth, showAuthScreen, signOut } from './auth.js?v=5';
 
 
 // ============================================================================
-// משתנים גלובליים (ברמת האפליקציה)
+// State גלובלי (מינימלי)
 // ============================================================================
 
 let firebaseApp = null;
 let firebaseAuth = null;
-let firebaseFirestore = null;
+let firebaseDb = null;
 let currentUser = null;
+let currentScreen = null;   // 'auth' | 'main' | null
+let isInitialized = false;
+
+
+// ============================================================================
+// ניהול מסכים — נקודה אחת ויחידה לכל החלפת מסך
+// ============================================================================
+
+/**
+ * הצגת מסך מסוים. זאת הפונקציה היחידה שמשנה מסכים בכל האפליקציה.
+ *
+ * @param {'auth' | 'main'} name
+ */
+function showScreen(name) {
+  if (currentScreen === name) return;  // כבר מוצג — לא עושים כלום
+
+  // הסר .active מכל המסכים
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+
+  // הוסף .active למסך הנדרש
+  const target = document.getElementById(`screen-${name}`);
+  if (!target) {
+    console.error(`[app] screen "${name}" not found in DOM`);
+    return;
+  }
+  target.classList.add('active');
+  currentScreen = name;
+  console.log(`[app] → ${name}`);
+}
 
 
 // ============================================================================
@@ -38,7 +67,6 @@ let currentUser = null;
 
 async function initFirebase() {
   try {
-    // טעינת Firebase מ-CDN (v10 מודולרי)
     const { initializeApp } = await import(
       'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'
     );
@@ -49,216 +77,169 @@ async function initFirebase() {
       'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'
     );
 
-    // אתחול האפליקציה
-    firebaseApp = initializeApp(FIREBASE_CONFIG);
+    firebaseApp  = initializeApp(FIREBASE_CONFIG);
     firebaseAuth = getAuth(firebaseApp);
-    firebaseFirestore = getFirestore(firebaseApp);
+    firebaseDb   = getFirestore(firebaseApp);
 
-    // ⭐ חשיפה ל-window — נדרש עבור מודולים שאינם ES modules (guide.js וכו')
+    // חשיפה ל-window — בעתיד מודולים אחרים (history, main-ui) ישתמשו
     window.firebaseAuth = firebaseAuth;
-    window.firebaseDb = firebaseFirestore;
+    window.firebaseDb   = firebaseDb;
 
-    // הגדר התמשכות התחברות (משתמש יישאר מחובר עד שייצא)
-    const { setPersistence, browserLocalPersistence } = await import(
-      'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'
-    );
-    await setPersistence(firebaseAuth, browserLocalPersistence);
-
-    // האזנה למצב המשתמש
+    // האזנה לשינויי משתמש
     onAuthStateChanged(firebaseAuth, handleAuthStateChanged);
 
     console.log('✅ Firebase initialized:', FIREBASE_CONFIG.projectId);
     return true;
 
-  } catch (error) {
-    console.error('❌ Firebase init failed:', error);
-    showFatalError('שגיאה בחיבור לשרת - נסה לרענן את העמוד');
+  } catch (err) {
+    console.error('❌ Firebase init failed:', err);
     return false;
   }
 }
 
 
 // ============================================================================
-// טיפול בשינוי מצב המשתמש
+// תגובה לשינוי משתמש (התחברות / התנתקות / רענון דף)
 // ============================================================================
 
-async function handleAuthStateChanged(user) {
+function handleAuthStateChanged(user) {
   currentUser = user;
 
   if (user) {
-    // משתמש מחובר - אתחול ה-State (טעינה מ-Firestore + גיבוי מקומי)
-    console.log('👤 משתמש מחובר:', user.email);
-    try {
-      await State.init(firebaseAuth, firebaseFirestore);
-      console.log('📦 State initialized. Items:', State.getItemCount());
-    } catch (err) {
-      console.error('State init failed:', err);
-    }
-
-    // ⭐ החלטה: מדריך או ישר למסך הראשי?
-    const showGuide = await shouldShowGuide();
-    if (showGuide) {
-      console.log('📖 מציג מדריך למשתמש חדש');
-      // ודא ש-Guide מאותחל (אם guide.js נטען לפני שה-DOM היה מוכן)
-      if (window.Guide && typeof window.Guide.init === 'function') {
-        window.Guide.init();
-      }
-      window.Guide.start();
-    } else {
-      showMainScreen();
-    }
-
+    console.log('👤 מחובר:', user.email);
+    showScreen('main');
+    renderMainPlaceholder(user);
   } else {
-    // משתמש לא מחובר - ניקוי state
     console.log('🚪 לא מחובר');
-    await State.cleanup();
-    showAuthScreen();
-  }
-}
-
-
-/**
- * עטיפה בטוחה ל-Guide.shouldShow().
- * אם guide.js לא נטען או נכשל — מחזיר false (לא מציג מדריך).
- */
-async function shouldShowGuide() {
-  try {
-    if (!window.Guide || typeof window.Guide.shouldShow !== 'function') {
-      console.warn('[app] Guide module not loaded — skipping');
-      return false;
-    }
-    return await window.Guide.shouldShow();
-  } catch (err) {
-    console.warn('[app] shouldShowGuide failed:', err);
-    return false;
+    showScreen('auth');
   }
 }
 
 
 // ============================================================================
-// ארוע התחברות מוצלחת (נשלח מ-auth.js)
+// מסך ראשי זמני (placeholder)
+//   יוחלף בצ'אט הבא ב-main-ui אמיתי שמטעין את הקטלוג, הרשימה וכו'.
+//   כרגע: רק להוכיח שהרוטינג עובד והתנתקות מחזירה ל-login.
+// ============================================================================
+
+function renderMainPlaceholder(user) {
+  const screen = document.getElementById('screen-main');
+  if (!screen) return;
+
+  screen.innerHTML = `
+    <div class="main-placeholder">
+      <div class="main-placeholder-icon">🛒</div>
+      <h1>RunPrice</h1>
+      <p class="main-placeholder-welcome">שלום ${escapeHtml(user.email)}</p>
+
+      <div class="main-placeholder-card">
+        <h2>השלד עובד ✓</h2>
+        <p>בצ'אטים הבאים נחבר:</p>
+        <ul>
+          <li>📖 מדריך 8 צעדים למשתמש חדש</li>
+          <li>📝 רשימת קניות + הוספת מוצרים</li>
+          <li>🎤 הקלטה קולית + סריקת ברקוד</li>
+          <li>💰 חישוב סל בכל הרשתות</li>
+          <li>📊 היסטוריה + גרף חיסכון</li>
+        </ul>
+      </div>
+
+      <button type="button" class="main-placeholder-logout" id="app-logout-btn">
+        התנתקות
+      </button>
+    </div>
+  `;
+
+  const logoutBtn = document.getElementById('app-logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      logoutBtn.disabled = true;
+      logoutBtn.textContent = 'מתנתק...';
+      await signOut();
+      // onAuthStateChanged יעביר אוטומטית ל-auth
+    });
+  }
+}
+
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = String(str || '');
+  return div.innerHTML;
+}
+
+
+// ============================================================================
+// אירוע — התחברות הצליחה (auth.js שולח)
+//   onAuthStateChanged יתפוס בכל מקרה, אבל יפה להציג toast במקביל
 // ============================================================================
 
 window.addEventListener('auth:success', (e) => {
   console.log('✅ התחברות הצליחה:', e.detail.email);
-  showToast(`שלום ${e.detail.email.split('@')[0]}!`, 'success');
-  // השאר - handleAuthStateChanged יתפוס את זה אוטומטית
 });
 
 
 // ============================================================================
-// ⭐ ארוע סיום המדריך (נשלח מ-guide.js)
+// אירועי רשת — מוסיף/מסיר banner של אופליין
 // ============================================================================
 
-window.addEventListener('guide:completed', () => {
-  console.log('📖 מדריך הושלם — עובר למסך הראשי');
-  showMainScreen();
-});
-
-
-// ============================================================================
-// מסך ראשי - משתמש ב-main-ui.js
-// ============================================================================
-
-function showMainScreen() {
-  showMain();         // מציג את המסך (screen-main.active)
-  initMainUI();       // מאתחל/מעדכן את התוכן
+function updateOnlineStatus() {
+  const banner = document.getElementById('offline-banner');
+  if (!banner) return;
+  banner.classList.toggle('visible', !navigator.onLine);
 }
 
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
 
 // ============================================================================
-// התנתקות
+// אתחול ראשי
 // ============================================================================
 
-async function handleLogout() {
-  try {
-    const { signOut } = await import(
-      'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'
-    );
+async function main() {
+  if (isInitialized) return;
+  isInitialized = true;
 
-    // ניקוי המסך לפני ההתנתקות
-    destroyMainUI();
+  console.log(`🚀 ${APP_NAME} v${APP_VERSION} - מאתחל...`);
 
-    await signOut(firebaseAuth);
-    resetAuthForm();
-    showToast('התנתקת בהצלחה', 'success');
-  } catch (error) {
-    console.error('Logout error:', error);
-    showToast('שגיאה בהתנתקות', 'error');
+  if (!validateConfig()) {
+    showFatalError('שגיאת תצורה - אנא רענן את הדף');
+    return;
   }
+
+  const fbOk = await initFirebase();
+  if (!fbOk) {
+    showFatalError('שגיאה בחיבור לשרת - בדוק חיבור לאינטרנט');
+    return;
+  }
+
+  // הצגת מסך login כברירת מחדל (אם אין משתמש, onAuthStateChanged יישאר על auth)
+  initAuth(firebaseAuth);
+
+  // עדכון מצב רשת ראשוני
+  updateOnlineStatus();
+
+  // הסתרת splash
+  window.dispatchEvent(new CustomEvent('app:ready'));
+
+  console.log('✅ האפליקציה מוכנה');
 }
 
-// מאזין לבקשת יציאה מ-main-ui
-window.addEventListener('app:logout-request', handleLogout);
-
-
-// ============================================================================
-// מערכת Toasts - זמנית עד שנכתוב את ui.js
-// ============================================================================
-
-function showToast(message, type = '') {
-  const container = document.getElementById('toast-container');
-  if (!container) return;
-
-  const toast = document.createElement('div');
-  toast.className = 'toast' + (type ? ` ${type}` : '');
-  toast.textContent = message;
-  container.appendChild(toast);
-
-  // הסרה אוטומטית אחרי 3 שניות
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(10px)';
-    toast.style.transition = 'all 0.3s';
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
-
-// חשיפה גלובלית כדי שמודולים אחרים יוכלו להשתמש (זמני)
-window.showToast = showToast;
-
-
-// ============================================================================
-// שגיאה קריטית
-// ============================================================================
 
 function showFatalError(message) {
   const splash = document.getElementById('splash-screen');
   if (splash) {
     splash.innerHTML = `
-      <div style="
-        padding: 32px;
-        text-align: center;
-        max-width: 320px;
-      ">
-        <div style="
-          width: 72px; height: 72px;
-          border-radius: 50%;
-          background: rgba(229, 115, 115, 0.15);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 20px;
-        ">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#E57373" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="12"/>
-            <line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-        </div>
-        <h2 style="margin: 0 0 8px 0; color: #2C3E50;">שגיאה</h2>
-        <p style="color: #5A6C7D; font-size: 14px;">${escapeHtml(message)}</p>
-        <button onclick="window.location.reload()" style="
-          margin-top: 20px;
-          background: #7BC4E2;
-          color: white;
-          border: none;
-          padding: 12px 24px;
-          border-radius: 12px;
-          font-weight: 600;
-          font-size: 14px;
-          cursor: pointer;
-        ">רענן</button>
+      <div style="text-align:center; padding:32px; max-width:340px;">
+        <div style="font-size:48px;">⚠️</div>
+        <h2 style="margin:16px 0 8px; color:#E57373;">${escapeHtml(message)}</h2>
+        <button onclick="location.reload()"
+                style="margin-top:16px; padding:12px 28px; border:none;
+                       background:#7BC4E2; color:white; border-radius:9999px;
+                       font-size:16px; font-weight:600; cursor:pointer;">
+          רענון
+        </button>
       </div>
     `;
   }
@@ -266,44 +247,9 @@ function showFatalError(message) {
 
 
 // ============================================================================
-// פונקציות עזר
+// הפעלה
 // ============================================================================
 
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = String(text);
-  return div.innerHTML;
-}
-
-
-// ============================================================================
-// האתחול הראשי - מה שקורה כשהדף נטען
-// ============================================================================
-
-async function main() {
-  console.log(`🚀 ${APP_NAME} v${APP_VERSION} - מאתחל...`);
-
-  // בדיקת תצורה
-  if (!validateConfig()) {
-    showFatalError('תצורה לא תקינה. בדוק את config.js');
-    return;
-  }
-
-  // אתחול Firebase
-  const fbOk = await initFirebase();
-  if (!fbOk) return;
-
-  // אתחול מודול האימות
-  initAuth(firebaseAuth);
-
-  // הפצת ארוע שהאפליקציה מוכנה (יסיר את מסך ה-splash)
-  window.dispatchEvent(new CustomEvent('app:ready'));
-
-  console.log('✅ האפליקציה מוכנה');
-}
-
-
-// הפעל בטעינה
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', main);
 } else {
@@ -312,35 +258,17 @@ if (document.readyState === 'loading') {
 
 
 // ============================================================================
-// חשיפה ל-console (לדיבוג)
+// חשיפה לקונסול (לדיבוג)
 // ============================================================================
 
 if (window.location.hostname === 'localhost' ||
     window.location.hostname.includes('github.io')) {
   window.__app = {
-    get user() { return currentUser; },
-    get auth() { return firebaseAuth; },
-    get firestore() { return firebaseFirestore; },
+    showScreen,
+    signOut,
+    currentUser: () => currentUser,
+    currentScreen: () => currentScreen,
     version: APP_VERSION,
-    signOut: handleLogout,
-    // עזרי דיבוג למדריך:
-    resetGuide: async () => {
-      try { localStorage.removeItem('runprice.guide.completed'); } catch (e) {}
-      if (currentUser && firebaseFirestore) {
-        try {
-          const { doc, deleteDoc } = await import(
-            'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'
-          );
-          await deleteDoc(doc(firebaseFirestore, 'users', currentUser.uid, 'preferences', 'onboarding'));
-          console.log('✅ Guide reset — רענן את הדף');
-        } catch (err) {
-          console.warn('Failed to reset Firestore guide flag:', err);
-        }
-      }
-    },
-    showGuide: () => {
-      if (window.Guide) window.Guide.start();
-    }
   };
-  console.log('%c💡 טיפים: __app.resetGuide() לאיפוס המדריך, __app.showGuide() להצגה מיידית', 'color: #7BC4E2');
+  console.log('💡 דיבוג: __app.showScreen("auth"), __app.signOut(), __app.currentUser()');
 }
