@@ -1,0 +1,454 @@
+/* ============================================================================
+   guide.css — מסך המדריך הראשון (Onboarding Tutorial)
+   ============================================================================
+
+   הקובץ מעצב את ה-shell של מסך ההדרכה — מסגרת שתומכת ב-N צעדים
+   (כרגע מתוכנן ל-8). ה-CSS לא מקודד את התוכן הספציפי של כל צעד,
+   רק את המבנה והאנימציות.
+
+   מבנה DOM צפוי:
+   <section id="screen-guide" class="screen">
+     <header class="guide-header">
+       <div class="guide-progress">...</div>
+       <button class="guide-skip">דלג</button>
+     </header>
+     <div class="guide-stage">
+       <article class="guide-step active" data-step="1">
+         <div class="guide-illustration">🛒</div>
+         <h2 class="guide-title">כותרת</h2>
+         <p class="guide-text">תיאור</p>
+       </article>
+       ...
+     </div>
+     <footer class="guide-footer">
+       <button class="guide-nav guide-back">חזור</button>
+       <div class="guide-dots">...</div>
+       <button class="guide-nav guide-next btn btn-primary">הבא</button>
+     </footer>
+   </section>
+
+   ============================================================================ */
+
+
+/* ============================================================================
+   1. מסך המדריך — מבנה כללי
+   ============================================================================ */
+
+#screen-guide {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--safe-top) 0 var(--safe-bottom) 0;
+  overflow: hidden;
+  background: transparent;          /* מאפשר ל-emoji ברקע להציץ */
+}
+
+
+/* ============================================================================
+   2. Header — progress + דלג
+   ============================================================================ */
+
+.guide-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px 8px;
+  flex-shrink: 0;
+}
+
+/* Progress bar — מתמלא בהתאם ל-data-step הנוכחי */
+.guide-progress {
+  flex: 1;
+  height: 6px;
+  background: var(--color-primary-ultra-light);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.guide-progress-fill {
+  position: absolute;
+  top: 0;
+  right: 0;                         /* RTL: מתחיל מימין */
+  bottom: 0;
+  width: 0%;                        /* JS משנה את הרוחב לפי הצעד */
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  border-radius: var(--radius-full);
+  transition: width 0.4s var(--ease-out);
+}
+
+/* כפתור דלג */
+.guide-skip {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s;
+  flex-shrink: 0;
+}
+
+.guide-skip:hover {
+  color: var(--color-text-soft);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.guide-skip:active {
+  transform: scale(0.95);
+}
+
+
+/* ============================================================================
+   3. Stage — אזור הצעד הפעיל
+   ============================================================================ */
+
+.guide-stage {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* כל צעד — מוסתר כברירת מחדל, מוצג רק כשיש .active */
+.guide-step {
+  position: absolute;
+  inset: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 24px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(0);
+  transition: opacity 0.3s var(--ease-out),
+              transform 0.3s var(--ease-out),
+              visibility 0s linear 0.3s;
+  padding: 8px;
+}
+
+.guide-step.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  transition: opacity 0.35s var(--ease-out) 0.05s,
+              transform 0.35s var(--ease-out) 0.05s,
+              visibility 0s linear 0s;
+}
+
+/* אנימציית מעבר — RTL aware:
+   - "הבא" → צעד יוצא ימינה (נעלם), צעד חדש נכנס משמאל
+   - "חזור" → צעד יוצא שמאלה, צעד חדש נכנס מימין */
+.guide-step.exiting-next {
+  opacity: 0;
+  transform: translateX(40px);      /* יוצא ימינה */
+}
+
+.guide-step.entering-next {
+  opacity: 0;
+  transform: translateX(-40px);     /* מתחיל משמאל */
+}
+
+.guide-step.exiting-back {
+  opacity: 0;
+  transform: translateX(-40px);     /* יוצא שמאלה */
+}
+
+.guide-step.entering-back {
+  opacity: 0;
+  transform: translateX(40px);      /* מתחיל מימין */
+}
+
+
+/* ============================================================================
+   4. תוכן בתוך צעד — אילוסטרציה, כותרת, טקסט
+   ============================================================================ */
+
+/* אילוסטרציה ראשית — עיגול גדול עם emoji או SVG */
+.guide-illustration {
+  width: 168px;
+  height: 168px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,
+              var(--color-primary-ultra-light) 0%,
+              rgba(184, 223, 237, 0.6) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 96px;
+  line-height: 1;
+  box-shadow:
+    0 12px 28px -8px rgba(123, 196, 226, 0.4),
+    inset 0 -4px 12px rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+  position: relative;
+  animation: guideIllustrationFloat 3.5s var(--ease-in-out) infinite;
+}
+
+/* אופציה: אם רוצים SVG במקום emoji */
+.guide-illustration svg {
+  width: 84px;
+  height: 84px;
+  color: var(--color-primary-dark);
+}
+
+/* מספר הצעד בפינה של האילוסטרציה */
+.guide-illustration::after {
+  content: attr(data-step-number);
+  position: absolute;
+  bottom: 4px;
+  left: 4px;                        /* RTL: בצד שמאל */
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary-dark);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.2);
+}
+
+.guide-illustration[data-step-number=""]::after,
+.guide-illustration:not([data-step-number])::after {
+  display: none;
+}
+
+@keyframes guideIllustrationFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+/* כותרת הצעד */
+.guide-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.25;
+  letter-spacing: -0.4px;
+  max-width: 320px;
+}
+
+/* טקסט הסבר */
+.guide-text {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--color-text-soft);
+  margin: 0;
+  max-width: 340px;
+}
+
+.guide-text strong {
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
+/* אזור הדגמה ויזואלית בתוך צעד (אופציונלי לצעדים מסוימים) */
+.guide-demo {
+  width: 100%;
+  max-width: 320px;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--color-text);
+  text-align: right;
+}
+
+.guide-demo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-ultra-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+
+/* ============================================================================
+   5. Footer — ניווט בין צעדים
+   ============================================================================ */
+
+.guide-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px 24px;
+  flex-shrink: 0;
+  background: linear-gradient(to top, var(--color-bg) 60%, transparent);
+}
+
+/* כפתור ניווט בסיסי */
+.guide-nav {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 22px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s, background-color 0.15s;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.guide-nav:active {
+  transform: scale(0.96);
+}
+
+/* כפתור הבא — ראשי */
+.guide-next {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: #fff;
+  box-shadow: var(--shadow-primary);
+  padding-right: 24px;
+  padding-left: 20px;
+}
+
+.guide-next:hover {
+  box-shadow: 0 6px 20px rgba(123, 196, 226, 0.45);
+}
+
+.guide-next svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s;
+}
+
+.guide-next:hover svg {
+  transform: translateX(-3px);      /* RTL: חץ נע שמאלה (כלומר "קדימה") */
+}
+
+/* כפתור חזור — משני */
+.guide-back {
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 12px 16px;
+}
+
+.guide-back:hover:not(:disabled) {
+  color: var(--color-text-soft);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.guide-back:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.guide-back svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* כפתור סיום (במקום "הבא" בצעד האחרון) */
+.guide-next.guide-finish {
+  background: linear-gradient(135deg, var(--color-success) 0%, #5A9E5A 100%);
+  box-shadow: 0 4px 14px rgba(125, 184, 125, 0.4);
+}
+
+.guide-next.guide-finish:hover {
+  box-shadow: 0 6px 20px rgba(125, 184, 125, 0.5);
+}
+
+
+/* ============================================================================
+   6. Dots indicator — חלופה / השלמה ל-progress bar
+   ============================================================================ */
+
+.guide-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.guide-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition: background-color 0.3s, transform 0.3s, width 0.3s;
+}
+
+.guide-dot.active {
+  background: var(--color-primary-dark);
+  width: 24px;                      /* הופך לקו במצב פעיל */
+  border-radius: var(--radius-full);
+}
+
+.guide-dot.completed {
+  background: var(--color-primary);
+}
+
+
+/* ============================================================================
+   7. התאמות למסכים קטנים
+   ============================================================================ */
+
+@media (max-height: 640px) {
+  .guide-illustration {
+    width: 130px;
+    height: 130px;
+    font-size: 72px;
+  }
+
+  .guide-title {
+    font-size: 22px;
+  }
+
+  .guide-text {
+    font-size: 14.5px;
+  }
+
+  .guide-step {
+    gap: 16px;
+  }
+}
+
+@media (max-height: 560px) {
+  .guide-illustration {
+    width: 100px;
+    height: 100px;
+    font-size: 56px;
+  }
+
+  .guide-illustration::after {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
+
+/* כיבוד "הפחת תנועה" */
+@media (prefers-reduced-motion: reduce) {
+  .guide-illustration {
+    animation: none;
+  }
+
+  .guide-step,
+  .guide-progress-fill {
+    transition-duration: 0.01ms !important;
+  }
+}
