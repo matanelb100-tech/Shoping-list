@@ -3,118 +3,89 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="description" content="רשימת קניות חכמה - השוואת מחירים בין רשתות השיווק בישראל" />
   <meta name="theme-color" content="#7BC4E2" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="רשימת קניות" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="format-detection" content="telephone=no" />
+  <meta name="apple-mobile-web-app-title" content="RunPrice" />
+  <meta name="description" content="רשימת קניות חכמה — השוואת מחירים בזמן אמת בין 5 רשתות שיווק" />
 
-  <title>רשימת קניות חכמה</title>
+  <title>RunPrice — רשימת קניות חכמה</title>
 
-  <!-- PWA (יתווסף בשלב הבא) -->
-  <!-- <link rel="manifest" href="manifest.json" /> -->
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json" />
 
-  <!-- Preload קריטי -->
+  <!-- App Icons -->
+  <link rel="icon" type="image/png" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <!-- גופנים -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://www.gstatic.com" />
-  <link rel="preconnect" href="https://runprice.matanelb100.workers.dev" />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-  <!-- פונטים: Rubik - מעוצב היטב לעברית -->
-  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&family=Heebo:wght@400;600;700&display=swap" rel="stylesheet" />
-
-  <!-- CSS קריטי inline - רק מה שצריך להצגת מסך הטעינה -->
+  <!-- ============================================================
+       CSS variables inline — חייבים להיות זמינים מיד עבור splash
+       ============================================================ -->
   <style>
     :root {
-      --color-primary: #7BC4E2;
-      --color-primary-dark: #4A9BC7;
-      --color-primary-light: #B8DFED;
-      --color-primary-ultra-light: #E8F4FA;
-      --color-accent: #F2A649;
-      --color-success: #7DB87D;
-      --color-danger: #E57373;
-      --color-warning: #F5C678;
-      --color-premium: #D4AF37;
-      --color-bg: #FAF6EF;
-      --color-bg-alt: #F5EFE4;
-      --color-surface: #FFFFFF;
-      --color-surface-2: #FEFCF7;
-      --color-text: #2C3E50;
-      --color-text-soft: #5A6C7D;
-      --color-text-muted: #8A9AAA;
-      --color-border: #E8DFD0;
-      --spacing-xs: 4px;
-      --spacing-sm: 8px;
-      --spacing-md: 16px;
-      --spacing-lg: 24px;
-      --spacing-xl: 32px;
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 18px;
-      --radius-xl: 24px;
+      /* צבעים — פלטה תכלת חמה */
+      --color-primary:            #7BC4E2;
+      --color-primary-dark:       #5BA8C9;
+      --color-primary-light:      #B8DFED;
+      --color-primary-ultra-light:#E8F4FA;
+      --color-accent:             #F2A649;
+      --color-bg:                 #FAF7F2;
+      --color-bg-alt:             #F0EDE7;
+      --color-surface:            #FFFFFF;
+      --color-text:               #2C3E50;
+      --color-text-soft:          #546879;
+      --color-text-muted:         #8FA0AE;
+      --color-border:             #E5DFD5;
+      --color-success:            #7DB87D;
+      --color-danger:             #E57373;
+      --color-warning:            #F5C97A;
+      --color-premium:            #D4AF37;
+
+      /* רדיוסים */
+      --radius-sm:   8px;
+      --radius-md:   12px;
+      --radius-lg:   16px;
+      --radius-xl:   24px;
       --radius-full: 9999px;
-      --shadow-sm: 0 1px 3px rgba(44, 62, 80, 0.08);
-      --shadow-md: 0 4px 12px rgba(44, 62, 80, 0.1);
-      --shadow-lg: 0 8px 24px rgba(44, 62, 80, 0.12);
+
+      /* צללים */
+      --shadow-sm: 0 2px 6px rgba(44, 62, 80, 0.06);
+      --shadow-md: 0 4px 12px rgba(44, 62, 80, 0.08);
+      --shadow-lg: 0 10px 30px -8px rgba(44, 62, 80, 0.18);
       --shadow-primary: 0 4px 14px rgba(123, 196, 226, 0.35);
-      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+      /* ריווחים */
+      --spacing-xs:  4px;
+      --spacing-sm:  8px;
+      --spacing-md:  16px;
+      --spacing-lg:  24px;
+      --spacing-xl:  32px;
+
+      /* Easings */
+      --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
       --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-      --safe-top: env(safe-area-inset-top, 0px);
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
-      --header-height: 60px;
-      --input-bar-height: 72px;
+
+      /* Safe areas (notch) */
+      --safe-top:    env(safe-area-inset-top, 0);
+      --safe-bottom: env(safe-area-inset-bottom, 0);
+      --safe-left:   env(safe-area-inset-left, 0);
+      --safe-right:  env(safe-area-inset-right, 0);
     }
 
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-      -webkit-touch-callout: none;
-    }
-
+    /* Splash בסיסי inline — כדי שיופיע מיד לפני שה-CSS החיצוני נטען */
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      width: 100%;
-      overflow: hidden;
-      overscroll-behavior: none;
-      font-family: 'Rubik', 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 16px;
-      color: var(--color-text);
       background: var(--color-bg);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      text-rendering: optimizeLegibility;
-    }
-
-    #app-root {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
+      font-family: 'Rubik', -apple-system, BlinkMacSystemFont, sans-serif;
       overflow: hidden;
     }
-
-    .app-background {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      background: var(--color-bg);
-      overflow: hidden;
-      pointer-events: none;
-    }
-
-    .app-background::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image:
-        radial-gradient(circle at 20% 30%, rgba(123, 196, 226, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(242, 166, 73, 0.05) 0%, transparent 50%);
-    }
-
     #splash-screen {
       position: fixed;
       inset: 0;
@@ -124,16 +95,14 @@
       align-items: center;
       justify-content: center;
       background: linear-gradient(135deg, var(--color-primary-ultra-light) 0%, var(--color-bg) 100%);
-      transition: opacity 0.4s var(--ease-out), visibility 0.4s;
+      transition: opacity 0.4s, visibility 0.4s;
     }
-
     #splash-screen.hidden {
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
     }
-
-    .splash-logo {
+    .splash-logo-fallback {
       width: 96px;
       height: 96px;
       border-radius: 24px;
@@ -141,238 +110,241 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: var(--shadow-lg), 0 0 0 6px rgba(123, 196, 226, 0.15);
-      animation: splashPulse 1.8s var(--ease-in-out) infinite;
-    }
-
-    .splash-logo svg {
-      width: 56px;
-      height: 56px;
-      color: #fff;
-    }
-
-    .splash-title {
-      margin-top: 24px;
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--color-text);
-      letter-spacing: -0.3px;
-    }
-
-    .splash-subtitle {
-      margin-top: 4px;
-      font-size: 14px;
-      color: var(--color-text-muted);
-      font-weight: 400;
-    }
-
-    .splash-spinner {
-      margin-top: 32px;
-      width: 28px;
-      height: 28px;
-      border: 3px solid var(--color-primary-light);
-      border-top-color: var(--color-primary-dark);
-      border-radius: 50%;
-      animation: spinnerRotate 0.8s linear infinite;
-    }
-
-    @keyframes splashPulse {
-      0%, 100% { transform: scale(1); box-shadow: var(--shadow-lg), 0 0 0 6px rgba(123, 196, 226, 0.15); }
-      50% { transform: scale(1.05); box-shadow: var(--shadow-lg), 0 0 0 12px rgba(123, 196, 226, 0.08); }
-    }
-
-    @keyframes spinnerRotate {
-      to { transform: rotate(360deg); }
-    }
-
-    .screen {
-      position: absolute;
-      inset: 0;
-      display: none;
-      flex-direction: column;
-      z-index: 1;
-    }
-
-    .screen.active {
-      display: flex;
-    }
-
-    #toast-container {
-      position: fixed;
-      top: calc(var(--safe-top) + 16px);
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10000;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      pointer-events: none;
-      max-width: 90%;
-    }
-
-    .toast {
-      background: var(--color-text);
-      color: #fff;
-      padding: 12px 20px;
-      border-radius: var(--radius-full);
-      font-size: 14px;
-      font-weight: 500;
+      font-size: 56px;
       box-shadow: var(--shadow-lg);
-      animation: toastIn 0.3s var(--ease-out);
-      pointer-events: auto;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100%;
-    }
-
-    .toast.success { background: var(--color-success); }
-    .toast.error { background: var(--color-danger); }
-    .toast.warning { background: var(--color-warning); color: var(--color-text); }
-
-    @keyframes toastIn {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    #offline-banner {
-      position: fixed;
-      top: var(--safe-top);
-      left: 0;
-      right: 0;
-      background: var(--color-warning);
-      color: var(--color-text);
-      padding: 6px 12px;
-      text-align: center;
-      font-size: 13px;
-      font-weight: 500;
-      z-index: 9998;
-      transform: translateY(-100%);
-      transition: transform 0.3s var(--ease-out);
-    }
-
-    #offline-banner.visible {
-      transform: translateY(0);
     }
   </style>
 
-  <!-- CSS חיצוני - רק הקבצים שכבר קיימים -->
-  <link rel="stylesheet" href="css/base.css?v=2" />
-  <link rel="stylesheet" href="css/auth.css?v=2" />
-  <link rel="stylesheet" href="css/app.css?v=1" />
-  <link rel="stylesheet" href="css/modals.css?v=1" />
+  <!-- ============================================================
+       CSS חיצוני — סדר טעינה חשוב!
+       1. base.css     — בסיס לכל המסכים (חובה ראשון)
+       2. auth.css     — מסך login/register
+       3. guide.css    — מסך מדריך 8 צעדים
+       4. modals.css   — מודלים
+       5. app.css      — המסך הראשי
+       ============================================================ -->
+  <link rel="stylesheet" href="css/base.css?v=4" />
+  <link rel="stylesheet" href="css/auth.css?v=4" />
+  <link rel="stylesheet" href="css/guide.css?v=4" />
+  <link rel="stylesheet" href="css/modals.css?v=4" />
+  <link rel="stylesheet" href="css/app.css?v=4" />
 </head>
 
 <body>
-  <!-- רקע -->
-  <div class="app-background" aria-hidden="true"></div>
 
-  <!-- הודעת אופליין -->
-  <div id="offline-banner" role="status" aria-live="polite">
-    <span>אין חיבור לאינטרנט - האפליקציה פועלת במצב אופליין</span>
+  <!-- ============================================================
+       Splash Screen — מופיע ראשון, נעלם אחרי שה-app טעון
+       ============================================================ -->
+  <div id="splash-screen">
+    <div class="splash-logo-fallback">🛒</div>
+    <div class="splash-title">RunPrice</div>
+    <div class="splash-subtitle">רשימת קניות חכמה</div>
+    <div class="splash-spinner"></div>
   </div>
 
-  <!-- מסך טעינה ראשוני -->
-  <div id="splash-screen" role="status" aria-label="טוען אפליקציה">
-    <div class="splash-logo" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="9" cy="21" r="1.5" fill="currentColor" />
-        <circle cx="18" cy="21" r="1.5" fill="currentColor" />
-        <path d="M2.5 3h2.5l2.7 12.6a2 2 0 0 0 2 1.6h9.4a2 2 0 0 0 2-1.5L22 7H6" />
-      </svg>
-    </div>
-    <div class="splash-title">רשימת קניות חכמה</div>
-    <div class="splash-subtitle">השוואת מחירים בזמן אמת</div>
-    <div class="splash-spinner" aria-hidden="true"></div>
+  <!-- ============================================================
+       Offline Banner — מופיע רק כשאין אינטרנט
+       ============================================================ -->
+  <div id="offline-banner">
+    <span>אין חיבור לאינטרנט — המחירים עשויים להיות לא עדכניים</span>
   </div>
 
-  <!-- שורש האפליקציה -->
+  <!-- ============================================================
+       Toast Container — הודעות זמניות
+       ============================================================ -->
+  <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- ============================================================
+       App Root — כל המסכים יושבים בתוך
+       ============================================================ -->
   <div id="app-root">
-    <section class="screen" id="screen-auth" aria-label="מסך התחברות"></section>
-    <section class="screen" id="screen-main" aria-label="רשימת קניות">
-      <header id="main-header"></header>
-      <main id="main-content"></main>
-      <footer id="main-input-bar"></footer>
+
+    <!-- ====== מסך כניסה / הרשמה ====== -->
+    <section id="screen-auth" class="screen" aria-label="כניסה">
+      <!-- תוכן נטען דינמית מ-auth.js -->
     </section>
-    <section class="screen" id="screen-history" aria-label="היסטוריית קניות"></section>
+
+    <!-- ====== מסך המדריך הראשון (8 צעדים) ====== -->
+    <section id="screen-guide" class="screen" aria-label="מדריך שימוש ראשון">
+      <header class="guide-header">
+        <div class="guide-progress">
+          <div class="guide-progress-fill" id="guide-progress-fill"></div>
+        </div>
+        <button type="button" class="guide-skip" id="guide-skip-btn">דלג</button>
+      </header>
+
+      <div class="guide-stage" id="guide-stage">
+
+        <!-- צעד 1: ברוכים הבאים -->
+        <article class="guide-step active" data-step="1">
+          <div class="guide-illustration">🛒</div>
+          <h2 class="guide-title">ברוכים הבאים ל-RunPrice</h2>
+          <p class="guide-text">
+            רשימת הקניות החכמה שמשווה לך מחירים בזמן אמת בין
+            <strong>5 רשתות שיווק</strong> ועוזרת לך לחסוך בכל קנייה.
+          </p>
+        </article>
+
+        <!-- צעד 2: הוספת מוצרים -->
+        <article class="guide-step" data-step="2">
+          <div class="guide-illustration">✍️</div>
+          <h2 class="guide-title">הוסיפו מוצרים בקלות</h2>
+          <p class="guide-text">
+            כתבו את שם המוצר בתיבת ההקלדה למטה. בזמן ההקלדה
+            <strong>נציע לכם השלמות מהירות</strong> של מוצרים פופולריים.
+          </p>
+          <div class="guide-demo">
+            <div class="guide-demo-icon">🥛</div>
+            <span>חלב 3% — תנובה</span>
+          </div>
+        </article>
+
+        <!-- צעד 3: סריקת ברקוד -->
+        <article class="guide-step" data-step="3">
+          <div class="guide-illustration">📷</div>
+          <h2 class="guide-title">סריקת ברקוד מהירה</h2>
+          <p class="guide-text">
+            לחצו על אייקון המצלמה והפנו אותה לברקוד של המוצר.
+            המוצר <strong>יתווסף אוטומטית</strong> לרשימה.
+          </p>
+        </article>
+
+        <!-- צעד 4: הוספה קולית -->
+        <article class="guide-step" data-step="4">
+          <div class="guide-illustration">🎤</div>
+          <h2 class="guide-title">הוספה בקול</h2>
+          <p class="guide-text">
+            לחצו על אייקון המיקרופון ותגידו מה אתם צריכים.
+            למשל: <strong>"חצי קילו עגבניות"</strong>.
+          </p>
+        </article>
+
+        <!-- צעד 5: עריכת כמות ומשקל -->
+        <article class="guide-step" data-step="5">
+          <div class="guide-illustration">⚖️</div>
+          <h2 class="guide-title">עריכת כמות ומשקל</h2>
+          <p class="guide-text">
+            לחיצה על מוצר ברשימה מאפשרת לשנות כמות, משקל או יחידות.
+            למוצרים שנמכרים במשקל — <strong>נשתמש בממוצע השוק הישראלי</strong>.
+          </p>
+        </article>
+
+        <!-- צעד 6: חישוב הסל -->
+        <article class="guide-step" data-step="6">
+          <div class="guide-illustration">💰</div>
+          <h2 class="guide-title">חשבו את מחיר הסל</h2>
+          <p class="guide-text">
+            לחיצה על <strong>"חשב סל"</strong> תראה לכם את המחיר הכולל
+            ברמי לוי, שופרסל, ויקטורי, יוחננוף ויינות ביתן — כדי לבחור הכי משתלם.
+          </p>
+        </article>
+
+        <!-- צעד 7: היסטוריה וחיסכון -->
+        <article class="guide-step" data-step="7">
+          <div class="guide-illustration">📊</div>
+          <h2 class="guide-title">היסטוריה וחיסכון</h2>
+          <p class="guide-text">
+            כל קנייה נשמרת בהיסטוריה. תוכלו לראות
+            <strong>גרף חודשי של ההוצאות</strong> וכמה חסכתם בזכות RunPrice.
+          </p>
+        </article>
+
+        <!-- צעד 8: סיום + פרימיום -->
+        <article class="guide-step" data-step="8">
+          <div class="guide-illustration">✨</div>
+          <h2 class="guide-title">מוכנים להתחיל!</h2>
+          <p class="guide-text">
+            יש גם <strong>גרסת פרימיום</strong> עם עלות נסיעה, סריקת קבלות
+            מהמכולת השכונתית, וזיהוי מבצעים. תוכלו לבדוק בכל זמן בתפריט.
+          </p>
+        </article>
+
+      </div>
+
+      <footer class="guide-footer">
+        <button type="button" class="guide-nav guide-back" id="guide-back-btn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+          <span>חזור</span>
+        </button>
+
+        <button type="button" class="guide-nav guide-next" id="guide-next-btn">
+          <span id="guide-next-label">הבא</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+      </footer>
+    </section>
+
+    <!-- ====== מסך ראשי — רשימת הקניות ====== -->
+    <section id="screen-main" class="screen" aria-label="רשימת קניות">
+      <header id="main-header">
+        <!-- נטען דינמית מ-main-ui.js -->
+      </header>
+      <main id="main-content">
+        <!-- רשימת הקניות נטענת דינמית -->
+      </main>
+      <nav id="main-bottom-nav">
+        <!-- תיבת הקלדה + כפתורי מצלמה ומיקרופון -->
+      </nav>
+    </section>
+
+    <!-- ====== מסך היסטוריה ====== -->
+    <section id="screen-history" class="screen" aria-label="היסטוריית קניות">
+      <!-- נטען דינמית מ-history.js -->
+    </section>
+
   </div>
 
-  <!-- Modals -->
-  <div id="modal-root" aria-live="polite"></div>
+  <!-- ============================================================
+       Modals Container — כל המודלים נטענים לכאן דינמית
+       ============================================================ -->
+  <div id="modals-root"></div>
 
-  <!-- Toasts -->
-  <div id="toast-container" aria-live="polite" aria-atomic="false"></div>
+  <!-- ============================================================
+       Firebase — חייב להיטען לפני ה-config וה-auth
+       ============================================================ -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth }       from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore }  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  <!-- Scripts - בשלב זה רק app.js (שמייבא את השאר) -->
-  <script type="module" src="js/app.js?v=2"></script>
-
-  <script>
-    // ניקוי Service Workers ישנים (מהגרסה הקודמת של האפליקציה)
-    // כשנוסיף את ה-SW החדש שלנו - נסיר את הסקריפט הזה
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(regs) {
-        regs.forEach(function(reg) {
-          reg.unregister().then(function() {
-            console.log('🗑️ Unregistered old service worker');
-          });
-        });
-      });
-    }
-
-    // ניקוי cache ישן
-    if ('caches' in window) {
-      caches.keys().then(function(names) {
-        names.forEach(function(name) {
-          caches.delete(name);
-        });
-      });
-    }
-
-    // גילוי מצב אופליין
-    (function() {
-      var banner = document.getElementById('offline-banner');
-      function updateStatus() {
-        if (navigator.onLine) {
-          banner.classList.remove('visible');
-        } else {
-          banner.classList.add('visible');
-        }
-      }
-      window.addEventListener('online', updateStatus);
-      window.addEventListener('offline', updateStatus);
-      updateStatus();
-    })();
-
-    // הסתרת splash screen לאחר טעינה
-    window.addEventListener('app:ready', function() {
-      var splash = document.getElementById('splash-screen');
-      if (splash) {
-        setTimeout(function() {
-          splash.classList.add('hidden');
-          setTimeout(function() { splash.remove(); }, 400);
-        }, 300);
-      }
-    });
-
-    // fallback
-    setTimeout(function() {
-      var splash = document.getElementById('splash-screen');
-      if (splash && !splash.classList.contains('hidden')) {
-        splash.classList.add('hidden');
-      }
-    }, 8000);
+    // נחשוף ל-window כדי שמודולים אחרים יוכלו לגשת
+    window.firebaseModules = { initializeApp, getAuth, getFirestore };
   </script>
+
+  <!-- ============================================================
+       JS האפליקציה — סדר טעינה קריטי!
+       defer = הקבצים מורצים אחרי שה-HTML נטען, בסדר שהוגדר
+       ============================================================ -->
+  <script src="js/config.js?v=4"            defer></script>
+  <script src="js/state.js?v=4"             defer></script>
+  <script src="js/api.js?v=4"               defer></script>
+  <script src="js/products.js?v=4"          defer></script>
+  <script src="js/popular-products.js?v=4"  defer></script>
+  <script src="js/auth.js?v=4"              defer></script>
+  <script src="js/guide.js?v=4"             defer></script>
+  <script src="js/autocomplete.js?v=4"      defer></script>
+  <script src="js/cart.js?v=4"              defer></script>
+  <script src="js/clarification.js?v=4"     defer></script>
+  <script src="js/clarification-memory.js?v=4" defer></script>
+  <script src="js/item-editor.js?v=4"       defer></script>
+  <script src="js/modals.js?v=4"            defer></script>
+  <script src="js/history.js?v=4"           defer></script>
+  <script src="js/main-ui.js?v=4"           defer></script>
+  <script src="js/app.js?v=4"               defer></script>
+
+  <!-- Service Worker — לאופליין -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .catch(err => console.warn('SW registration failed:', err));
+      });
+    }
+  </script>
+
 </body>
 </html>
