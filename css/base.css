@@ -911,40 +911,56 @@ button:focus:not(:focus-visible) {
 /* ============================================================================
    10. App Background — emoji מוצרים בתפזורת על רקע בז'-תכלת
    ============================================================================
-   העיקרון: SVG inline ב-data URI = אין בקשת רשת, נטען מיידי.
-   ה-emoji בעמום מאוד (opacity 0.07) כדי שלא יפריעו לקריאה אבל ייתנו טקסטורה.
-   הצבע מתחת: בז' חם (--color-bg) עם 2 ענני גוון תכלת/כתום עדינים.
+   העיקרון: הרקע מיושם ישירות על ה-body באמצעות שני ::before/::after,
+   כך הוא מופיע מתחת לכל מסך באפליקציה (login, main, history) ולא תלוי
+   באלמנט .app-background נפרד שיכול להיכסות.
+
+   - body::before  = שכבת ענני גוון עדינים (תכלת + כתום)
+   - body::after   = שכבת emoji מוצרים (SVG inline ב-data URI)
+
+   הערה: ה-div ה-.app-background ב-HTML הפך למיותר — אפשר להסיר אותו,
+   אבל גם אם יישאר, הוא לא יזיק (הוא מנוטרל פה למטה).
    ============================================================================ */
 
+/* ניטרול ה-div הישן אם נשאר ב-HTML — כדי שלא יחסום את הרקע החדש */
 .app-background {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background: var(--color-bg);
-  overflow: hidden;
-  pointer-events: none;
+  display: none !important;
 }
 
-/* שכבה 1: ענני גוון עדינים (תכלת + כתום) */
-.app-background::before {
+/* שכבה 1: ענני גוון עדינים */
+body::before {
   content: '';
-  position: absolute;
+  position: fixed;
   inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-color: var(--color-bg);
   background-image:
     radial-gradient(circle at 18% 22%, rgba(123, 196, 226, 0.10) 0%, transparent 45%),
     radial-gradient(circle at 82% 75%, rgba(242, 166, 73, 0.06) 0%, transparent 45%),
     radial-gradient(circle at 50% 50%, rgba(184, 223, 237, 0.04) 0%, transparent 60%);
 }
 
-/* שכבה 2: emoji מוצרים בתפזורת (SVG embedded) */
-.app-background::after {
+/* שכבה 2: emoji מוצרים בתפזורת */
+body::after {
   content: '';
-  position: absolute;
+  position: fixed;
   inset: 0;
+  z-index: -1;
+  pointer-events: none;
   opacity: 0.07;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='360' viewBox='0 0 360 360'><text x='30'  y='50'  font-size='28'>🥕</text><text x='130' y='40'  font-size='28'>🍎</text><text x='230' y='60'  font-size='28'>🥖</text><text x='310' y='35'  font-size='28'>🥛</text><text x='80'  y='130' font-size='28'>🧀</text><text x='180' y='120' font-size='28'>🍞</text><text x='275' y='140' font-size='28'>🥚</text><text x='25'  y='210' font-size='28'>🍅</text><text x='115' y='200' font-size='28'>🥒</text><text x='215' y='220' font-size='28'>🍌</text><text x='305' y='205' font-size='28'>🧈</text><text x='60'  y='290' font-size='28'>🐟</text><text x='160' y='300' font-size='28'>🥩</text><text x='250' y='285' font-size='28'>🍇</text><text x='330' y='300' font-size='28'>🍫</text></svg>");
   background-repeat: repeat;
   background-size: 360px 360px;
+}
+
+/* חשוב: לאלמנטים מעל הרקע אסור להגדיר background-color אטום על ה-body/app-root */
+body {
+  background: transparent;
+}
+
+#app-root {
+  background: transparent;
 }
 
 
