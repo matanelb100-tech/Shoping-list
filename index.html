@@ -11,81 +11,84 @@
 
   <title>RunPrice — רשימת קניות חכמה</title>
 
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="manifest.json" />
-
-  <!-- App Icons -->
   <link rel="icon" type="image/png" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-  <!-- גופנים -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <!-- ============================================================
-       CSS variables inline — חייבים להיות זמינים מיד עבור splash
+       CSS Variables + Splash + Screens + Auth + Placeholder — inline
        ============================================================ -->
   <style>
     :root {
-      /* צבעים — פלטה תכלת חמה */
-      --color-primary:            #7BC4E2;
-      --color-primary-dark:       #5BA8C9;
-      --color-primary-light:      #B8DFED;
-      --color-primary-ultra-light:#E8F4FA;
-      --color-accent:             #F2A649;
-      --color-bg:                 #FAF7F2;
-      --color-bg-alt:             #F0EDE7;
-      --color-surface:            #FFFFFF;
-      --color-text:               #2C3E50;
-      --color-text-soft:          #546879;
-      --color-text-muted:         #8FA0AE;
-      --color-border:             #E5DFD5;
-      --color-success:            #7DB87D;
-      --color-danger:             #E57373;
-      --color-warning:            #F5C97A;
-      --color-premium:            #D4AF37;
+      --color-primary:             #7BC4E2;
+      --color-primary-dark:        #5BA8C9;
+      --color-primary-light:       #B8DFED;
+      --color-primary-ultra-light: #E8F4FA;
+      --color-accent:              #F2A649;
+      --color-bg:                  #FAF7F2;
+      --color-bg-alt:              #F0EDE7;
+      --color-surface:             #FFFFFF;
+      --color-text:                #2C3E50;
+      --color-text-soft:           #546879;
+      --color-text-muted:          #8FA0AE;
+      --color-border:              #E5DFD5;
+      --color-success:             #7DB87D;
+      --color-danger:              #E57373;
+      --color-warning:             #F5C97A;
 
-      /* רדיוסים */
       --radius-sm:   8px;
       --radius-md:   12px;
       --radius-lg:   16px;
       --radius-xl:   24px;
       --radius-full: 9999px;
 
-      /* צללים */
       --shadow-sm: 0 2px 6px rgba(44, 62, 80, 0.06);
       --shadow-md: 0 4px 12px rgba(44, 62, 80, 0.08);
       --shadow-lg: 0 10px 30px -8px rgba(44, 62, 80, 0.18);
-      --shadow-primary: 0 4px 14px rgba(123, 196, 226, 0.35);
 
-      /* ריווחים */
-      --spacing-xs:  4px;
-      --spacing-sm:  8px;
-      --spacing-md:  16px;
-      --spacing-lg:  24px;
-      --spacing-xl:  32px;
-
-      /* Easings */
-      --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
-      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-
-      /* Safe areas (notch) */
-      --safe-top:    env(safe-area-inset-top, 0);
-      --safe-bottom: env(safe-area-inset-bottom, 0);
-      --safe-left:   env(safe-area-inset-left, 0);
-      --safe-right:  env(safe-area-inset-right, 0);
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Splash בסיסי inline — כדי שיופיע מיד לפני שה-CSS החיצוני נטען */
+    * { box-sizing: border-box; }
+
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       background: var(--color-bg);
       font-family: 'Rubik', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--color-text);
       overflow: hidden;
     }
+
+    /* --- Screens system --- */
+    #app-root {
+      position: relative;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+      background: var(--color-bg);
+    }
+    .screen.active {
+      display: flex;
+      animation: fadeIn 0.25s var(--ease-out);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* --- Splash --- */
     #splash-screen {
       position: fixed;
       inset: 0;
@@ -96,13 +99,14 @@
       justify-content: center;
       background: linear-gradient(135deg, var(--color-primary-ultra-light) 0%, var(--color-bg) 100%);
       transition: opacity 0.4s, visibility 0.4s;
+      gap: 16px;
     }
     #splash-screen.hidden {
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
     }
-    .splash-logo-fallback {
+    .splash-logo {
       width: 96px;
       height: 96px;
       border-radius: 24px;
@@ -113,25 +117,310 @@
       font-size: 56px;
       box-shadow: var(--shadow-lg);
     }
+    .splash-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+    .splash-subtitle {
+      font-size: 15px;
+      color: var(--color-text-soft);
+    }
+    .splash-spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid var(--color-border);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-top: 8px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
 
-    /* תיבת שגיאה גלובלית — מוצגת רק אם משהו שובר את הטעינה */
+    /* --- Offline banner --- */
+    #offline-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 9000;
+      padding: 8px 16px;
+      background: var(--color-warning);
+      color: var(--color-text);
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+      transform: translateY(-100%);
+      transition: transform 0.3s var(--ease-out);
+    }
+    #offline-banner.visible {
+      transform: translateY(0);
+    }
+
+    /* --- Main placeholder (זמני) --- */
+    .main-placeholder {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+    .main-placeholder-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    .main-placeholder h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      color: var(--color-text);
+    }
+    .main-placeholder-welcome {
+      margin: 0 0 24px;
+      color: var(--color-text-soft);
+      font-size: 15px;
+      direction: ltr;
+    }
+    .main-placeholder-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      max-width: 360px;
+      width: 100%;
+      text-align: right;
+    }
+    .main-placeholder-card h2 {
+      margin: 0 0 12px;
+      color: var(--color-success);
+      font-size: 18px;
+    }
+    .main-placeholder-card p {
+      margin: 0 0 12px;
+      color: var(--color-text-soft);
+      font-size: 14px;
+    }
+    .main-placeholder-card ul {
+      margin: 0;
+      padding-right: 20px;
+      color: var(--color-text);
+      font-size: 14px;
+      line-height: 1.9;
+    }
+    .main-placeholder-logout {
+      margin-top: 24px;
+      padding: 12px 32px;
+      background: transparent;
+      border: 1.5px solid var(--color-danger);
+      color: var(--color-danger);
+      border-radius: var(--radius-full);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .main-placeholder-logout:hover:not(:disabled) {
+      background: var(--color-danger);
+      color: white;
+    }
+    .main-placeholder-logout:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* --- Auth screen --- */
+    .auth-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 24px 48px;
+      max-width: 420px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .auth-logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 44px;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 20px;
+    }
+    .auth-title {
+      margin: 0 0 4px;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+    .auth-subtitle {
+      margin: 0 0 8px;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--color-primary-dark);
+    }
+    .auth-hint {
+      margin: 0 0 28px;
+      font-size: 13px;
+      color: var(--color-text-muted);
+      text-align: center;
+      line-height: 1.5;
+      max-width: 320px;
+    }
+    .auth-error {
+      width: 100%;
+      max-width: 360px;
+      padding: 12px 16px;
+      background: rgba(229, 115, 115, 0.1);
+      border: 1px solid var(--color-danger);
+      border-radius: var(--radius-md);
+      color: var(--color-danger);
+      font-size: 14px;
+      margin-bottom: 16px;
+      text-align: right;
+    }
+    .auth-error.is-success {
+      background: rgba(125, 184, 125, 0.1);
+      border-color: var(--color-success);
+      color: var(--color-success);
+    }
+    .auth-error.hidden {
+      display: none;
+    }
+    .auth-form {
+      width: 100%;
+      max-width: 360px;
+    }
+    .auth-field {
+      margin-bottom: 16px;
+    }
+    .auth-label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-soft);
+    }
+    .auth-input {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 16px;
+      font-family: inherit;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      color: var(--color-text);
+      transition: border-color 0.2s;
+    }
+    .auth-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+    .auth-password-wrapper {
+      position: relative;
+    }
+    .auth-eye {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      padding: 6px;
+      cursor: pointer;
+      color: var(--color-text-muted);
+    }
+    .auth-eye svg {
+      width: 22px;
+      height: 22px;
+    }
+    .auth-eye:hover {
+      color: var(--color-primary-dark);
+    }
+    .auth-submit {
+      width: 100%;
+      padding: 14px;
+      margin-top: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      color: white;
+      background: var(--color-primary);
+      border: none;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(123, 196, 226, 0.4);
+      transition: background 0.2s, transform 0.1s;
+    }
+    .auth-submit:hover:not(:disabled) {
+      background: var(--color-primary-dark);
+    }
+    .auth-submit:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+    .auth-submit:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .auth-links {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .auth-link {
+      background: transparent;
+      border: none;
+      color: var(--color-primary-dark);
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .auth-link:hover {
+      text-decoration: underline;
+    }
+    .auth-link-muted {
+      color: var(--color-text-muted);
+      font-size: 13px;
+    }
+    .auth-tip {
+      margin-top: 32px;
+      padding: 12px 16px;
+      background: var(--color-primary-ultra-light);
+      border-radius: var(--radius-md);
+      color: var(--color-text-soft);
+      font-size: 13px;
+      text-align: center;
+      max-width: 340px;
+    }
+
+    /* --- Boot error (debug fallback) --- */
     #boot-error {
       display: none;
       position: fixed;
       inset: 0;
       z-index: 10000;
       padding: 24px;
-      background: #FAF7F2;
-      color: #2C3E50;
-      font-family: 'Rubik', sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
       direction: rtl;
       overflow: auto;
     }
     #boot-error.show { display: block; }
-    #boot-error h1 { color: #E57373; margin: 0 0 12px; font-size: 18px; }
+    #boot-error h1 { color: var(--color-danger); margin: 0 0 12px; font-size: 18px; }
     #boot-error pre {
-      background: #fff;
-      border: 1px solid #E5DFD5;
+      background: white;
+      border: 1px solid var(--color-border);
       border-radius: 8px;
       padding: 12px;
       font-size: 12px;
@@ -140,208 +429,36 @@
       text-align: left;
     }
   </style>
-
-  <!-- ============================================================
-       CSS חיצוני — סדר טעינה חשוב!
-       1. base.css     — בסיס לכל המסכים (חובה ראשון)
-       2. auth.css     — מסך login/register
-       3. guide.css    — מסך מדריך 8 צעדים
-       4. modals.css   — מודלים
-       5. app.css      — המסך הראשי
-       ============================================================ -->
-  <link rel="stylesheet" href="css/base.css?v=5" />
-  <link rel="stylesheet" href="css/auth.css?v=5" />
-  <link rel="stylesheet" href="css/guide.css?v=5" />
-  <link rel="stylesheet" href="css/modals.css?v=5" />
-  <link rel="stylesheet" href="css/app.css?v=5" />
 </head>
 
 <body>
 
-  <!-- ============================================================
-       Splash Screen — מופיע ראשון, נעלם אחרי שה-app טעון
-       ============================================================ -->
+  <!-- Splash -->
   <div id="splash-screen">
-    <div class="splash-logo-fallback">🛒</div>
+    <div class="splash-logo">🛒</div>
     <div class="splash-title">RunPrice</div>
     <div class="splash-subtitle">רשימת קניות חכמה</div>
     <div class="splash-spinner"></div>
   </div>
 
-  <!-- ============================================================
-       Boot Error — מוצג רק אם הטעינה נכשלה (עוזר לדיבוג)
-       ============================================================ -->
+  <!-- Boot error (debug — מוצג רק אם משהו קורס) -->
   <div id="boot-error">
-    <h1>⚠️ שגיאה בטעינת האפליקציה</h1>
-    <p>זוהתה שגיאה בעת אתחול. הפרטים למטה (העתק ושלח אם נדרשת עזרה):</p>
+    <h1>⚠️ שגיאה בטעינה</h1>
     <pre id="boot-error-msg"></pre>
   </div>
 
-  <!-- ============================================================
-       Offline Banner — מופיע רק כשאין אינטרנט
-       ============================================================ -->
+  <!-- Offline banner -->
   <div id="offline-banner">
-    <span>אין חיבור לאינטרנט — המחירים עשויים להיות לא עדכניים</span>
+    אין חיבור לאינטרנט
   </div>
 
-  <!-- ============================================================
-       Toast Container — הודעות זמניות
-       ============================================================ -->
-  <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
-
-  <!-- ============================================================
-       App Root — כל המסכים יושבים בתוך
-       ============================================================ -->
+  <!-- Screens -->
   <div id="app-root">
-
-    <!-- ====== מסך כניסה / הרשמה ====== -->
-    <section id="screen-auth" class="screen" aria-label="כניסה">
-      <!-- תוכן נטען דינמית מ-auth.js -->
-    </section>
-
-    <!-- ====== מסך המדריך הראשון (8 צעדים) ====== -->
-    <section id="screen-guide" class="screen" aria-label="מדריך שימוש ראשון">
-      <header class="guide-header">
-        <div class="guide-progress">
-          <div class="guide-progress-fill" id="guide-progress-fill"></div>
-        </div>
-        <button type="button" class="guide-skip" id="guide-skip-btn">דלג</button>
-      </header>
-
-      <div class="guide-stage" id="guide-stage">
-
-        <!-- צעד 1: ברוכים הבאים -->
-        <article class="guide-step active" data-step="1">
-          <div class="guide-illustration">🛒</div>
-          <h2 class="guide-title">ברוכים הבאים ל-RunPrice</h2>
-          <p class="guide-text">
-            רשימת הקניות החכמה שמשווה לך מחירים בזמן אמת בין
-            <strong>5 רשתות שיווק</strong> ועוזרת לך לחסוך בכל קנייה.
-          </p>
-        </article>
-
-        <!-- צעד 2: הוספת מוצרים -->
-        <article class="guide-step" data-step="2">
-          <div class="guide-illustration">✍️</div>
-          <h2 class="guide-title">הוסיפו מוצרים בקלות</h2>
-          <p class="guide-text">
-            כתבו את שם המוצר בתיבת ההקלדה למטה. בזמן ההקלדה
-            <strong>נציע לכם השלמות מהירות</strong> של מוצרים פופולריים.
-          </p>
-          <div class="guide-demo">
-            <div class="guide-demo-icon">🥛</div>
-            <span>חלב 3% — תנובה</span>
-          </div>
-        </article>
-
-        <!-- צעד 3: סריקת ברקוד -->
-        <article class="guide-step" data-step="3">
-          <div class="guide-illustration">📷</div>
-          <h2 class="guide-title">סריקת ברקוד מהירה</h2>
-          <p class="guide-text">
-            לחצו על אייקון המצלמה והפנו אותה לברקוד של המוצר.
-            המוצר <strong>יתווסף אוטומטית</strong> לרשימה.
-          </p>
-        </article>
-
-        <!-- צעד 4: הוספה קולית -->
-        <article class="guide-step" data-step="4">
-          <div class="guide-illustration">🎤</div>
-          <h2 class="guide-title">הוספה בקול</h2>
-          <p class="guide-text">
-            לחצו על אייקון המיקרופון ותגידו מה אתם צריכים.
-            למשל: <strong>"חצי קילו עגבניות"</strong>.
-          </p>
-        </article>
-
-        <!-- צעד 5: עריכת כמות ומשקל -->
-        <article class="guide-step" data-step="5">
-          <div class="guide-illustration">⚖️</div>
-          <h2 class="guide-title">עריכת כמות ומשקל</h2>
-          <p class="guide-text">
-            לחיצה על מוצר ברשימה מאפשרת לשנות כמות, משקל או יחידות.
-            למוצרים שנמכרים במשקל — <strong>נשתמש בממוצע השוק הישראלי</strong>.
-          </p>
-        </article>
-
-        <!-- צעד 6: חישוב הסל -->
-        <article class="guide-step" data-step="6">
-          <div class="guide-illustration">💰</div>
-          <h2 class="guide-title">חשבו את מחיר הסל</h2>
-          <p class="guide-text">
-            לחיצה על <strong>"חשב סל"</strong> תראה לכם את המחיר הכולל
-            ברמי לוי, שופרסל, ויקטורי, יוחננוף ויינות ביתן — כדי לבחור הכי משתלם.
-          </p>
-        </article>
-
-        <!-- צעד 7: היסטוריה וחיסכון -->
-        <article class="guide-step" data-step="7">
-          <div class="guide-illustration">📊</div>
-          <h2 class="guide-title">היסטוריה וחיסכון</h2>
-          <p class="guide-text">
-            כל קנייה נשמרת בהיסטוריה. תוכלו לראות
-            <strong>גרף חודשי של ההוצאות</strong> וכמה חסכתם בזכות RunPrice.
-          </p>
-        </article>
-
-        <!-- צעד 8: סיום + פרימיום -->
-        <article class="guide-step" data-step="8">
-          <div class="guide-illustration">✨</div>
-          <h2 class="guide-title">מוכנים להתחיל!</h2>
-          <p class="guide-text">
-            יש גם <strong>גרסת פרימיום</strong> עם עלות נסיעה, סריקת קבלות
-            מהמכולת השכונתית, וזיהוי מבצעים. תוכלו לבדוק בכל זמן בתפריט.
-          </p>
-        </article>
-
-      </div>
-
-      <footer class="guide-footer">
-        <button type="button" class="guide-nav guide-back" id="guide-back-btn" disabled>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-          <span>חזור</span>
-        </button>
-
-        <button type="button" class="guide-nav guide-next" id="guide-next-btn">
-          <span id="guide-next-label">הבא</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
-      </footer>
-    </section>
-
-    <!-- ====== מסך ראשי — רשימת הקניות ====== -->
-    <section id="screen-main" class="screen" aria-label="רשימת קניות">
-      <header id="main-header">
-        <!-- נטען דינמית מ-main-ui.js -->
-      </header>
-      <main id="main-content">
-        <!-- רשימת הקניות נטענת דינמית -->
-      </main>
-      <nav id="main-bottom-nav">
-        <!-- תיבת הקלדה + כפתורי מצלמה ומיקרופון -->
-      </nav>
-    </section>
-
-    <!-- ====== מסך היסטוריה ====== -->
-    <section id="screen-history" class="screen" aria-label="היסטוריית קניות">
-      <!-- נטען דינמית מ-history.js -->
-    </section>
-
+    <section id="screen-auth" class="screen" aria-label="כניסה"></section>
+    <section id="screen-main" class="screen" aria-label="רשימת קניות"></section>
   </div>
 
-  <!-- ============================================================
-       Modals Container — כל המודלים נטענים לכאן דינמית
-       ============================================================ -->
-  <div id="modals-root"></div>
-
-  <!-- ============================================================
-       Global error handlers — לתפוס שגיאות טעינה ולהציג אותן
-       (אחרת המשתמש רואה רק splash תקוע)
-       ============================================================ -->
+  <!-- Boot error capture (לפני שום קוד אחר) -->
   <script>
     window.__bootErrors = [];
     function showBootError(msg) {
@@ -354,8 +471,7 @@
       }
     }
     window.addEventListener('error', function (e) {
-      // לא מציג שגיאות רגילות של רינדור — רק שגיאות סקריפט
-      if (e.filename && (e.filename.indexOf('.js') !== -1)) {
+      if (e.filename && e.filename.indexOf('.js') !== -1) {
         showBootError('Script error: ' + e.message + '\nFile: ' + e.filename + ':' + e.lineno);
       }
     });
@@ -364,41 +480,23 @@
     });
   </script>
 
-  <!-- ============================================================
-       guide.js — סקריפט קלאסי (חושף window.Guide)
-       חייב להיטען לפני app.js
-       ============================================================ -->
-  <script src="js/guide.js?v=5" defer></script>
-
-  <!-- ============================================================
-       app.js — נקודת הכניסה. ES Module.
-       מייבא אוטומטית את כל היתר (config, state, auth, main-ui, ...)
-       ============================================================ -->
+  <!-- App entry point — ES module -->
   <script type="module" src="js/app.js?v=5"></script>
 
-  <!-- ============================================================
-       הסתרת Splash כשהאפליקציה מוכנה
-       (app.js שולח את האירוע 'app:ready' בסיום האתחול)
-       ============================================================ -->
+  <!-- Hide splash on app:ready (with 5s safety net) -->
   <script>
     window.addEventListener('app:ready', function () {
       var splash = document.getElementById('splash-screen');
       if (splash) splash.classList.add('hidden');
     });
-    // רשת ביטחון: אם משהו נתקע, נסתיר אחרי 5 שניות בכל מקרה
     setTimeout(function () {
       var splash = document.getElementById('splash-screen');
       if (splash && !splash.classList.contains('hidden')) {
-        console.warn('[boot] app:ready never fired — hiding splash anyway');
+        console.warn('[boot] app:ready did not fire — hiding splash');
         splash.classList.add('hidden');
       }
     }, 5000);
   </script>
-
-  <!-- ============================================================
-       Service Worker — מבוטל בינתיים (sw.js לא קיים בריפו)
-       כשנוסיף תמיכת offline נחזיר את הרישום
-       ============================================================ -->
 
 </body>
 </html>
