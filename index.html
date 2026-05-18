@@ -377,16 +377,28 @@
   <script type="module" src="js/app.js?v=5"></script>
 
   <!-- ============================================================
-       Service Worker — לאופליין
+       הסתרת Splash כשהאפליקציה מוכנה
+       (app.js שולח את האירוע 'app:ready' בסיום האתחול)
        ============================================================ -->
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function () {
-        navigator.serviceWorker.register('sw.js')
-          .catch(function (err) { console.warn('SW registration failed:', err); });
-      });
-    }
+    window.addEventListener('app:ready', function () {
+      var splash = document.getElementById('splash-screen');
+      if (splash) splash.classList.add('hidden');
+    });
+    // רשת ביטחון: אם משהו נתקע, נסתיר אחרי 5 שניות בכל מקרה
+    setTimeout(function () {
+      var splash = document.getElementById('splash-screen');
+      if (splash && !splash.classList.contains('hidden')) {
+        console.warn('[boot] app:ready never fired — hiding splash anyway');
+        splash.classList.add('hidden');
+      }
+    }, 5000);
   </script>
+
+  <!-- ============================================================
+       Service Worker — מבוטל בינתיים (sw.js לא קיים בריפו)
+       כשנוסיף תמיכת offline נחזיר את הרישום
+       ============================================================ -->
 
 </body>
 </html>
