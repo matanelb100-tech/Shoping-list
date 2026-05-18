@@ -1,15 +1,18 @@
 /**
  * ============================================================================
- * app.js - האתחול הראשי של האפליקציה
+ * app.js - האתחול הראשי של האפליקציה (v3 — שילוב Guide)
  * ============================================================================
  *
  * זה הקובץ הראשון שרץ. תפקידו:
- *   1. לאתחל Firebase
+ *   1. לאתחל Firebase + לחשוף ל-window (לשימוש מודולים שאינם ES modules)
  *   2. לטעון את המודולים הנדרשים
- *   3. לנתב בין מסכים (login / main / history)
- *   4. להאזין לארועי מערכת (online/offline, auth changes)
+ *   3. לנתב בין מסכים (auth → guide → main → history)
+ *   4. להאזין לארועי מערכת (online/offline, auth changes, guide:completed)
  *
- * כל קובץ חדש שיתווסף - יתחבר כאן.
+ * שינויים בגרסה זו:
+ *   - חשיפת window.firebaseAuth / window.firebaseDb (תלות של guide.js)
+ *   - שילוב Guide.shouldShow() ב-handleAuthStateChanged
+ *   - האזנה לאירוע 'guide:completed' להמשך למסך הראשי
  * ============================================================================
  */
 
@@ -51,6 +54,10 @@ async function initFirebase() {
     firebaseAuth = getAuth(firebaseApp);
     firebaseFirestore = getFirestore(firebaseApp);
 
+    // ⭐ חשיפה ל-window — נדרש עבור מודולים שאינם ES modules (guide.js וכו')
+    window.firebaseAuth = firebaseAuth;
+    window.firebaseDb = firebaseFirestore;
+
     // הגדר התמשכות התחברות (משתמש יישאר מחובר עד שייצא)
     const { setPersistence, browserLocalPersistence } = await import(
       'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'
@@ -87,12 +94,43 @@ async function handleAuthStateChanged(user) {
     } catch (err) {
       console.error('State init failed:', err);
     }
-    showMainScreen();
+
+    // ⭐ החלטה: מדריך או ישר למסך הראשי?
+    const showGuide = await shouldShowGuide();
+    if (showGuide) {
+      console.log('📖 מציג מדריך למשתמש חדש');
+      // ודא ש-Guide מאותחל (אם guide.js נטען לפני שה-DOM היה מוכן)
+      if (window.Guide && typeof window.Guide.init === 'function') {
+        window.Guide.init();
+      }
+      window.Guide.start();
+    } else {
+      showMainScreen();
+    }
+
   } else {
     // משתמש לא מחובר - ניקוי state
     console.log('🚪 לא מחובר');
     await State.cleanup();
     showAuthScreen();
+  }
+}
+
+
+/**
+ * עטיפה בטוחה ל-Guide.shouldShow().
+ * אם guide.js לא נטען או נכשל — מחזיר false (לא מציג מדריך).
+ */
+async function shouldShowGuide() {
+  try {
+    if (!window.Guide || typeof window.Guide.shouldShow !== 'function') {
+      console.warn('[app] Guide module not loaded — skipping');
+      return false;
+    }
+    return await window.Guide.shouldShow();
+  } catch (err) {
+    console.warn('[app] shouldShowGuide failed:', err);
+    return false;
   }
 }
 
@@ -105,6 +143,16 @@ window.addEventListener('auth:success', (e) => {
   console.log('✅ התחברות הצליחה:', e.detail.email);
   showToast(`שלום ${e.detail.email.split('@')[0]}!`, 'success');
   // השאר - handleAuthStateChanged יתפוס את זה אוטומטית
+});
+
+
+// ============================================================================
+// ⭐ ארוע סיום המדריך (נשלח מ-guide.js)
+// ============================================================================
+
+window.addEventListener('guide:completed', () => {
+  console.log('📖 מדריך הושלם — עובר למסך הראשי');
+  showMainScreen();
 });
 
 
@@ -275,6 +323,24 @@ if (window.location.hostname === 'localhost' ||
     get firestore() { return firebaseFirestore; },
     version: APP_VERSION,
     signOut: handleLogout,
+    // עזרי דיבוג למדריך:
+    resetGuide: async () => {
+      try { localStorage.removeItem('runprice.guide.completed'); } catch (e) {}
+      if (currentUser && firebaseFirestore) {
+        try {
+          const { doc, deleteDoc } = await import(
+            'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'
+          );
+          await deleteDoc(doc(firebaseFirestore, 'users', currentUser.uid, 'preferences', 'onboarding'));
+          console.log('✅ Guide reset — רענן את הדף');
+        } catch (err) {
+          console.warn('Failed to reset Firestore guide flag:', err);
+        }
+      }
+    },
+    showGuide: () => {
+      if (window.Guide) window.Guide.start();
+    }
   };
-  console.log('%c💡 טיפ: הקלד __app ב-console כדי לראות את מצב האפליקציה', 'color: #7BC4E2');
+  console.log('%c💡 טיפים: __app.resetGuide() לאיפוס המדריך, __app.showGuide() להצגה מיידית', 'color: #7BC4E2');
 }
